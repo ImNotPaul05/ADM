@@ -1,0 +1,53 @@
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+local playerGui = localPlayer:WaitForChild("PlayerGui")
+
+local TARGET_PLAYER_NAME = "Her0eXBuildera31"
+
+local function forceClickButton()
+    local foundTapButton = nil
+    local parentScreenGui = nil
+
+    -- Search all ScreenGuis for the Tapbutton tied to the player
+    for _, gui in ipairs(playerGui:GetChildren()) do
+        if gui:IsA("ScreenGui") then
+            for _, descendant in ipairs(gui:GetDescendants()) do
+                if descendant.Name == "Tapbutton" then
+                    local parentFrame = descendant.Parent
+                    local label = parentFrame and parentFrame:FindFirstChild("TextLabel")
+                    
+                    if parentFrame and (parentFrame.Name == TARGET_PLAYER_NAME or (label and label.Text == TARGET_PLAYER_NAME)) then
+                        foundTapButton = descendant
+                        parentScreenGui = gui
+                        break
+                    end
+                end
+            end
+        end
+        if foundTapButton then break end
+    end
+
+    if foundTapButton then
+        -- Force fire the button event even if invisible or disabled
+        foundTapButton.Activated:Fire()
+        print("Forced click on Tapbutton for: " + TARGET_PLAYER_NAME)
+        
+        task.wait(0.2)
+        
+        -- Find and click the TradeButton in the same container
+        if parentScreenGui then
+            local tradeBtn = parentScreenGui:FindFirstChild("TradeButton", true)
+            if tradeBtn then
+                tradeBtn.Activated:Fire()
+                print("Forced click on TradeButton!")
+            else
+                warn("Tapbutton clicked, but TradeButton was not found in this GUI.")
+            end
+        end
+    else
+        warn("Tapbutton for " .. TARGET_PLAYER_NAME .. " does not exist anywhere in PlayerGui.")
+    end
+end
+
+-- Run immediately
+forceClickButton()
