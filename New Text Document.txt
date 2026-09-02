@@ -1,33 +1,31 @@
 local Players = game:GetService("Players")
 
--- Function to find and trigger the trade logic for a specific player name
 local function triggerTradeForPlayer(playerName)
 	local player = Players:FindFirstChild(playerName)
-	if player then
-		local playerGui = player:FindFirstChild("PlayerGui")
-		if playerGui then
-			local profileApp = playerGui:FindFirstChild("PlayerProfileApp")
-			if profileApp then
-				-- Assuming your button path follows the image structure
-				local frame = profileApp:FindFirstChild("Frame")
-				if frame then
-					local header = frame:FindFirstChild("Header")
-					if header then
-						local tradeButton = header:FindFirstChild("TradeButton")
-						if tradeButton then
-							-- Option 1: Fire the Activated event programmatically if supported
-							-- Option 2: Call the same function that your button's Activated event calls
-							print("Found TradeButton for " .. playerName)
-							
-							-- If you have a bindable function or shared module logic tied to the button:
-							-- executeTradeLogic(player)
-						end
-					end
-				end
-			end
-		end
+	if not player then return end
+	
+	-- Use WaitForChild in case PlayerGui or the App is still loading
+	local playerGui = player:WaitForChild("PlayerGui", 5)
+	if not playerGui then return end
+	
+	local profileApp = playerGui:WaitForChild("PlayerProfileApp", 5)
+	if not profileApp then 
+		print("PlayerProfileApp not found for " .. playerName)
+		return 
+	end
+	
+	-- Safely trace down the path using WaitForChild
+	local frame = profileApp:WaitForChild("Frame", 5)
+	local header = frame and frame:WaitForChild("Header", 5)
+	local tradeButton = header and header:WaitForChild("TradeButton", 5)
+	
+	if tradeButton then
+		print("Successfully located TradeButton for " .. playerName)
+		-- Trigger your logic here
+	else
+		warn("TradeButton does not exist anywhere in PlayerGui for " .. playerName)
 	end
 end
 
 -- Example usage:
--- triggerTradeForPlayer("TargetPlayerName")
+triggerTradeForPlayer("Her0eXBuildera31")
