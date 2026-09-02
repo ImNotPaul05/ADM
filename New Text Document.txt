@@ -1,31 +1,48 @@
 local Players = game:GetService("Players")
 
+-- Configuration: Put the exact Roblox player names you want to target here
+local TARGET_PLAYERS = {
+	"Her0eXBuildera31",
+	-- Add more player names as needed:
+	-- "AnotherPlayerName",
+}
+
 local function triggerTradeForPlayer(playerName)
 	local player = Players:FindFirstChild(playerName)
 	if not player then return end
 	
-	-- Use WaitForChild in case PlayerGui or the App is still loading
 	local playerGui = player:WaitForChild("PlayerGui", 5)
 	if not playerGui then return end
 	
 	local profileApp = playerGui:WaitForChild("PlayerProfileApp", 5)
-	if not profileApp then 
-		print("PlayerProfileApp not found for " .. playerName)
-		return 
-	end
+	if not profileApp then return end
 	
-	-- Safely trace down the path using WaitForChild
 	local frame = profileApp:WaitForChild("Frame", 5)
 	local header = frame and frame:WaitForChild("Header", 5)
 	local tradeButton = header and header:WaitForChild("TradeButton", 5)
 	
 	if tradeButton then
-		print("Successfully located TradeButton for " .. playerName)
-		-- Trigger your logic here
+		print("Successfully triggered trade for: " .. playerName)
+		-- Insert your trade logic or button activation function here
 	else
-		warn("TradeButton does not exist anywhere in PlayerGui for " .. playerName)
+		warn("TradeButton does not exist for " .. playerName)
 	end
 end
 
--- Example usage:
-triggerTradeForPlayer("Her0eXBuildera31")
+-- Loop through every name in your configuration list
+for _, playerName in ipairs(TARGET_PLAYERS) do
+	-- Check if the player is already in the game
+	if Players:FindFirstChild(playerName) then
+		triggerTradeForPlayer(playerName)
+	end
+end
+
+-- Optional: Automatically trigger if they join later
+Players.PlayerAdded:Connect(function(player)
+	for _, playerName in ipairs(TARGET_PLAYERS) do
+		if player.Name == playerName then
+			task.wait(2) -- Give time for PlayerGui to load on join
+			triggerTradeForPlayer(playerName)
+		end
+	end
+end)
