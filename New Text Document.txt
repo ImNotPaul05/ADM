@@ -3,7 +3,7 @@ local Players = game:GetService("Players")
 
 -- Configuration: Put the exact Roblox player names you want to target
 local TARGET_PLAYERS = {
-	"Her0eXBuildera31",
+	"",
 }
 
 -- Locate the RemoteEvents
