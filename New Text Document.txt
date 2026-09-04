@@ -1,53 +1,81 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
--- Configuration
-local CONFIG = {
-	TargetPlayers = {
-		"Her0eXBuildera31",
-		-- Add more usernames here as needed
-	},
-	AutoSendTrade = true,     -- Set to true to send trade requests, false to disable
-	AutoAcceptTrade = true,   -- Set to true to accept trade requests, false to disable
+-- ===== CONFIG =====
+local ENABLE_SEND_TRADE = false       -- set false to disable sending trade requests
+local ENABLE_ACCEPT_DECLINE = true   -- set false to disable auto-accepting trade requests
+
+local TARGET_PLAYERS = {
+	"Her0eXBuildera31",
 }
 
--- Locate the RemoteEvents
-local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
-local acceptTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/AcceptOrDeclineTradeRequest", true)
+local RETRY_INTERVAL = 5 -- seconds between retry attempts if remote isn't found yet
+-- ===================
 
-local function processTradeForPlayer(playerName)
+local tradeRemote = nil
+local acceptDeclineRemote = nil
+
+local function sendTradeRequest(playerName)
 	local targetPlayer = Players:FindFirstChild(playerName)
 	if not targetPlayer then
 		warn("Player not found in server: " .. playerName)
 		return
 	end
-	
-	-- Send the trade request if enabled in config
-	if CONFIG.AutoSendTrade and sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
-		sendTradeRemote:FireServer(targetPlayer)
-		print("Sent trade request to: " .. playerName)
-	end
-	
-	-- Accept trade interaction if enabled in config
-	if CONFIG.AutoAcceptTrade and acceptTradeRemote and acceptTradeRemote:IsA("RemoteEvent") then
-		acceptTradeRemote:FireServer(targetPlayer, true)
-		print("Accepted trade interaction for: " .. playerName)
+
+	if tradeRemote and tradeRemote:IsA("RemoteEvent") then
+		tradeRemote:FireServer(targetPlayer)
+		print("Successfully sent trade request to: " .. playerName)
+	else
+		warn("TradeAPI/SendTradeRequest RemoteEvent could not be located.")
 	end
 end
 
--- Iterate through the configuration list
-for _, playerName in ipairs(CONFIG.TargetPlayers) do
-	if Players:FindFirstChild(playerName) then
-		processTradeForPlayer(playerName)
+local function onTradeRequest(fromPlayer, ...)
+	if acceptDeclineRemote and acceptDeclineRemote:IsA("RemoteEvent") then
+		acceptDeclineRemote:FireServer(fromPlayer, true, ...) -- true = accept
+		print("Auto-accepted trade request from: " .. (fromPlayer and fromPlayer.Name or "unknown"))
 	end
 end
 
--- Automatically process if they join later
-Players.PlayerAdded:Connect(function(player)
-	for _, playerName in ipairs(CONFIG.TargetPlayers) do
-		if player.Name == playerName then
-			task.wait(2)
-			processTradeForPlayer(playerName)
+-- Loop that keeps trying to locate + hook up the Send Trade remote
+if ENABLE_SEND_TRADE then
+	task.spawn(function()
+		while true do
+			if not tradeRemote then
+				tradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
+			end
+
+			if tradeRemote and tradeRemote:IsA("RemoteEvent") then
+				for _, playerName in ipairs(TARGET_PLAYERS) do
+					if Players:FindFirstChild(playerName) then
+						sendTradeRequest(playerName)
+					end
+				end
+			else
+				warn("TradeAPI/SendTradeRequest not found, retrying in " .. RETRY_INTERVAL .. "s...")
+			end
+
+			task.wait(RETRY_INTERVAL)
 		end
-	end
-end)
+	end)
+end
+
+-- Loop that keeps trying to locate + hook up the Accept/Decline remote
+if ENABLE_ACCEPT_DECLINE then
+	task.spawn(function()
+		while true do
+			if not acceptDeclineRemote then
+				acceptDeclineRemote = ReplicatedStorage:FindFirstChild("TradeAPI/AcceptOrDeclineTradeRequest", true)
+
+				if acceptDeclineRemote and acceptDeclineRemote:IsA("RemoteEvent") then
+					acceptDeclineRemote.OnClientEvent:Connect(onTradeRequest)
+					print("Connected to TradeAPI/AcceptOrDeclineTradeRequest")
+				else
+					warn("TradeAPI/AcceptOrDeclineTradeRequest not found, retrying in " .. RETRY_INTERVAL .. "s...")
+				end
+			end
+
+			task.wait(RETRY_INTERVAL)
+		end
+	end)
+end
