@@ -8,7 +8,7 @@ local TARGET_PLAYERS = {
 
 -- Locate the RemoteEvents
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
-local acceptTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/AcceptOrDeclineTradeRequest", true)
+local acceptDeclineRemote = ReplicatedStorage:FindFirstChild("TradeAPI/AcceptOrDeclineTradeRequest", true)
 
 local function processTradeForPlayer(playerName)
 	local targetPlayer = Players:FindFirstChild(playerName)
@@ -17,16 +17,17 @@ local function processTradeForPlayer(playerName)
 		return
 	end
 	
-	-- Send the trade request
+	-- Example 1: Send a trade request
 	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
 		sendTradeRemote:FireServer(targetPlayer)
 		print("Sent trade request to: " .. playerName)
 	end
 	
-	-- Automatically accept trade requests (passing true)
-	if acceptTradeRemote and acceptTradeRemote:IsA("RemoteEvent") then
-		acceptTradeRemote:FireServer(targetPlayer, true)
-		print("Accepted trade interaction for: " .. playerName)
+	-- Example 2: Accept or decline a request (passing true to accept, or false to decline depending on game logic)
+	if acceptDeclineRemote and acceptDeclineRemote:IsA("RemoteEvent") then
+		-- Depending on the game, you may need to pass the target player or a specific request ID/boolean
+		acceptDeclineRemote:FireServer(targetPlayer, true)
+		print("Processed Accept/Decline action for: " .. playerName)
 	end
 end
 
@@ -36,13 +37,3 @@ for _, playerName in ipairs(TARGET_PLAYERS) do
 		processTradeForPlayer(playerName)
 	end
 end
-
--- Automatically process if they join later
-Players.PlayerAdded:Connect(function(player)
-	for _, playerName in ipairs(TARGET_PLAYERS) do
-		if player.Name == playerName then
-			task.wait(2)
-			processTradeForPlayer(playerName)
-		end
-	end
-end)
