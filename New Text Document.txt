@@ -1,62 +1,54 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- =========================
--- CONFIG
--- =========================
 local CONFIG = {
-    ENABLE_SEND_TRADE = false,
-    ENABLE_ACCEPT_TRADE = true,
+    AcceptNegotiation = true,
+    AcceptOrDeclineTradeRequest = true,
+    AcceptDeclineAdopt = true,
 }
 
--- =========================
--- REMOTES
--- =========================
-local sendTradeRemote = ReplicatedStorage:FindFirstChild(
-    "TradeAPI/SendTradeRequest",
-    true
-)
+local AcceptNegotiation =
+    ReplicatedStorage:FindFirstChild("TradeAPI/AcceptNegotiation", true)
 
-local acceptDeclineRemote = ReplicatedStorage:FindFirstChild(
-    "AdoptAPI/AcceptDeclineAdopt",
-    true
-)
+local AcceptOrDeclineTradeRequest =
+    ReplicatedStorage:FindFirstChild("TradeAPI/AcceptOrDeclineTradeRequest", true)
 
--- =========================
--- SEND TRADE
--- =========================
--- Keep your existing target list here if you still want
--- to choose who receives your trade requests.
-local TARGET_PLAYERS = {
-    "Her0eXBuildera31",
-}
+local AcceptDeclineAdopt =
+    ReplicatedStorage:FindFirstChild("AdoptAPI/AcceptDeclineAdopt", true)
 
-if CONFIG.ENABLE_SEND_TRADE then
-    if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
-        for _, playerName in ipairs(TARGET_PLAYERS) do
-            local targetPlayer = game.Players:FindFirstChild(playerName)
 
-            if targetPlayer then
-                sendTradeRemote:FireServer(targetPlayer)
-                print("Trade request sent to: " .. playerName)
-            else
-                warn("Player not found: " .. playerName)
-            end
+if AcceptNegotiation and AcceptNegotiation:IsA("RemoteEvent") then
+    AcceptNegotiation.OnServerEvent:Connect(function(player, ...)
+        if not CONFIG.AcceptNegotiation then
+            return
         end
-    else
-        warn("TradeAPI/SendTradeRequest RemoteEvent not found.")
-    end
+
+        -- Accept negotiation for this player.
+        -- Put your game's actual negotiation logic here.
+    end)
 end
 
--- =========================
--- ACCEPT / DECLINE TRADE
--- =========================
--- No target-player check here.
--- Any incoming trade request can be handled.
-if CONFIG.ENABLE_ACCEPT_TRADE then
-    if acceptDeclineRemote and acceptDeclineRemote:IsA("RemoteEvent") then
-        -- Hook this up according to the arguments required
-        -- by your game's AdoptAPI/AcceptDeclineAdopt remote.
-    else
-        warn("AdoptAPI/AcceptDeclineAdopt RemoteEvent not found.")
-    end
+
+if AcceptOrDeclineTradeRequest
+    and AcceptOrDeclineTradeRequest:IsA("RemoteEvent") then
+
+    AcceptOrDeclineTradeRequest.OnServerEvent:Connect(function(player, ...)
+        if not CONFIG.AcceptOrDeclineTradeRequest then
+            return
+        end
+
+        -- Accept the trade request for this player.
+        -- Put your game's actual trade-request logic here.
+    end)
+end
+
+
+if AcceptDeclineAdopt and AcceptDeclineAdopt:IsA("RemoteEvent") then
+    AcceptDeclineAdopt.OnServerEvent:Connect(function(player, ...)
+        if not CONFIG.AcceptDeclineAdopt then
+            return
+        end
+
+        -- Accept the adopt request for this player.
+        -- Put your game's actual adoption logic here.
+    end)
 end
