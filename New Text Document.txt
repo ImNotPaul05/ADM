@@ -2,7 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
 -- ===== CONFIG =====
-local ENABLE_SEND_TRADE = true
+local ENABLE_SEND_TRADE = false
 local ENABLE_ACCEPT_DECLINE = true
 
 local TARGET_PLAYERS = {
