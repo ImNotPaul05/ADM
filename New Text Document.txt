@@ -7,7 +7,7 @@ local CONFIG = {
 		"Her0eXBuildera31",
 		-- Add more usernames here as needed
 	},
-	AutoSendTrade = false,     -- Set to true to send trade requests, false to disable
+	AutoSendTrade = true,     -- Set to true to send trade requests, false to disable
 	AutoAcceptTrade = true,   -- Set to true to accept trade requests, false to disable
 }
 
