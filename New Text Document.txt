@@ -37,10 +37,13 @@ local function onTradeRequest(fromPlayer, ...)
 	end
 end
 
--- Loop that keeps trying to locate + hook up the Send Trade remote
+-- ===== SEND TRADE LOOP =====
 if ENABLE_SEND_TRADE then
+	print("[DEBUG] Send Trade loop starting...")
 	task.spawn(function()
 		while true do
+			print("[DEBUG] Send Trade loop tick")
+
 			if not tradeRemote then
 				tradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 			end
@@ -58,14 +61,27 @@ if ENABLE_SEND_TRADE then
 			task.wait(RETRY_INTERVAL)
 		end
 	end)
+else
+	print("[DEBUG] ENABLE_SEND_TRADE is false, loop not started.")
 end
 
--- Loop that keeps trying to locate + hook up the Accept/Decline remote
+-- ===== ACCEPT/DECLINE LOOP =====
 if ENABLE_ACCEPT_DECLINE then
+	print("[DEBUG] Accept/Decline loop starting...")
 	task.spawn(function()
 		while true do
+			print("[DEBUG] Accept/Decline loop tick") -- confirms the loop is alive
+
 			if not acceptDeclineRemote then
-				acceptDeclineRemote = ReplicatedStorage:FindFirstChild("TradeAPI/AcceptOrDeclineTradeRequest", true)
+				local ok, result = pcall(function()
+					return ReplicatedStorage:FindFirstChild("TradeAPI/AcceptOrDeclineTradeRequest", true)
+				end)
+
+				if not ok then
+					warn("[DEBUG] FindFirstChild errored: " .. tostring(result))
+				else
+					acceptDeclineRemote = result
+				end
 
 				if acceptDeclineRemote and acceptDeclineRemote:IsA("RemoteEvent") then
 					acceptDeclineRemote.OnClientEvent:Connect(onTradeRequest)
@@ -78,4 +94,6 @@ if ENABLE_ACCEPT_DECLINE then
 			task.wait(RETRY_INTERVAL)
 		end
 	end)
+else
+	print("[DEBUG] ENABLE_ACCEPT_DECLINE is false, loop not started.")
 end
