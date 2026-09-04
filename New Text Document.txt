@@ -1,14 +1,19 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
--- Configuration: Put the exact Roblox player names you want to target
-local TARGET_PLAYERS = {
-	"",
+-- Configuration
+local CONFIG = {
+	TargetPlayers = {
+		"Her0eXBuildera31",
+		-- Add more usernames here as needed
+	},
+	AutoSendTrade = false,     -- Set to true to send trade requests, false to disable
+	AutoAcceptTrade = true,   -- Set to true to accept trade requests, false to disable
 }
 
 -- Locate the RemoteEvents
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
-local acceptDeclineRemote = ReplicatedStorage:FindFirstChild("TradeAPI/AcceptOrDeclineTradeRequest", true)
+local acceptTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/AcceptOrDeclineTradeRequest", true)
 
 local function processTradeForPlayer(playerName)
 	local targetPlayer = Players:FindFirstChild(playerName)
@@ -17,23 +22,32 @@ local function processTradeForPlayer(playerName)
 		return
 	end
 	
-	-- Example 1: Send a trade request
-	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
+	-- Send the trade request if enabled in config
+	if CONFIG.AutoSendTrade and sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
 		sendTradeRemote:FireServer(targetPlayer)
 		print("Sent trade request to: " .. playerName)
 	end
 	
-	-- Example 2: Accept or decline a request (passing true to accept, or false to decline depending on game logic)
-	if acceptDeclineRemote and acceptDeclineRemote:IsA("RemoteEvent") then
-		-- Depending on the game, you may need to pass the target player or a specific request ID/boolean
-		acceptDeclineRemote:FireServer(targetPlayer, true)
-		print("Processed Accept/Decline action for: " .. playerName)
+	-- Accept trade interaction if enabled in config
+	if CONFIG.AutoAcceptTrade and acceptTradeRemote and acceptTradeRemote:IsA("RemoteEvent") then
+		acceptTradeRemote:FireServer(targetPlayer, true)
+		print("Accepted trade interaction for: " .. playerName)
 	end
 end
 
 -- Iterate through the configuration list
-for _, playerName in ipairs(TARGET_PLAYERS) do
+for _, playerName in ipairs(CONFIG.TargetPlayers) do
 	if Players:FindFirstChild(playerName) then
 		processTradeForPlayer(playerName)
 	end
 end
+
+-- Automatically process if they join later
+Players.PlayerAdded:Connect(function(player)
+	for _, playerName in ipairs(CONFIG.TargetPlayers) do
+		if player.Name == playerName then
+			task.wait(2)
+			processTradeForPlayer(playerName)
+		end
+	end
+end)
