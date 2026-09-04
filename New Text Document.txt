@@ -2,18 +2,34 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
 -- ===== CONFIG =====
-local ENABLE_SEND_TRADE = false       -- set false to disable sending trade requests
-local ENABLE_ACCEPT_DECLINE = true   -- set false to disable auto-accepting trade requests
+local ENABLE_SEND_TRADE = true
+local ENABLE_ACCEPT_DECLINE = true
 
 local TARGET_PLAYERS = {
 	"Her0eXBuildera31",
 }
 
-local RETRY_INTERVAL = 5 -- seconds between retry attempts if remote isn't found yet
+-- Only these usernames will be auto-accepted. Everyone else is left alone (or declined, see below).
+local TRUSTED_WHITELIST = {
+	"Her0eXBuildera31",
+}
+
+local AUTO_DECLINE_UNTRUSTED = false -- true = auto-decline anyone not on the whitelist, false = ignore them (do nothing, let UI stay up for you to review manually)
+
+local RETRY_INTERVAL = 5
 -- ===================
 
 local tradeRemote = nil
 local acceptDeclineRemote = nil
+
+local function isWhitelisted(playerName)
+	for _, name in ipairs(TRUSTED_WHITELIST) do
+		if string.lower(name) == string.lower(playerName) then
+			return true
+		end
+	end
+	return false
+end
 
 local function sendTradeRequest(playerName)
 	local targetPlayer = Players:FindFirstChild(playerName)
@@ -31,19 +47,31 @@ local function sendTradeRequest(playerName)
 end
 
 local function onTradeRequest(fromPlayer, ...)
-	if acceptDeclineRemote and acceptDeclineRemote:IsA("RemoteEvent") then
-		acceptDeclineRemote:FireServer(fromPlayer, true, ...) -- true = accept
-		print("Auto-accepted trade request from: " .. (fromPlayer and fromPlayer.Name or "unknown"))
+	if not fromPlayer then
+		warn("Trade request received with no fromPlayer argument.")
+		return
+	end
+
+	local playerName = fromPlayer.Name or tostring(fromPlayer)
+
+	if isWhitelisted(playerName) then
+		if acceptDeclineRemote and acceptDeclineRemote:IsA("RemoteEvent") then
+			acceptDeclineRemote:FireServer(fromPlayer, true, ...) -- true = accept
+			print("Auto-accepted trade request from whitelisted player: " .. playerName)
+		end
+	else
+		print("Trade request from non-whitelisted player: " .. playerName .. " (ignored)")
+		if AUTO_DECLINE_UNTRUSTED and acceptDeclineRemote then
+			acceptDeclineRemote:FireServer(fromPlayer, false, ...) -- false = decline
+			print("Auto-declined trade request from: " .. playerName)
+		end
 	end
 end
 
 -- ===== SEND TRADE LOOP =====
 if ENABLE_SEND_TRADE then
-	print("[DEBUG] Send Trade loop starting...")
 	task.spawn(function()
 		while true do
-			print("[DEBUG] Send Trade loop tick")
-
 			if not tradeRemote then
 				tradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 			end
@@ -61,31 +89,18 @@ if ENABLE_SEND_TRADE then
 			task.wait(RETRY_INTERVAL)
 		end
 	end)
-else
-	print("[DEBUG] ENABLE_SEND_TRADE is false, loop not started.")
 end
 
--- ===== ACCEPT/DECLINE LOOP =====
+-- ===== ACCEPT/DECLINE LOOP (whitelist-gated) =====
 if ENABLE_ACCEPT_DECLINE then
-	print("[DEBUG] Accept/Decline loop starting...")
 	task.spawn(function()
 		while true do
-			print("[DEBUG] Accept/Decline loop tick") -- confirms the loop is alive
-
 			if not acceptDeclineRemote then
-				local ok, result = pcall(function()
-					return ReplicatedStorage:FindFirstChild("TradeAPI/AcceptOrDeclineTradeRequest", true)
-				end)
-
-				if not ok then
-					warn("[DEBUG] FindFirstChild errored: " .. tostring(result))
-				else
-					acceptDeclineRemote = result
-				end
+				acceptDeclineRemote = ReplicatedStorage:FindFirstChild("TradeAPI/AcceptOrDeclineTradeRequest", true)
 
 				if acceptDeclineRemote and acceptDeclineRemote:IsA("RemoteEvent") then
 					acceptDeclineRemote.OnClientEvent:Connect(onTradeRequest)
-					print("Connected to TradeAPI/AcceptOrDeclineTradeRequest")
+					print("Connected to TradeAPI/AcceptOrDeclineTradeRequest (whitelist mode)")
 				else
 					warn("TradeAPI/AcceptOrDeclineTradeRequest not found, retrying in " .. RETRY_INTERVAL .. "s...")
 				end
@@ -94,6 +109,4 @@ if ENABLE_ACCEPT_DECLINE then
 			task.wait(RETRY_INTERVAL)
 		end
 	end)
-else
-	print("[DEBUG] ENABLE_ACCEPT_DECLINE is false, loop not started.")
 end
