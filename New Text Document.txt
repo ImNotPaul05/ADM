@@ -3,7 +3,7 @@ local Players = game:GetService("Players")
 
 -- ================= CONFIGURATION =================
 MainAccUsername = {"", ""} -- TradeAPI/SendTradeRequest[cite: 1]
-ForceReceiver = nil -- true or false ("TradeAPI/AcceptOrDeclineTradeRequest")
+ForceReceiver = false -- true or false ("TradeAPI/AcceptOrDeclineTradeRequest")
 -- =================================================
 
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
