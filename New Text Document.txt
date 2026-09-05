@@ -2,8 +2,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
 -- ================= CONFIGURATION =================
-MainAccUsername = {} -- TradeAPI/SendTradeRequest[cite: 1]
-ForceReceiver = nil -- true or false ("TradeAPI/AcceptOrDeclineTradeRequest")
+MainAccUsername = {""} 
+ForceReceiver = true 
 -- =================================================
 
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
@@ -38,8 +38,6 @@ local function acceptTradeForAll()
 
 			if success then
 				print("Successfully processed trade request for: " .. targetPlayer.Name)
-			else
-				warn("Could not process trade for " .. targetPlayer.Name .. ": " .. tostring(err))
 			end
 		end
 	end
@@ -47,9 +45,12 @@ end
 
 task.spawn(function()
 	while true do
-		for _, playerName in ipairs(MainAccUsername) do
-			if Players:FindFirstChild(playerName) then
-				sendTradeRequest(playerName)
+		-- Only loop if names are provided and not empty
+		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
+			for _, playerName in ipairs(MainAccUsername) do
+				if Players:FindFirstChild(playerName) then
+					sendTradeRequest(playerName)
+				end
 			end
 		end
 
