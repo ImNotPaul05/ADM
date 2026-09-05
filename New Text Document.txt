@@ -2,8 +2,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
 -- ================= CONFIGURATION =================
-MainAccUsername = {"Her0eXBuildera31"} -- TradeAPI/SendTradeRequest[cite: 1]
-ForceReceiver = true -- true or false ("TradeAPI/AcceptOrDeclineTradeRequest")
+MainAccUsername = {"", ""} -- TradeAPI/SendTradeRequest[cite: 1]
+ForceReceiver = nil -- true or false ("TradeAPI/AcceptOrDeclineTradeRequest")
 -- =================================================
 
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
