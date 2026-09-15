@@ -3,7 +3,11 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 -- ================= CONFIGURATION =================
+local TARGET_ITEM_NAME = "retired_egg"
 
+-- Replace with your actual target usernames, e.g. {"Her0eXBuildera31"}
+local MainAccUsername = {"Her0eXBuildera31"} 
+local ForceReceiver = false 
 -- =================================================
 
 -- Remotes from to.txt
