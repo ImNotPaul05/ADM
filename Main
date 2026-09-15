@@ -2,6 +2,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
+-- ================= CONFIGURATION =================
+local TARGET_ITEM_NAME = "retired_egg"
+local MAX_ITEMS_TO_ADD = 18
+
+-- Replace with your actual target usernames, e.g. {"Her0eXBuildera31"}
+local MainAccUsername = {"Her0eXBuildera31"} 
+local ForceReceiver = false 
 -- =================================================
 
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
