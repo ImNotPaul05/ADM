@@ -5,16 +5,15 @@ local LocalPlayer = Players.LocalPlayer
 
 -- =================================================
 
--- Remotes from both files
-local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")[cite: 1]
-local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)[cite: 2]
-local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")[cite: 2]
+local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
+local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
+local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 end)
 
-local function getMultipleUniqueIdsByName(itemName, limit)
+local function getUniqueIdsByName(itemName, limit)
 	if not successClientData or not ClientData then
 		return {}
 	end
@@ -36,6 +35,12 @@ local function getMultipleUniqueIdsByName(itemName, limit)
 		end
 	end
 	return uniqueIds
+end
+
+for _, uniqueId in ipairs(getUniqueIdsByName(TARGET_ITEM_NAME, ITEM_LIMIT)) do
+	pcall(function()
+		addItemRemote:FireServer(uniqueId)
+	end)
 end
 
 local function sendTradeRequest(playerName)
@@ -72,18 +77,6 @@ local function acceptTradeForAll()
 	end
 end
 
--- Function to automatically add the configured items to the active trade
-local function addItemsToTrade()
-	local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)[cite: 1]
-
-	for _, uniqueId in ipairs(uniqueIds) do
-		pcall(function()
-			addItemRemote:FireServer(uniqueId)
-		end)
-	end
-end
-
--- Main loop combining trade requests, acceptance conditions, and item adding
 task.spawn(function()
 	while true do
 		-- Only loop if names are provided and not empty
@@ -98,9 +91,6 @@ task.spawn(function()
 		if ForceReceiver then
 			acceptTradeForAll()
 		end
-
-		-- Automatically attempt to populate trade offer with items
-		addItemsToTrade()
 
 		task.wait(0.3)
 	end
