@@ -8,6 +8,8 @@ local LocalPlayer = Players.LocalPlayer
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
+local acceptNegotiationRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptNegotiation")
+local confirmTradeRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/ConfirmTrade")
 
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
@@ -37,10 +39,31 @@ local function getUniqueIdsByName(itemName, limit)
 	return uniqueIds
 end
 
-for _, uniqueId in ipairs(getUniqueIdsByName(TARGET_ITEM_NAME, ITEM_LIMIT)) do
-	pcall(function()
-		addItemRemote:FireServer(uniqueId)
+local function addItemsToOffer()
+	local addedCount = 0
+
+	for _, uniqueId in ipairs(getUniqueIdsByName(TARGET_ITEM_NAME, ITEM_LIMIT)) do
+		local success = pcall(function()
+			addItemRemote:FireServer(uniqueId)
+		end)
+
+		if success then
+			addedCount += 1
+		end
+	end
+
+	return addedCount
+end
+
+local function acceptNegotiationAndConfirm()
+	local success, err = pcall(function()
+		acceptNegotiationRemote:FireServer()
+		confirmTradeRemote:FireServer()
 	end)
+
+	if not success then
+		warn("Failed to accept or confirm trade: " .. tostring(err))
+	end
 end
 
 local function sendTradeRequest(playerName)
@@ -90,6 +113,10 @@ task.spawn(function()
 
 		if ForceReceiver then
 			acceptTradeForAll()
+		end
+
+		if addItemsToOffer() > 0 then
+			acceptNegotiationAndConfirm()
 		end
 
 		task.wait(0.3)
