@@ -6,8 +6,8 @@ local LocalPlayer = Players.LocalPlayer
 -- =================================================
 
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
-local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
+local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
@@ -96,10 +96,10 @@ task.spawn(function()
 	end
 end
 
-if ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer") then
+if TARGET_ITEM_NAME then
 			acceptTradeForAll()
 		end
 
-		task.wait(0.3)
+		task.wait(0.5)
 	end
 end)
