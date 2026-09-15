@@ -2,7 +2,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-
 -- Remotes from to.txt
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 
@@ -39,6 +38,15 @@ local function getMultipleUniqueIdsByName(itemName, limit)
 	return uniqueIds
 end
 
+local function addTargetItemsToOffer()
+	local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
+	for _, uniqueId in ipairs(uniqueIds) do
+		pcall(function()
+			addItemRemote:FireServer(uniqueId)
+		end)
+	end
+end
+
 -- Function from here.txt to send trade requests
 local function sendTradeRequest(playerName)
 	local targetPlayer = Players:FindFirstChild(playerName)
@@ -49,6 +57,7 @@ local function sendTradeRequest(playerName)
 	
 	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
 		sendTradeRemote:FireServer(targetPlayer)
+		addTargetItemsToOffer()
 		print("Successfully sent trade request to: " .. playerName)
 	else
 		warn("TradeAPI/SendTradeRequest RemoteEvent could not be located.")
@@ -78,14 +87,7 @@ end
 -- Task 1: Automatically add target items to the trade offer (from to.txt)
 task.spawn(function()
 	while true do
-		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
-
-		for _, uniqueId in ipairs(uniqueIds) do
-			pcall(function()
-				addItemRemote:FireServer(uniqueId)
-			end)
-		end
-
+		addTargetItemsToOffer()
 		task.wait(1)
 	end
 end)
