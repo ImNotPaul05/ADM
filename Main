@@ -9,7 +9,6 @@ local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequ
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
 
-
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 end)
@@ -97,7 +96,7 @@ task.spawn(function()
 	end
 end
 
-if addItemRemote then
+if ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer") then
 			acceptTradeForAll()
 		end
 
