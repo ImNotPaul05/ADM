@@ -2,8 +2,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- ================= CONFIGURATION =================
-
 -- =================================================
 
 -- Remotes and Functions
@@ -95,22 +93,29 @@ task.spawn(function()
 	end
 end)
 
--- Thread 2: Dedicated loop to fill items, accept negotiation, and lock/confirm the trade
+-- Thread 2: Dedicated loop to add items first, wait for slots to fill, then accept negotiation and confirm trade
 task.spawn(function()
 	while true do
 		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, MAX_ITEMS_TO_ADD)
-		for _, uniqueId in ipairs(uniqueIds) do
+		
+		if #uniqueIds > 0 then
+			-- Step 1: Fire the add item remote for each unique ID found
+			for _, uniqueId in ipairs(uniqueIds) do
+				pcall(function()
+					addItemRemote:FireServer(uniqueId)
+				end)
+			end
+			
+			-- Step 2: Allow buffer time for items to register in the 18 slots before proceeding
+			task.wait(0.6)
+			
+			-- Step 3: Now that items are added, fire negotiation and confirmation
 			pcall(function()
-				addItemRemote:FireServer(uniqueId)
+				acceptNegotiationRemote:FireServer()
+				confirmTradeRemote:FireServer()
 			end)
 		end
 		
-		-- Once items are added, fire negotiation acceptance and trade confirmation
-		pcall(function()
-			acceptNegotiationRemote:FireServer()
-			confirmTradeRemote:FireServer()
-		end)
-		
-		task.wait(0.5)
+		task.wait(1)
 	end
 end)
