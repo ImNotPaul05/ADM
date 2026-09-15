@@ -96,3 +96,11 @@ task.spawn(function()
 		task.wait(0.3)
 	end
 end)
+
+(if addItemRemote then
+			acceptTradeForAll()
+		end
+
+		task.wait(0.3)
+	end
+end)
