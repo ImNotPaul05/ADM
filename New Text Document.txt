@@ -93,29 +93,35 @@ task.spawn(function()
 	end
 end)
 
--- Thread 2: Dedicated loop to add items first, wait for slots to fill, then accept negotiation and confirm trade
+-- Thread 2: Adds items one by one with a wait interval, then confirms
 task.spawn(function()
 	while true do
 		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, MAX_ITEMS_TO_ADD)
 		
 		if #uniqueIds > 0 then
-			-- Step 1: Fire the add item remote for each unique ID found
+			print("Found " .. #uniqueIds .. " items to add. Adding them sequentially...")
+			
+			-- Loop and add items one by one, waiting slightly between each to let the server register it
 			for _, uniqueId in ipairs(uniqueIds) do
 				pcall(function()
 					addItemRemote:FireServer(uniqueId)
 				end)
+				-- Wait for the individual item to process before adding the next one
+				task.wait(0.25)
 			end
 			
-			-- Step 2: Allow buffer time for items to register in the 18 slots before proceeding
-			task.wait(0.6)
+			-- Final buffer check after all items are added
+			task.wait(0.5)
 			
-			-- Step 3: Now that items are added, fire negotiation and confirmation
+			-- Now safely fire negotiation and confirmation
 			pcall(function()
 				acceptNegotiationRemote:FireServer()
 				confirmTradeRemote:FireServer()
 			end)
+			
+			print("Trade offer populated and confirmed.")
 		end
 		
-		task.wait(1)
+		task.wait(2)
 	end
 end)
