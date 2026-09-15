@@ -8,9 +8,6 @@ local LocalPlayer = Players.LocalPlayer
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
-local acceptNegotiationRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptNegotiation")
-local confirmTradeRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/ConfirmTrade")
-local senderTradeInProgress = {}
 
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
@@ -40,15 +37,10 @@ local function getUniqueIdsByName(itemName, limit)
 	return uniqueIds
 end
 
-local function addItemsAndConfirmTrade()
-	for _, uniqueId in ipairs(getUniqueIdsByName(TARGET_ITEM_NAME, ITEM_LIMIT)) do
-		pcall(function()
-			addItemRemote:FireServer(uniqueId)
-		end)
-	end
-
-	acceptNegotiationRemote:FireServer()
-	confirmTradeRemote:FireServer()
+for _, uniqueId in ipairs(getUniqueIdsByName(TARGET_ITEM_NAME, ITEM_LIMIT)) do
+	pcall(function()
+		addItemRemote:FireServer(uniqueId)
+	end)
 end
 
 local function sendTradeRequest(playerName)
@@ -61,16 +53,6 @@ local function sendTradeRequest(playerName)
 	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
 		sendTradeRemote:FireServer(targetPlayer)
 		print("Successfully sent trade request to: " .. playerName)
-
-		if not senderTradeInProgress[playerName] then
-			senderTradeInProgress[playerName] = true
-			task.delay(TRADE_ACCEPT_WAIT, function()
-				addItemsAndConfirmTrade()
-				task.delay(5, function()
-					senderTradeInProgress[playerName] = nil
-				end)
-			end)
-		end
 	else
 		warn("TradeAPI/SendTradeRequest RemoteEvent could not be located.")
 	end
@@ -89,7 +71,6 @@ local function acceptTradeForAll()
 			end)
 
 			if success then
-				addItemsAndConfirmTrade()
 				print("Successfully processed trade request for: " .. targetPlayer.Name)
 			end
 		end
