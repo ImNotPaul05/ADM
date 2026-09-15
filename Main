@@ -97,9 +97,6 @@ task.spawn(function()
 end
 
 if TARGET_ITEM_NAME then
-			acceptTradeForAll()
-		end
-
 		task.wait(0.5)
 	end
 end)
