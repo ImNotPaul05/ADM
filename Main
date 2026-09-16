@@ -111,10 +111,8 @@ local ConfirmTrade = API:WaitForChild("TradeAPI/ConfirmTrade")
 
 local function RunTradeAutomation()
     while true do
-		if ForceReceiver then
-			AcceptNeg:FireServer()
-			ConfirmTrade:FireServer()
-		end
+        AcceptNeg:FireServer()
+        ConfirmTrade:FireServer()
         task.wait(1) -- Wait 1 second before the next loop
     end
 end
