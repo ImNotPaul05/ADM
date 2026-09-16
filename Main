@@ -2,10 +2,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
+
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
-
 
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
@@ -69,6 +69,7 @@ local function getMultipleUniqueIdsByName(itemName, limit)
 	return uniqueIds
 end
 
+-- Single execution without the loop
 while true do
 	local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
 
@@ -79,7 +80,7 @@ while true do
 	end
 
 	-- Adjust the delay (in seconds) between each loop cycle as needed
-	task.wait(1) 
+	task.wait(MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" and 0.3 or 1) 
 end
 
 task.spawn(function()
