@@ -1,13 +1,36 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+
 local LocalPlayer = Players.LocalPlayer
+if not LocalPlayer then
+	while not Players.LocalPlayer do
+		task.wait()
+	end
+	LocalPlayer = Players.LocalPlayer
+end
 
 
 -- =================================================
 
-local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
-local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
-local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
+local function getNestedInstance(parent, ...) 
+	local current = parent
+	for _, childName in ipairs({ ... }) do
+		if not current then
+			return nil
+		end
+		current = current:FindFirstChild(childName)
+	end
+	return current
+end
+
+local apiFolder = ReplicatedStorage:FindFirstChild("API")
+local tradeFolder = apiFolder and apiFolder:FindFirstChild("TradeAPI")
+local sendTradeRemote = tradeFolder and tradeFolder:FindFirstChild("SendTradeRequest")
+	or ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
+local tradeFunction = tradeFolder and tradeFolder:FindFirstChild("AcceptOrDeclineTradeRequest")
+	or ReplicatedStorage:FindFirstChild("TradeAPI/AcceptOrDeclineTradeRequest", true)
+local addItemRemote = tradeFolder and tradeFolder:FindFirstChild("AddItemToOffer")
+	or ReplicatedStorage:FindFirstChild("TradeAPI/AddItemToOffer", true)
 
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
@@ -38,7 +61,7 @@ local function getMultipleUniqueIdsByName(itemName, limit)
 end
 
 local function addPetToOffer()
-	if not ADDPET_ENABLED then
+	if not ADDPET_ENABLED or not addItemRemote then
 		return
 	end
 
@@ -66,8 +89,12 @@ local function sendTradeRequest(playerName)
 end
 
 local function acceptTradeForAll()
+	if not tradeFunction then
+		return
+	end
+
 	for _, targetPlayer in ipairs(Players:GetPlayers()) do
-		if targetPlayer ~= Players.LocalPlayer then
+		if targetPlayer ~= LocalPlayer then
 			local args = {
 				targetPlayer,
 				true
