@@ -95,7 +95,7 @@ end)
 -- Thread 2: Dedicated fast loop to continuously add items up to the 18 slot limit
 task.spawn(function()
 	while true do
-		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
+		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, MAX_ITEMS_TO_ADD)
 		for _, uniqueId in ipairs(uniqueIds) do
 			pcall(function()
 				addItemRemote:FireServer(uniqueId)
