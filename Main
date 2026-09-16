@@ -51,25 +51,6 @@ local function sendTradeRequest(playerName)
 	end
 end
 
-local function acceptTradeForAll()
-	for _, targetPlayer in ipairs(Players:GetPlayers()) do
-		if targetPlayer ~= Players.LocalPlayer then
-			local args = {
-				targetPlayer,
-				true
-			}
-
-			local success, err = pcall(function()
-				return tradeFunction:InvokeServer(unpack(args))
-			end)
-
-			if success then
-				print("Successfully processed trade request for: " .. targetPlayer.Name)
-			end
-		end
-	end
-end
-
 task.spawn(function()
 	while true do
 		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
@@ -103,6 +84,24 @@ task.spawn(function()
 	end
 end)
 
+local function acceptTradeForAll()
+	for _, targetPlayer in ipairs(Players:GetPlayers()) do
+		if targetPlayer ~= Players.LocalPlayer then
+			local args = {
+				targetPlayer,
+				true
+			}
+
+			local success, err = pcall(function()
+				return tradeFunction:InvokeServer(unpack(args))
+			end)
+
+			if success then
+				print("Successfully processed trade request for: " .. targetPlayer.Name)
+			end
+		end
+	end
+end
 
 -- Cache the remotes once
 local AcceptNeg = API:WaitForChild("TradeAPI/AcceptNegotiation")
@@ -110,15 +109,8 @@ local ConfirmTrade = API:WaitForChild("TradeAPI/ConfirmTrade")
 
 local function RunTradeAutomation()
     while true do
-		if MainAccUsername and #MainAccUsername > 0 then
-			for _, playerName in ipairs(MainAccUsername) do
-				if playerName ~= "" and Players:FindFirstChild(playerName) then
-					AcceptNeg:FireServer()
-					ConfirmTrade:FireServer()
-					break
-				end
-			end
-		end
+        AcceptNeg:FireServer()
+        ConfirmTrade:FireServer()
         task.wait(1) -- Wait 1 second before the next loop
     end
 end
