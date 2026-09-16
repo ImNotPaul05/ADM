@@ -91,11 +91,14 @@ local function AcceptNegotiationLoop()
         task.wait(1)
 end
 
+-- Start the loop
+task.spawn(AcceptNegotiationLoop)
+
 local function ConfirmTrade()
     while true do
         game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TradeAPI/ConfirmTrade"):FireServer()
         task.wait(1)
 end
 
-task.spawn(AcceptNegotiationLoop)
+-- Start the loop
 task.spawn(ConfirmTrade)
