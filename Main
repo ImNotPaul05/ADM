@@ -71,14 +71,21 @@ end
 
 task.spawn(function()
 	while true do
-		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
-		
-		for _, uniqueId in ipairs(uniqueIds) do
-			pcall(function()
-				addItemRemote:FireServer(uniqueId)
-			end)
+		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
+			for _, playerName in ipairs(MainAccUsername) do
+				if Players:FindFirstChild(playerName) then
+					local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
+
+					for _, uniqueId in ipairs(uniqueIds) do
+						pcall(function()
+							addItemRemote:FireServer(uniqueId)
+						end)
+					end
+					break
+				end
+			end
 		end
-		
+
 		task.wait(1)
 	end
 end)
