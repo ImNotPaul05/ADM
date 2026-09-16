@@ -1,0 +1,152 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Remotes and Functions
+local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
+local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
+local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
+local acceptNegotiationRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptNegotiation")
+local confirmTradeRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/ConfirmTrade")
+
+-- Load ClientData for inventory scanning
+local successClientData, ClientData = pcall(function()
+	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
+end)
+
+local function sendTradeRequest(playerName)
+	local targetPlayer = Players:FindFirstChild(playerName)
+	if not targetPlayer then
+		warn("Player not found in server: " .. playerName)
+		return
+	end
+	
+	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
+		sendTradeRemote:FireServer(targetPlayer)
+		print("Successfully sent trade request to: " .. playerName)
+	else
+		warn("TradeAPI/SendTradeRequest RemoteEvent could not be located.")
+	end
+end
+
+local function acceptTradeForAll()
+	local success, err = pcall(function()
+		for _, targetPlayer in ipairs(Players:GetPlayers()) do
+			if targetPlayer ~= Players.LocalPlayer then
+				tradeFunction:InvokeServer(targetPlayer, true)
+			end
+		end
+	end)
+end
+
+local function getMultipleUniqueIdsByName(itemName, limit, formType)
+	if not successClientData or not ClientData then
+		return {}
+	end
+
+	local dataStore = ClientData.get_data()
+	local playerData = dataStore and (dataStore[LocalPlayer] or dataStore[LocalPlayer.Name])
+	
+	if not playerData or not playerData.inventory or not playerData.inventory.pets then
+		return {}
+	end
+
+	local uniqueIds = {}
+	for uniqueId, itemData in pairs(playerData.inventory.pets) do
+		if itemData and itemData.kind == itemName then
+			local props = itemData.properties or {}
+			local isNeon = props.neon == true
+			local isMega = props.mega_neon == true
+			local isNormal = not isNeon and not isMega
+
+			local match = false
+			formType = string.lower(formType or "normal")
+			
+			if formType == "normal" and isNormal then
+				match = true
+			elseif formType == "neon" and isNeon then
+				match = true
+			elseif (formType == "mega" or formType == "mega_neon") and isMega then
+				match = true
+			end
+
+			if match then
+				table.insert(uniqueIds, uniqueId)
+				if #uniqueIds >= limit then
+					break
+				end
+			end
+		end
+	end
+	return uniqueIds
+end
+
+local function isTradeOfferPopulated()
+	if not successClientData or not ClientData then
+		return true 
+	end
+	
+	local success, tradeData = pcall(function()
+		return ClientData.get("trade")
+	end)
+	
+	if success and tradeData and tradeData.current_trade then
+		local offers = tradeData.current_trade.offers
+		if offers and offers[LocalPlayer] then
+			local myOfferItems = offers[LocalPlayer].items
+			if myOfferItems and #myOfferItems > 0 then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+-- Thread 1: Handles sending and accepting incoming trade sessions
+task.spawn(function()
+	while true do
+		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
+			for _, playerName in ipairs(MainAccUsername) do
+				if Players:FindFirstChild(playerName) then
+					sendTradeRequest(playerName)
+				end
+			end
+		end
+
+		if ForceReceiver then
+			acceptTradeForAll()
+		end
+
+		task.wait(2)
+	end
+end)
+
+-- Thread 2: Filters by form, adds items sequentially, verifies, and confirms trade
+task.spawn(function()
+	while true do
+		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, MAX_ITEMS_TO_ADD, TARGET_PET_FORM)
+		
+		if #uniqueIds > 0 then
+			print("Adding " .. #uniqueIds .. " " .. TARGET_PET_FORM .. " pets to trade offer...")
+			for _, uniqueId in ipairs(uniqueIds) do
+				pcall(function()
+					addItemRemote:FireServer(uniqueId)
+				end)
+				task.wait(0.15)
+			end
+			
+			local startTime = tick()
+			while not isTradeOfferPopulated() and (tick() - startTime) < 3 do
+				task.wait(0.2)
+			end
+			
+			pcall(function()
+				acceptNegotiationRemote:FireServer()
+				confirmTradeRemote:FireServer()
+			end)
+			print("Trade offer populated and confirmed.")
+		end
+		
+		task.wait(2)
+	end
+end)
