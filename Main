@@ -1,12 +1,12 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
-
+local LocalPlayer = Players.LocalPlayer
 
 -- =================================================
 
+local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
-local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
@@ -25,8 +25,9 @@ local function sendTradeRequest(playerName)
 	else
 		warn("TradeAPI/SendTradeRequest RemoteEvent could not be located.")
 	end
+end
 
-	local function getMultipleUniqueIdsByName(itemName, limit)
+local function getMultipleUniqueIdsByName(itemName, limit)
 	if not successClientData or not ClientData then
 		return {}
 	end
@@ -50,41 +51,6 @@ local function sendTradeRequest(playerName)
 	return uniqueIds
 end
 
--- Single execution without the loop
-while true do
-	local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
-
-	for _, uniqueId in ipairs(uniqueIds) do
-		pcall(function()
-			addItemRemote:FireServer(uniqueId)
-		end)
-	end
-
-	-- Adjust the delay (in seconds) between each loop cycle as needed
-	task.wait(2) 
-end
-
-end
-
-local function acceptTradeForAll()
-	for _, targetPlayer in ipairs(Players:GetPlayers()) do
-		if targetPlayer ~= Players.LocalPlayer then
-			local args = {
-				targetPlayer,
-				true
-			}
-
-			local success, err = pcall(function()
-				return tradeFunction:InvokeServer(unpack(args))
-			end)
-
-			if success then
-				print("Successfully processed trade request for: " .. targetPlayer.Name)
-			end
-		end
-	end
-end
-
 task.spawn(function()
 	while true do
 		-- Only loop if names are provided and not empty
@@ -103,3 +69,18 @@ task.spawn(function()
 		task.wait(0.3)
 	end
 end)
+
+-- Single execution without the loop
+while true do
+	local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
+
+	for _, uniqueId in ipairs(uniqueIds) do
+		pcall(function()
+			addItemRemote:FireServer(uniqueId)
+		end)
+	end
+
+	-- Adjust the delay (in seconds) between each loop cycle as needed
+	task.wait(0.6) 
+end
+
