@@ -119,4 +119,7 @@ local function RunTradeAutomation()
 end
 
 -- Start the loop in the background
-task.spawn(RunTradeAutomation)
+if table.find(MainAccUsername, LocalPlayer.Name) then
+
+	task.spawn(RunTradeAutomation)
+end
