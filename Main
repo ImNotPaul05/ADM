@@ -44,6 +44,9 @@ local function sendTradeRequest(playerName)
 	
 	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
 		sendTradeRemote:FireServer(targetPlayer)
+		print("Successfully sent trade request to: " .. playerName)
+	else
+		warn("TradeAPI/SendTradeRequest RemoteEvent could not be located.")
 	end
 end
 
@@ -58,6 +61,10 @@ local function acceptTradeForAll()
 			local success, err = pcall(function()
 				return tradeFunction:InvokeServer(unpack(args))
 			end)
+
+			if success then
+				print("Successfully processed trade request for: " .. targetPlayer.Name)
+			end
 		end
 	end
 end
@@ -109,15 +116,8 @@ local ConfirmTrade = API:WaitForChild("TradeAPI/ConfirmTrade")
 
 local function RunTradeAutomation()
     while true do
-		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
-			for _, playerName in ipairs(MainAccUsername) do
-				if Players:FindFirstChild(playerName) then
-					AcceptNeg:FireServer()
-					ConfirmTrade:FireServer()
-					break
-				end
-			end
-		end
+		AcceptNeg:FireServer()
+		ConfirmTrade:FireServer()
         task.wait(1) -- Wait 1 second before the next loop
     end
 end
