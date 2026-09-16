@@ -101,8 +101,5 @@ task.spawn(function()
 				addItemRemote:FireServer(uniqueId)
 			end)
 		end
-		
-		-- Fast interval to keep trying to fill the slots immediately when a trade opens
-		task.wait(1)
 	end
 end)
