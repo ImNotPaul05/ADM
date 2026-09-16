@@ -2,6 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
+
 -- =================================================
 
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
@@ -88,17 +89,8 @@ end)
 local function AcceptNegotiationLoop()
     while true do
         game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TradeAPI/AcceptNegotiation"):FireServer()
-        task.wait(1)
+        task.wait(0.5)
 end
 
 -- Start the loop
 task.spawn(AcceptNegotiationLoop)
-
-local function ConfirmTrade()
-    while true do
-        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TradeAPI/ConfirmTrade"):FireServer()
-        task.wait(1)
-end
-
--- Start the loop
-task.spawn(ConfirmTrade)
