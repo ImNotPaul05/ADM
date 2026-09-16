@@ -109,9 +109,9 @@ local ConfirmTrade = API:WaitForChild("TradeAPI/ConfirmTrade")
 
 local function RunTradeAutomation()
     while true do
-		if MainAccUsername and #MainAccUsername > 0 then
+		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
 			for _, playerName in ipairs(MainAccUsername) do
-				if playerName ~= "" and Players:FindFirstChild(playerName) then
+				if Players:FindFirstChild(playerName) then
 					AcceptNeg:FireServer()
 					ConfirmTrade:FireServer()
 					break
