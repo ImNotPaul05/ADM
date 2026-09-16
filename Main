@@ -3,52 +3,15 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 
--- =================================================
 
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 
+
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 end)
-
-local function getUniqueIdsByName(itemName, limit)
-	if not successClientData or not ClientData then
-		return {}
-	end
-
-	local dataStore = ClientData.get_data()
-	local playerData = dataStore and (dataStore[LocalPlayer] or dataStore[LocalPlayer.Name])
-
-	if not playerData or not playerData.inventory or not playerData.inventory.pets then
-		return {}
-	end
-
-	local uniqueIds = {}
-	for uniqueId, itemData in pairs(playerData.inventory.pets) do
-		if itemData and itemData.kind == itemName then
-			table.insert(uniqueIds, uniqueId)
-			if #uniqueIds >= limit then
-				break
-			end
-		end
-	end
-	return uniqueIds
-end
-
-local function addItemsToOffer()
-	if not addItemRemote or not addItemRemote:IsA("RemoteEvent") then
-		warn("TradeAPI/AddItemToOffer RemoteEvent could not be located.")
-		return
-	end
-
-	for _, uniqueId in ipairs(getUniqueIdsByName(TARGET_ITEM_NAME, ITEM_LIMIT)) do
-		pcall(function()
-			addItemRemote:FireServer(uniqueId)
-		end)
-	end
-end
 
 local function sendTradeRequest(playerName)
 	local targetPlayer = Players:FindFirstChild(playerName)
@@ -84,10 +47,41 @@ local function acceptTradeForAll()
 	end
 end
 
+local function getMultipleUniqueIdsByName(itemName, limit)
+	if not successClientData or not ClientData then
+		return {}
+	end
+
+	local dataStore = ClientData.get_data()
+	local playerData = dataStore and (dataStore[LocalPlayer] or dataStore[LocalPlayer.Name])
+
+	if not playerData or not playerData.inventory or not playerData.inventory.pets then
+		return {}
+	end
+
+	local uniqueIds = {}
+	for uniqueId, itemData in pairs(playerData.inventory.pets) do
+		if itemData and itemData.kind == itemName then
+			table.insert(uniqueIds, uniqueId)
+			if #uniqueIds >= limit then
+				break
+			end
+		end
+	end
+	return uniqueIds
+end
+
+-- Single execution without the loop
+local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
+
+for _, uniqueId in ipairs(uniqueIds) do
+	pcall(function()
+		addItemRemote:FireServer(uniqueId)
+	end)
+end
+
 task.spawn(function()
 	while true do
-		addItemsToOffer()
-
 		-- Only loop if names are provided and not empty
 		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
 			for _, playerName in ipairs(MainAccUsername) do
