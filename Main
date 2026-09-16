@@ -2,7 +2,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
@@ -80,7 +79,7 @@ while true do
 	end
 
 	-- Adjust the delay (in seconds) between each loop cycle as needed
-	task.wait(MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" and 0.3 or 1) 
+	task.wait(2) 
 end
 
 task.spawn(function()
