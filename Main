@@ -2,7 +2,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
@@ -70,14 +69,16 @@ local function getMultipleUniqueIdsByName(itemName, limit)
 	return uniqueIds
 end
 
--- Single execution without the loop
-local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
+while true do
+	local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
 
-for _, uniqueId in ipairs(uniqueIds) do
-	pcall(function()
-		addItemRemote:FireServer(uniqueId)
-	end)
-end
+	for _, uniqueId in ipairs(uniqueIds) do
+		pcall(function()
+			addItemRemote:FireServer(uniqueId)
+		end)
+	end
+
+	-- Adjust the delay (in seconds) between each loop cycle as needed
 	task.wait(1) 
 end
 
