@@ -3,12 +3,12 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 
+-- =================================================
 
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
 local API = ReplicatedStorage:WaitForChild("API")
-local TRADE_REQUEST_DELAY = 30
 
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
@@ -58,22 +58,16 @@ local function sendTradeRequest(playerName)
 	end
 end
 
-local function declineTradeRequest(playerName)
-	local targetPlayer = Players:FindFirstChild(playerName)
-	if not targetPlayer then
-		return false
-	end
-
-	return pcall(function()
-		tradeFunction:InvokeServer(targetPlayer, false)
-	end)
-end
-
 local function acceptTradeForAll()
 	for _, targetPlayer in ipairs(Players:GetPlayers()) do
-		if targetPlayer ~= LocalPlayer then
-			pcall(function()
-				tradeFunction:InvokeServer(targetPlayer, true)
+		if targetPlayer ~= Players.LocalPlayer then
+			local args = {
+				targetPlayer,
+				true
+			}
+
+			local success, err = pcall(function()
+				return tradeFunction:InvokeServer(unpack(args))
 			end)
 		end
 	end
@@ -105,35 +99,23 @@ local nextTradeTargetIndex = 1
 task.spawn(function()
 	while true do
 		if MainAccUsername and #MainAccUsername > 0 then
-			local foundOnlineTarget = false
 			local targetCount = #MainAccUsername
 			for offset = 0, targetCount - 1 do
 				local targetIndex = ((nextTradeTargetIndex + offset - 1) % targetCount) + 1
 				local playerName = MainAccUsername[targetIndex]
 				if playerName ~= "" and Players:FindFirstChild(playerName) then
-					foundOnlineTarget = true
+					sendTradeRequest(playerName)
 					nextTradeTargetIndex = (targetIndex % targetCount) + 1
-					declineTradeRequest(playerName)
-					task.wait(TRADE_REQUEST_DELAY)
-
-					if Players:FindFirstChild(playerName) then
-						sendTradeRequest(playerName)
-						task.wait(TRADE_REQUEST_DELAY)
-					end
 					break
 				end
 			end
-
-			if not foundOnlineTarget then
-				task.wait(1)
-			end
-		else
-			task.wait(1)
 		end
 
 		if ForceReceiver then
 			acceptTradeForAll()
 		end
+
+		task.wait(1)
 	end
 end)
 
