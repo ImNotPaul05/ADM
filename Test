@@ -5,6 +5,11 @@ local LocalPlayer = Players.LocalPlayer
 _G.FarmTradeRequestLoopId = (_G.FarmTradeRequestLoopId or 0) + 1
 local tradeRequestLoopId = _G.FarmTradeRequestLoopId
 
+-- ================= CONFIGURATION =================
+MainAccUsername = {"Her0eXBuildera31", "test", "test2"} 
+TARGET_ITEM_NAME = "retired_egg"
+TARGET_ITEM_FORM = "NORMAL" -- NORMAL, NEON, or MEGA_NEON
+ForceReceiver = false 
 -- =================================================
 
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
