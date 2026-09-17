@@ -1,6 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+
  
 -- =================================================
 
@@ -12,32 +13,6 @@ local API = ReplicatedStorage:WaitForChild("API")
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 end)
-
-local function isEnabled(value)
-	return value == true or value == 1 or value == "true"
-end
-
-local function matchesItemForm(itemData, itemForm)
-	local props = itemData.properties or {}
-	local neonValue = string.lower(tostring(itemData.neon or props.neon or ""))
-	local isNeon = isEnabled(itemData.neon)
-		or isEnabled(props.neon)
-		or neonValue == "neon"
-	local isMegaNeon = isEnabled(itemData.mega_neon)
-		or isEnabled(itemData.megaNeon)
-		or isEnabled(props.mega_neon)
-		or isEnabled(props.megaNeon)
-		or neonValue == "mega"
-		or neonValue == "mega_neon"
-
-	if itemForm == "NEON" then
-		return isNeon and not isMegaNeon
-	elseif itemForm == "MEGA_NEON" then
-		return isMegaNeon
-	end
-
-	return not isNeon and not isMegaNeon
-end
 
 local function getMultipleUniqueIdsByName(itemName, itemForm, limit)
 	if not successClientData or not ClientData then
@@ -53,10 +28,19 @@ local function getMultipleUniqueIdsByName(itemName, itemForm, limit)
 
 	local uniqueIds = {}
 	for uniqueId, itemData in pairs(playerData.inventory.pets) do
-		if itemData and itemData.kind == itemName and matchesItemForm(itemData, itemForm) then
-			table.insert(uniqueIds, uniqueId)
-			if #uniqueIds >= limit then
-				break
+		if itemData and itemData.kind == itemName then
+			local properties = itemData.properties or {}
+			local isNeon = properties.neon == true
+			local isMegaNeon = properties.mega_neon == true
+			local matchesForm = itemForm == "NEON" and isNeon and not isMegaNeon
+				or itemForm == "MEGA_NEON" and isMegaNeon
+				or itemForm == "NORMAL" and not isNeon and not isMegaNeon
+
+			if matchesForm then
+				table.insert(uniqueIds, uniqueId)
+				if #uniqueIds >= limit then
+					break
+				end
 			end
 		end
 	end
