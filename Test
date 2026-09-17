@@ -19,6 +19,10 @@ local function getMultipleUniqueIdsByName(itemName, itemForm, limit)
 		return {}
 	end
 
+	if type(ClientData.get_data) ~= "function" then
+		return {}
+	end
+
 	local dataStore = ClientData.get_data()
 	local playerData = dataStore and (dataStore[LocalPlayer] or dataStore[LocalPlayer.Name])
 	
@@ -140,8 +144,12 @@ local ConfirmTrade = API:WaitForChild("TradeAPI/ConfirmTrade")
 
 local function RunTradeAutomation()
     while true do
-		AcceptNeg:FireServer()
-		ConfirmTrade:FireServer()
+		if AcceptNeg:IsA("RemoteEvent") then
+			AcceptNeg:FireServer()
+		end
+		if ConfirmTrade:IsA("RemoteEvent") then
+			ConfirmTrade:FireServer()
+		end
         task.wait(1) -- Wait 1 second before the next loop
     end
 end
