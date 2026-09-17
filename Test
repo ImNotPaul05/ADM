@@ -2,7 +2,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
- 
 -- =================================================
 
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
@@ -121,15 +120,8 @@ local ConfirmTrade = API:WaitForChild("TradeAPI/ConfirmTrade")
 
 local function RunTradeAutomation()
     while true do
-		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
-			for _, playerName in ipairs(MainAccUsername) do
-				if Players:FindFirstChild(playerName) then
-					AcceptNeg:FireServer()
-					ConfirmTrade:FireServer()
-					break
-				end
-			end
-		end
+		AcceptNeg:FireServer()
+		ConfirmTrade:FireServer()
         task.wait(1) -- Wait 1 second before the next loop
     end
 end
