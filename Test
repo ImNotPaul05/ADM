@@ -2,6 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
+
 -- =================================================
 
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
@@ -50,11 +51,12 @@ local function sendTradeRequest(playerName)
 	local targetPlayer = Players:FindFirstChild(playerName)
 	if not targetPlayer then
 		print("Player not in the server: " .. playerName)
+		task.wait(60)
 		return
 	end
 
 	print("Player found: " .. playerName)
-	
+	task.wait(60) -- Wait 1 second before proceeding
 	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
 		sendTradeRemote:FireServer(targetPlayer)
 	end
