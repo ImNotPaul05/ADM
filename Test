@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 
+-- =================================================
 
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
@@ -57,6 +58,10 @@ local function sendTradeRequest(playerName)
 	end
 end
 
+local function getTargetItemCount()
+	return #getMultipleUniqueIdsByName(TARGET_ITEM_NAME, TARGET_ITEM_FORM, math.huge)
+end
+
 local function acceptTradeForAll()
 	for _, targetPlayer in ipairs(Players:GetPlayers()) do
 		if targetPlayer ~= Players.LocalPlayer then
@@ -93,20 +98,31 @@ task.spawn(function()
 	end
 end)
 
-local nextTradeTargetIndex = 1
-
 task.spawn(function()
+	local currentUsernameIndex = 1
+	local itemCountBeforeTrade = nil
+
 	while true do
 		if MainAccUsername and #MainAccUsername > 0 then
-			local targetCount = #MainAccUsername
-			for offset = 0, targetCount - 1 do
-				local targetIndex = ((nextTradeTargetIndex + offset - 1) % targetCount) + 1
-				local playerName = MainAccUsername[targetIndex]
-				if playerName ~= "" and Players:FindFirstChild(playerName) then
-					sendTradeRequest(playerName)
-					nextTradeTargetIndex = (targetIndex % targetCount) + 1
-					break
+			if currentUsernameIndex > #MainAccUsername then
+				currentUsernameIndex = 1
+				itemCountBeforeTrade = nil
 			end
+
+			local playerName = MainAccUsername[currentUsernameIndex]
+			local targetPlayer = playerName and Players:FindFirstChild(playerName)
+			if targetPlayer then
+				if not itemCountBeforeTrade then
+					itemCountBeforeTrade = getTargetItemCount()
+					sendTradeRequest(playerName)
+				elseif getTargetItemCount() < itemCountBeforeTrade then
+					currentUsernameIndex += 1
+					itemCountBeforeTrade = nil
+				end
+			end
+		else
+			currentUsernameIndex = 1
+			itemCountBeforeTrade = nil
 		end
 
 		if ForceReceiver then
