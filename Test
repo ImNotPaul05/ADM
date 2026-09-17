@@ -75,7 +75,6 @@ task.spawn(function()
 					warn("Failed to fire add item: " .. tostring(err))
 				end
 				task.wait(0.15)
-			end
 		else
 			warn("No matching items found for form: " .. TARGET_PET_FORM .. " with name: " .. TARGET_ITEM_NAME)
 		end
