@@ -115,6 +115,7 @@ task.spawn(function()
 						sendTradeRequest(playerName)
 						task.wait(TRADE_REQUEST_DELAY)
 					end
+					break
 				end
 			end
 
