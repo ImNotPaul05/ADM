@@ -50,27 +50,27 @@ end
 local function sendTradeRequest(playerName)
 	local targetPlayer = Players:FindFirstChild(playerName)
 	if not targetPlayer then
-		return
+		return false
 	end
 
 	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
 		sendTradeRemote:FireServer(targetPlayer)
+		return true
 	end
+
+	return false
 end
 
-local function acceptTradeForAll()
-	for _, targetPlayer in ipairs(Players:GetPlayers()) do
-		if targetPlayer ~= Players.LocalPlayer then
-			local args = {
-				targetPlayer,
-				true
-			}
-
-			local success, err = pcall(function()
-				return tradeFunction:InvokeServer(unpack(args))
-			end)
-		end
+local function declineTradeRequest(playerName)
+	local targetPlayer = Players:FindFirstChild(playerName)
+	if not targetPlayer then
+		return false
 	end
+
+	local success = pcall(function()
+		tradeFunction:InvokeServer(targetPlayer, false)
+	end)
+	return success
 end
 
 task.spawn(function()
@@ -96,18 +96,27 @@ end)
 
 task.spawn(function()
 	while true do
-		-- Only loop if names are provided and not empty
-		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
+		if MainAccUsername and #MainAccUsername > 0 then
+			local foundOnlineTarget = false
 			for _, playerName in ipairs(MainAccUsername) do
-				sendTradeRequest(playerName)
+				if playerName ~= "" and Players:FindFirstChild(playerName) then
+					foundOnlineTarget = true
+					declineTradeRequest(playerName)
+					task.wait(TRADE_RETRY_DELAY)
+
+					if Players:FindFirstChild(playerName) then
+						sendTradeRequest(playerName)
+					end
+					task.wait(TRADE_RETRY_DELAY)
+				end
 			end
-		end
 
-		if ForceReceiver then
-			acceptTradeForAll()
+			if not foundOnlineTarget then
+				task.wait(1)
+			end
+		else
+			task.wait(1)
 		end
-
-		task.wait(1)
 	end
 end)
 
