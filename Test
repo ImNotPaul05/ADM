@@ -1,21 +1,46 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-
-
+ 
 -- =================================================
 
--- Remotes
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
+local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
+local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
+local API = ReplicatedStorage:WaitForChild("API")
 
--- Load ClientData for inventory scanning
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 end)
 
-local function getMultipleUniqueIdsByName(itemName, limit, formType)
+local function isEnabled(value)
+	return value == true or value == 1 or value == "true"
+end
+
+local function matchesItemForm(itemData, itemForm)
+	local props = itemData.properties or {}
+	local neonValue = string.lower(tostring(itemData.neon or props.neon or ""))
+	local isNeon = isEnabled(itemData.neon)
+		or isEnabled(props.neon)
+		or neonValue == "neon"
+	local isMegaNeon = isEnabled(itemData.mega_neon)
+		or isEnabled(itemData.megaNeon)
+		or isEnabled(props.mega_neon)
+		or isEnabled(props.megaNeon)
+		or neonValue == "mega"
+		or neonValue == "mega_neon"
+
+	if itemForm == "NEON" then
+		return isNeon and not isMegaNeon
+	elseif itemForm == "MEGA_NEON" then
+		return isMegaNeon
+	end
+
+	return not isNeon and not isMegaNeon
+end
+
+local function getMultipleUniqueIdsByName(itemName, itemForm, limit)
 	if not successClientData or not ClientData then
-		warn("ClientData failed to load.")
 		return {}
 	end
 
@@ -23,62 +48,107 @@ local function getMultipleUniqueIdsByName(itemName, limit, formType)
 	local playerData = dataStore and (dataStore[LocalPlayer] or dataStore[LocalPlayer.Name])
 	
 	if not playerData or not playerData.inventory or not playerData.inventory.pets then
-		warn("Player inventory pets data not found.")
 		return {}
 	end
 
 	local uniqueIds = {}
 	for uniqueId, itemData in pairs(playerData.inventory.pets) do
-		if itemData and itemData.kind == itemName then
-			local props = itemData.properties or {}
-			local isNeon = props.neon == true
-			local isMega = props.mega_neon == true
-			local isNormal = not isNeon and not isMega
-
-			local match = false
-			formType = string.lower(formType or "normal")
-			
-			if formType == "normal" and isNormal then
-				match = true
-			elseif formType == "neon" and isNeon then
-				match = true
-			elseif (formType == "mega" or formType == "mega_neon") and isMega then
-				match = true
-			end
-
-			if match then
-				table.insert(uniqueIds, uniqueId)
-				if #uniqueIds >= limit then
-					break
-				end
+		if itemData and itemData.kind == itemName and matchesItemForm(itemData, itemForm) then
+			table.insert(uniqueIds, uniqueId)
+			if #uniqueIds >= limit then
+				break
 			end
 		end
 	end
 	return uniqueIds
 end
 
--- Isolated Test Loop for Adding Items
-task.spawn(function()
-	print("Starting isolated item-add test loop...")
-	while true do
-		local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, MAX_ITEMS_TO_ADD, TARGET_PET_FORM)
-		
-		if #uniqueIds > 0 then
-			print("Found " .. #uniqueIds .. " " .. TARGET_PET_FORM .. " pets matching '" .. TARGET_ITEM_NAME .. "'. Adding them to trade...")
-			for _, uniqueId in ipairs(uniqueIds) do
-				local success, err = pcall(function()
-					addItemRemote:FireServer(uniqueId)
-				end)
-				if success then
-					print("Fired AddItemToOffer for ID: " .. uniqueId)
-				else
-					warn("Failed to fire add item: " .. tostring(err))
-				end
-				task.wait(0.15)
-		else
-			warn("No matching items found for form: " .. TARGET_PET_FORM .. " with name: " .. TARGET_ITEM_NAME)
+local function sendTradeRequest(playerName)
+	local targetPlayer = Players:FindFirstChild(playerName)
+	if not targetPlayer then
+		warn("Player not found in server: " .. playerName)
+		return
+	end
+	
+	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
+		sendTradeRemote:FireServer(targetPlayer)
+	end
+end
+
+local function acceptTradeForAll()
+	for _, targetPlayer in ipairs(Players:GetPlayers()) do
+		if targetPlayer ~= Players.LocalPlayer then
+			local args = {
+				targetPlayer,
+				true
+			}
+
+			local success, err = pcall(function()
+				return tradeFunction:InvokeServer(unpack(args))
+			end)
 		end
-		
-		task.wait(3) -- Wait 3 seconds before checking again
+	end
+end
+
+task.spawn(function()
+	while true do
+		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
+			for _, playerName in ipairs(MainAccUsername) do
+				if Players:FindFirstChild(playerName) then
+					local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, TARGET_ITEM_FORM, 18)
+
+					for _, uniqueId in ipairs(uniqueIds) do
+						pcall(function()
+							addItemRemote:FireServer(uniqueId)
+						end)
+					end
+					break
+				end
+			end
+		end
+
+		task.wait(1)
 	end
 end)
+
+task.spawn(function()
+	while true do
+		-- Only loop if names are provided and not empty
+		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
+			for _, playerName in ipairs(MainAccUsername) do
+				if Players:FindFirstChild(playerName) then
+					sendTradeRequest(playerName)
+				end
+			end
+		end
+
+		if ForceReceiver then
+			acceptTradeForAll()
+		end
+
+		task.wait(0.3)
+	end
+end)
+
+
+-- Cache the remotes once
+local AcceptNeg = API:WaitForChild("TradeAPI/AcceptNegotiation")
+local ConfirmTrade = API:WaitForChild("TradeAPI/ConfirmTrade")
+
+local function RunTradeAutomation()
+    while true do
+		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
+			for _, playerName in ipairs(MainAccUsername) do
+				if Players:FindFirstChild(playerName) then
+					AcceptNeg:FireServer()
+					ConfirmTrade:FireServer()
+					break
+				end
+			end
+		end
+        task.wait(1) -- Wait 1 second before the next loop
+    end
+end
+
+-- Start the loop in the background
+task.spawn(RunTradeAutomation)
