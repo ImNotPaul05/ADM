@@ -101,6 +101,7 @@ task.spawn(function()
 			for _, playerName in ipairs(MainAccUsername) do
 				if Players:FindFirstChild(playerName) then
 					sendTradeRequest(playerName)
+					break
 				end
 			end
 		end
