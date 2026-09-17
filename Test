@@ -49,9 +49,11 @@ end
 local function sendTradeRequest(playerName)
 	local targetPlayer = Players:FindFirstChild(playerName)
 	if not targetPlayer then
-		warn("Player not found in server: " .. playerName)
+		print("Player not in the server: " .. playerName)
 		return
 	end
+
+	print("Player found: " .. playerName)
 	
 	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
 		sendTradeRemote:FireServer(targetPlayer)
@@ -99,9 +101,7 @@ task.spawn(function()
 		-- Only loop if names are provided and not empty
 		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
 			for _, playerName in ipairs(MainAccUsername) do
-				if Players:FindFirstChild(playerName) then
-					sendTradeRequest(playerName)
-				end
+				sendTradeRequest(playerName)
 			end
 		end
 
