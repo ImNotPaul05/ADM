@@ -2,14 +2,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
- 
+
 -- =================================================
 
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
 local API = ReplicatedStorage:WaitForChild("API")
-local TRADE_CYCLE_DELAY = 30
 
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
@@ -107,7 +106,6 @@ task.spawn(function()
 				if playerName ~= "" and Players:FindFirstChild(playerName) then
 					sendTradeRequest(playerName)
 					nextTradeTargetIndex = (targetIndex % targetCount) + 1
-					task.wait(TRADE_CYCLE_DELAY)
 					break
 			end
 		end
