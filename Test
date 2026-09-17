@@ -2,13 +2,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-
 -- =================================================
 
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
 local API = ReplicatedStorage:WaitForChild("API")
+local TRADE_REQUEST_DELAY = 20
 
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
@@ -50,15 +50,12 @@ end
 local function sendTradeRequest(playerName)
 	local targetPlayer = Players:FindFirstChild(playerName)
 	if not targetPlayer then
-		return false
+		return
 	end
 
 	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
 		sendTradeRemote:FireServer(targetPlayer)
-		return true
 	end
-
-	return false
 end
 
 local function declineTradeRequest(playerName)
@@ -67,10 +64,19 @@ local function declineTradeRequest(playerName)
 		return false
 	end
 
-	local success = pcall(function()
+	return pcall(function()
 		tradeFunction:InvokeServer(targetPlayer, false)
 	end)
-	return success
+end
+
+local function acceptTradeForAll()
+	for _, targetPlayer in ipairs(Players:GetPlayers()) do
+		if targetPlayer ~= LocalPlayer then
+			pcall(function()
+				tradeFunction:InvokeServer(targetPlayer, true)
+			end)
+		end
+	end
 end
 
 task.spawn(function()
@@ -102,12 +108,12 @@ task.spawn(function()
 				if playerName ~= "" and Players:FindFirstChild(playerName) then
 					foundOnlineTarget = true
 					declineTradeRequest(playerName)
-					task.wait(TRADE_RETRY_DELAY)
+					task.wait(TRADE_REQUEST_DELAY)
 
 					if Players:FindFirstChild(playerName) then
 						sendTradeRequest(playerName)
+						task.wait(TRADE_REQUEST_DELAY)
 					end
-					task.wait(TRADE_RETRY_DELAY)
 				end
 			end
 
@@ -116,6 +122,10 @@ task.spawn(function()
 			end
 		else
 			task.wait(1)
+		end
+
+		if ForceReceiver then
+			acceptTradeForAll()
 		end
 	end
 end)
