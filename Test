@@ -2,6 +2,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
+_G.FarmTradeRequestLoopId = (_G.FarmTradeRequestLoopId or 0) + 1
+local tradeRequestLoopId = _G.FarmTradeRequestLoopId
 
 -- =================================================
 
@@ -98,6 +100,10 @@ local nextTradeTargetIndex = 1
 
 task.spawn(function()
 	while true do
+		if _G.FarmTradeRequestLoopId ~= tradeRequestLoopId then
+			return
+		end
+
 		if MainAccUsername and #MainAccUsername > 0 then
 			local targetCount = #MainAccUsername
 			for offset = 0, targetCount - 1 do
