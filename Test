@@ -2,8 +2,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-_G.FarmTradeRequestLoopId = (_G.FarmTradeRequestLoopId or 0) + 1
-local tradeRequestLoopId = _G.FarmTradeRequestLoopId
 
 -- =================================================
 
@@ -60,12 +58,18 @@ local function sendTradeRequest(playerName)
 	end
 end
 
-local function acceptTradeFor(playerName)
-	local targetPlayer = Players:FindFirstChild(playerName)
-	if targetPlayer and targetPlayer ~= Players.LocalPlayer then
-		pcall(function()
-			tradeFunction:InvokeServer(targetPlayer, true)
-		end)
+local function acceptTradeForAll()
+	for _, targetPlayer in ipairs(Players:GetPlayers()) do
+		if targetPlayer ~= Players.LocalPlayer then
+			local args = {
+				targetPlayer,
+				true
+			}
+
+			local success, err = pcall(function()
+				return tradeFunction:InvokeServer(unpack(args))
+			end)
+		end
 	end
 end
 
@@ -94,17 +98,21 @@ local nextTradeTargetIndex = 1
 
 task.spawn(function()
 	while true do
-		if _G.FarmTradeRequestLoopId ~= tradeRequestLoopId then
-			return
+		if MainAccUsername and #MainAccUsername > 0 then
+			local targetCount = #MainAccUsername
+			for offset = 0, targetCount - 1 do
+				local targetIndex = ((nextTradeTargetIndex + offset - 1) % targetCount) + 1
+				local playerName = MainAccUsername[targetIndex]
+				if playerName ~= "" and Players:FindFirstChild(playerName) then
+					sendTradeRequest(playerName)
+					nextTradeTargetIndex = (targetIndex % targetCount) + 1
+					break
+				end
+			end
 		end
 
-		local playerName = MainAccUsername and MainAccUsername[nextTradeTargetIndex]
-		if playerName and playerName ~= "" and Players:FindFirstChild(playerName) then
-			sendTradeRequest(playerName)
-			if ForceReceiver then
-				acceptTradeFor(playerName)
-			end
-			nextTradeTargetIndex = (nextTradeTargetIndex % #MainAccUsername) + 1
+		if ForceReceiver then
+			acceptTradeForAll()
 		end
 
 		task.wait(1)
