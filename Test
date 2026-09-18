@@ -54,7 +54,7 @@ local function sendTradeRequest(playerName)
 	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
 		sendTradeRemote:FireServer(targetPlayer)
 	end
-    task.wait(20)
+    task.wait(15)
 end
 
 local function acceptTradeForAll()
