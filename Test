@@ -14,7 +14,7 @@ local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 end)
 
-local function getMultipleUniqueIdsByName(itemName, limit)
+local function getMultipleUniqueIdsByName(itemName, itemForm, limit)
 	if not successClientData or not ClientData then
 		return {}
 	end
@@ -29,9 +29,18 @@ local function getMultipleUniqueIdsByName(itemName, limit)
 	local uniqueIds = {}
 	for uniqueId, itemData in pairs(playerData.inventory.pets) do
 		if itemData and itemData.kind == itemName then
-			table.insert(uniqueIds, uniqueId)
-			if #uniqueIds >= limit then
-				break
+			local properties = itemData.properties or {}
+			local isNeon = properties.neon == true
+			local isMegaNeon = properties.mega_neon == true
+			local matchesForm = itemForm == "NEON" and isNeon and not isMegaNeon
+				or itemForm == "MEGA_NEON" and isMegaNeon
+				or itemForm == "NORMAL" and not isNeon and not isMegaNeon
+
+			if matchesForm then
+				table.insert(uniqueIds, uniqueId)
+				if #uniqueIds >= limit then
+					break
+				end
 			end
 		end
 	end
@@ -70,7 +79,7 @@ task.spawn(function()
 		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
 			for _, playerName in ipairs(MainAccUsername) do
 				if Players:FindFirstChild(playerName) then
-					local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
+					local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, TARGET_ITEM_FORM, 18)
 
 					for _, uniqueId in ipairs(uniqueIds) do
 						pcall(function()
