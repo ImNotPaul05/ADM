@@ -2,6 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
+
 -- =================================================
 
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
@@ -149,7 +150,7 @@ end
 task.spawn(RunTradeAutomation)
 
 local hiddenNames = {}
-for _, name in ipairs(HIDDEN_UI_NAMES) do
+for _, name in ipairs(HIDDEN_UI_NAMES or {}) do
 	hiddenNames[name] = true
 end
 
