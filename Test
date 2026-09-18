@@ -2,7 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-
+ 
 -- =================================================
 
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
@@ -127,7 +127,7 @@ local function RunTradeAutomation()
 				ConfirmTrade:FireServer()
 				break
 			end
- 		end
+		end
         task.wait(1) -- Wait 1 second before the next loop
     end
 end
