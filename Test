@@ -2,10 +2,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
+local API = ReplicatedStorage:FindFirstChild("API")
+local addItemRemote = API and API:FindFirstChild("TradeAPI/AddItemToOffer")
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
-local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
-local API = ReplicatedStorage:WaitForChild("API")
+local tradeFunction = API and API:FindFirstChild("TradeAPI/AcceptOrDeclineTradeRequest")
 
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
@@ -60,6 +60,10 @@ local function sendTradeRequest(playerName)
 end
 
 local function acceptTradeForAll()
+	if not tradeFunction or not tradeFunction:IsA("RemoteFunction") then
+		return
+	end
+
 	for _, targetPlayer in ipairs(Players:GetPlayers()) do
 		if targetPlayer ~= Players.LocalPlayer then
 			local args = {
