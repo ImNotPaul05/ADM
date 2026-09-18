@@ -4,7 +4,7 @@ local LocalPlayer = Players.LocalPlayer
 
 -- ================= CONFIGURATION =================
 HIDDEN_UI_NAMES = {
-	"Diaglog",
+	"Dialog",
 }
 -- =================================================
 
