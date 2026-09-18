@@ -16,6 +16,10 @@ local function getMultipleUniqueIdsByName(itemName, itemForm, limit)
 		return {}
 	end
 
+	if type(ClientData.get_data) ~= "function" then
+		return {}
+	end
+
 	local dataStore = ClientData.get_data()
 	local playerData = dataStore and (dataStore[LocalPlayer] or dataStore[LocalPlayer.Name])
 	
