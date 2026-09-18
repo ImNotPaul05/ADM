@@ -2,9 +2,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-
--- =================================================
-
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
@@ -57,6 +54,7 @@ local function sendTradeRequest(playerName)
 	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
 		sendTradeRemote:FireServer(targetPlayer)
 	end
+    task.wait(20)
 end
 
 local function acceptTradeForAll()
@@ -91,7 +89,7 @@ task.spawn(function()
 			end
 		end
 
-		task.wait(0.6)
+		task.wait(1)
 	end
 end)
 
@@ -110,7 +108,7 @@ task.spawn(function()
 			acceptTradeForAll()
 		end
 
-		task.wait(20)
+		task.wait(1)
 	end
 end)
 
