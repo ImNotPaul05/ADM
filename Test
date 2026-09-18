@@ -2,17 +2,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-
-local TARGET_ITEM_NAME = "retired_egg"
-local TARGET_ITEM_FORM = "NORMAL" -- NORMAL, NEON, or MEGA_NEON
-local ForceReceiver = false 
+ 
 -- =================================================
 
 local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
 local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
-local AcceptNeg = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptNegotiation")
-local ConfirmTrade = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/ConfirmTrade")
 local API = ReplicatedStorage:WaitForChild("API")
 
 local successClientData, ClientData = pcall(function()
@@ -52,80 +47,45 @@ local function getMultipleUniqueIdsByName(itemName, itemForm, limit)
 	return uniqueIds
 end
 
-local function isCurrentlyInTrade()
-	if not successClientData or not ClientData then
-		return false
+local function sendTradeRequest(playerName)
+	local targetPlayer = Players:FindFirstChild(playerName)
+	if not targetPlayer then
+		return
 	end
-	local success, tradeData = pcall(function()
-		return ClientData.get("trade")
-	end)
-	return success and tradeData and tradeData.current_trade ~= nil
+
+	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
+		sendTradeRemote:FireServer(targetPlayer)
+	end
 end
 
--- Sequential Trade Rotation Manager
-task.spawn(function()
-	local currentIndex = 1
+local function acceptTradeForAll()
+	for _, targetPlayer in ipairs(Players:GetPlayers()) do
+		if targetPlayer ~= Players.LocalPlayer then
+			local args = {
+				targetPlayer,
+				true
+			}
 
+			local success, err = pcall(function()
+				return tradeFunction:InvokeServer(unpack(args))
+			end)
+		end
+	end
+end
+
+task.spawn(function()
 	while true do
 		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
-			local targetName = MainAccUsername[currentIndex]
-			local targetPlayer = Players:FindFirstChild(targetName)
-
-			-- If the user is online, proceed with trade cycle
-			if targetPlayer then
-				print("Targeting user: " .. targetName)
-
-				-- Send trade request if not currently in a trade session
-				if not isCurrentlyInTrade() then
-					if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
-						sendTradeRemote:FireServer(targetPlayer)
-					end
-				else
-					-- We are in a trade, add items and progress negotiation
+			for _, playerName in ipairs(MainAccUsername) do
+				if Players:FindFirstChild(playerName) then
 					local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, TARGET_ITEM_FORM, 18)
+
 					for _, uniqueId in ipairs(uniqueIds) do
 						pcall(function()
 							addItemRemote:FireServer(uniqueId)
 						end)
 					end
-
-					-- Accept negotiation and confirm trade
-					pcall(function()
-						AcceptNeg:FireServer()
-						ConfirmTrade:FireServer()
-					end)
-
-					-- Wait for trade window to close or clear before moving forward
-					local timeout = 0
-					while isCurrentlyInTrade() and timeout < 30 do
-						task.wait(1)
-						timeout = timeout + 1
-					end
-
-					print("Trade completed or timed out with: " .. targetName .. ". Moving to next user.")
-					
-					-- Move to the next user in sequential order, loop back to 1 after the last index
-					currentIndex = currentIndex + 1
-					if currentIndex > #MainAccUsername then
-						currentIndex = 1
-					end
-				end
-			else
-				-- Skip user if offline and move to the next index immediately
-				print("User offline or not found: " .. tostring(targetName) .. ". Skipping.")
-				currentIndex = currentIndex + 1
-				if currentIndex > #MainAccUsername then
-					currentIndex = 1
-				end
-			end
-		end
-
-		if ForceReceiver then
-			for _, targetPlayer in ipairs(Players:GetPlayers()) do
-				if targetPlayer ~= LocalPlayer then
-					pcall(function()
-						tradeFunction:InvokeServer(targetPlayer, true)
-					end)
+					break
 				end
 			end
 		end
@@ -133,3 +93,38 @@ task.spawn(function()
 		task.wait(1)
 	end
 end)
+
+task.spawn(function()
+	while true do
+		-- Only loop if names are provided and not empty
+		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
+			for _, playerName in ipairs(MainAccUsername) do
+				if Players:FindFirstChild(playerName) then
+					sendTradeRequest(playerName)
+				end
+			end
+		end
+
+		if ForceReceiver then
+			acceptTradeForAll()
+		end
+
+		task.wait(0.3)
+	end
+end)
+
+
+-- Cache the remotes once
+local AcceptNeg = API:WaitForChild("TradeAPI/AcceptNegotiation")
+local ConfirmTrade = API:WaitForChild("TradeAPI/ConfirmTrade")
+
+local function RunTradeAutomation()
+    while true do
+		AcceptNeg:FireServer()e
+		ConfirmTrade:FireServer()
+        task.wait(1) -- Wait 1 second before the next loop
+    end
+end
+
+-- Start the loop in the background
+task.spawn(RunTradeAutomation)
