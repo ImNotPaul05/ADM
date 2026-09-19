@@ -1,0 +1,174 @@
+-- Gui to Lua
+-- Version: 3.2
+
+-- Instances:
+
+local HOO = Instance.new("ScreenGui")
+local Main = Instance.new("Frame")
+local ImageLabel = Instance.new("ImageLabel")
+local Sibebar = Instance.new("Frame")
+local ImageLabel_2 = Instance.new("ImageLabel")
+local UICorner = Instance.new("UICorner")
+local UICorner_2 = Instance.new("UICorner")
+local Button1 = Instance.new("ImageButton")
+local UICorner_3 = Instance.new("UICorner")
+local Button2 = Instance.new("ImageButton")
+local UICorner_4 = Instance.new("UICorner")
+local Button3 = Instance.new("ImageButton")
+local UICorner_5 = Instance.new("UICorner")
+local ImageButton = Instance.new("ImageButton")
+local Drag = Instance.new("Frame")
+
+--Properties:
+
+HOO.Name = "HOO"
+HOO.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+HOO.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+Main.Name = "Main"
+Main.Parent = HOO
+Main.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Main.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Main.BorderSizePixel = 0
+Main.Position = UDim2.new(0.356934309, 0, 0.129229113, 0)
+Main.Size = UDim2.new(0, 751, 0, 389)
+
+ImageLabel.Parent = Main
+ImageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ImageLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ImageLabel.BorderSizePixel = 0
+ImageLabel.Size = UDim2.new(0, 751, 0, 389)
+ImageLabel.Image = "rbxassetid://128187909134779"
+
+Sibebar.Name = "Sibebar"
+Sibebar.Parent = Main
+Sibebar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Sibebar.BackgroundTransparency = 1.000
+Sibebar.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Sibebar.BorderSizePixel = 0
+Sibebar.Position = UDim2.new(0.0182491057, 0, 0.116536826, 0)
+Sibebar.Size = UDim2.new(0, 72, 0, 316)
+
+ImageLabel_2.Parent = Sibebar
+ImageLabel_2.BackgroundColor3 = Color3.fromRGB(185, 185, 185)
+ImageLabel_2.BackgroundTransparency = 1.000
+ImageLabel_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ImageLabel_2.BorderSizePixel = 0
+ImageLabel_2.Position = UDim2.new(0, 0, -0.00316465343, 0)
+ImageLabel_2.Size = UDim2.new(0, 72, 0, 327)
+ImageLabel_2.Image = "rbxassetid://134314546078118"
+
+UICorner.CornerRadius = UDim.new(0.180000007, 0)
+UICorner.Parent = ImageLabel_2
+
+UICorner_2.CornerRadius = UDim.new(0.180000007, 0)
+UICorner_2.Parent = Sibebar
+
+Button1.Name = "Button 1"
+Button1.Parent = Sibebar
+Button1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Button1.BackgroundTransparency = 1.000
+Button1.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Button1.BorderSizePixel = 0
+Button1.Position = UDim2.new(0.113349915, 0, 0.0561487712, 0)
+Button1.Size = UDim2.new(0, 55, 0, 48)
+Button1.Image = "rbxassetid://112682578849203"
+
+UICorner_3.CornerRadius = UDim.new(0.109999999, 0)
+UICorner_3.Parent = Button1
+
+Button2.Name = "Button 2"
+Button2.Parent = Sibebar
+Button2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Button2.BackgroundTransparency = 1.000
+Button2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Button2.BorderSizePixel = 0
+Button2.Position = UDim2.new(0.113349915, 0, 0.269840866, 0)
+Button2.Size = UDim2.new(0, 55, 0, 48)
+Button2.Image = "rbxassetid://95188272814174"
+
+UICorner_4.Parent = Button2
+
+Button3.Name = "Button 3"
+Button3.Parent = Sibebar
+Button3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Button3.BackgroundTransparency = 1.000
+Button3.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Button3.BorderSizePixel = 0
+Button3.Position = UDim2.new(0.113349915, 0, 0.483689427, 0)
+Button3.Size = UDim2.new(0, 55, 0, 48)
+Button3.Image = "rbxassetid://129176741012626"
+
+UICorner_5.Parent = Button3
+
+ImageButton.Parent = Main
+ImageButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ImageButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ImageButton.BorderSizePixel = 0
+ImageButton.Position = UDim2.new(0.958342195, 0, 0.0149999978, 0)
+ImageButton.Size = UDim2.new(0, 25, 0, 21)
+ImageButton.Image = "rbxassetid://80001715136259"
+
+Drag.Name = "Drag"
+Drag.Parent = Main
+Drag.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Drag.BackgroundTransparency = 1.000
+Drag.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Drag.BorderSizePixel = 0
+Drag.Size = UDim2.new(0, 751, 0, 35)
+
+-- Scripts:
+
+local function BZVBMXL_fake_script() -- Button1.LocalScript 
+	local script = Instance.new('LocalScript', Button1)
+
+	
+end
+coroutine.wrap(BZVBMXL_fake_script)()
+local function SMKGE_fake_script() -- Drag.LocalScript 
+	local script = Instance.new('LocalScript', Drag)
+
+	local UserInputService = game:GetService("UserInputService")
+	
+	local dragButton = script.Parent
+	local mainFrame = dragButton.Parent
+	
+	local dragging = false
+	local dragStart
+	local startPosition
+	
+	dragButton.Active = true
+	
+	dragButton.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+	
+			dragging = true
+			dragStart = input.Position
+			startPosition = mainFrame.Position
+	
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+	
+	UserInputService.InputChanged:Connect(function(input)
+		if dragging and (
+			input.UserInputType == Enum.UserInputType.MouseMovement
+				or input.UserInputType == Enum.UserInputType.Touch
+			) then
+			local delta = input.Position - dragStart
+	
+			mainFrame.Position = UDim2.new(
+				startPosition.X.Scale,
+				startPosition.X.Offset + delta.X,
+				startPosition.Y.Scale,
+				startPosition.Y.Offset + delta.Y
+			)
+		end
+	end)
+end
+coroutine.wrap(SMKGE_fake_script)()
