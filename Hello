@@ -14,8 +14,8 @@ Shadow.Parent = game.StarterGui.Main
 Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 Shadow.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Shadow.BorderSizePixel = 0
-Shadow.Position = UDim2.new(0, 423, 0, 26)
-Shadow.Size = UDim2.new(0, 605, 0, 596)
+Shadow.Position = UDim2.new(0, 423, 0, 0)
+Shadow.Size = UDim2.new(0, 611, 0, 675)
 
 UICorner.CornerRadius = UDim.new(0, 10)
 UICorner.Parent = Shadow
