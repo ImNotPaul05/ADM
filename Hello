@@ -44,8 +44,8 @@ Shadow.Parent = Main
 Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 Shadow.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Shadow.BorderSizePixel = 0
-Shadow.Position = UDim2.new(0.321170986, 0, 0.132586941, 0)
-Shadow.Size = UDim2.new(0.355244577, 0, 0.73363632, 0)
+Shadow.Position = UDim2.new(0.321171016, 0, 0.0229573566, 0)
+Shadow.Size = UDim2.new(0.415767282, 0, 0.89511776, 0)
 
 UICorner.CornerRadius = UDim.new(0, 10)
 UICorner.Parent = Shadow
@@ -243,15 +243,15 @@ UITextSizeConstraint_5.MaxTextSize = 25
 
 -- Scripts:
 
-local function NBWJRZT_fake_script() -- Circle.LocalScript 
+local function BXXV_fake_script() -- Circle.LocalScript 
 	local script = Instance.new('LocalScript', Circle)
 
 	local stroke = circle:WaitForChild("UIStroke")
 	stroke.Color = circle.BackgroundColor3
 	stroke.Thickness = 2
 end
-coroutine.wrap(NBWJRZT_fake_script)()
-local function DWVOQWJ_fake_script() -- ImageButton.LocalScript 
+coroutine.wrap(BXXV_fake_script)()
+local function HMIWC_fake_script() -- ImageButton.LocalScript 
 	local script = Instance.new('LocalScript', ImageButton)
 
 	local button = script.Parent
@@ -271,4 +271,4 @@ local function DWVOQWJ_fake_script() -- ImageButton.LocalScript
 		end
 	end)
 end
-coroutine.wrap(DWVOQWJ_fake_script)()
+coroutine.wrap(HMIWC_fake_script)()
