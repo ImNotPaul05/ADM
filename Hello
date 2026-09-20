@@ -3,6 +3,7 @@
 
 -- Instances:
 
+local Main = Instance.new("ScreenGui")
 local Shadow = Instance.new("Frame")
 local UICorner = Instance.new("UICorner")
 local TextLabel = Instance.new("TextLabel")
@@ -34,13 +35,17 @@ local UITextSizeConstraint_5 = Instance.new("UITextSizeConstraint")
 
 --Properties:
 
+Main.Name = "Main"
+Main.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+Main.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
 Shadow.Name = "Shadow"
-Shadow.Parent = game.StarterGui.Main
+Shadow.Parent = Main
 Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 Shadow.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Shadow.BorderSizePixel = 0
-Shadow.Position = UDim2.new(0, 423, 0, 0)
-Shadow.Size = UDim2.new(0, 611, 0, 675)
+Shadow.Position = UDim2.new(0.227232292, 0, 0.0592592582, 0)
+Shadow.Size = UDim2.new(0.592680097, 0, 0.868148148, 0)
 
 UICorner.CornerRadius = UDim.new(0, 10)
 UICorner.Parent = Shadow
@@ -63,8 +68,8 @@ Board.BackgroundColor3 = Color3.fromRGB(161, 161, 161)
 Board.BackgroundTransparency = 0.700
 Board.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Board.BorderSizePixel = 0
-Board.Position = UDim2.new(0, 16, 0, 27)
-Board.Size = UDim2.new(0, 579, 0, 620)
+Board.Position = UDim2.new(0.0261865798, 0, 0.0399999991, 0)
+Board.Size = UDim2.new(0.947626829, 0, 0.918518543, 0)
 
 Bar.Name = "Bar"
 Bar.Parent = Board
@@ -73,7 +78,7 @@ Bar.BackgroundTransparency = 0.700
 Bar.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Bar.BorderSizePixel = 0
 Bar.Position = UDim2.new(0.0825426206, 0, 0.0168305263, 0)
-Bar.Size = UDim2.new(0.834146261, 0, 0.116725348, 0)
+Bar.Size = UDim2.new(0.834146261, 0, 0.11672534, 0)
 
 UICorner_2.Parent = Bar
 
@@ -238,15 +243,15 @@ UITextSizeConstraint_5.MaxTextSize = 25
 
 -- Scripts:
 
-local function XLGEFJG_fake_script() -- Circle.LocalScript 
+local function DBFAMPF_fake_script() -- Circle.LocalScript 
 	local script = Instance.new('LocalScript', Circle)
 
 	local stroke = circle:WaitForChild("UIStroke")
 	stroke.Color = circle.BackgroundColor3
 	stroke.Thickness = 2
 end
-coroutine.wrap(XLGEFJG_fake_script)()
-local function UPOW_fake_script() -- ImageButton.LocalScript 
+coroutine.wrap(DBFAMPF_fake_script)()
+local function CVYGOJ_fake_script() -- ImageButton.LocalScript 
 	local script = Instance.new('LocalScript', ImageButton)
 
 	local button = script.Parent
@@ -266,4 +271,4 @@ local function UPOW_fake_script() -- ImageButton.LocalScript
 		end
 	end)
 end
-coroutine.wrap(UPOW_fake_script)()
+coroutine.wrap(CVYGOJ_fake_script)()
