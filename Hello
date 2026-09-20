@@ -44,8 +44,8 @@ Shadow.Parent = Main
 Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 Shadow.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Shadow.BorderSizePixel = 0
-Shadow.Position = UDim2.new(0.227232292, 0, 0.0592592582, 0)
-Shadow.Size = UDim2.new(0.592680097, 0, 0.868148148, 0)
+Shadow.Position = UDim2.new(0.203160763, 0, 0.0325925909, 0)
+Shadow.Size = UDim2.new(0.592680097, 0, 0.93037039, 0)
 
 UICorner.CornerRadius = UDim.new(0, 10)
 UICorner.Parent = Shadow
@@ -55,7 +55,7 @@ TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 TextLabel.BackgroundTransparency = 1.000
 TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
 TextLabel.BorderSizePixel = 0
-TextLabel.Position = UDim2.new(-0.000897515856, 0, -0.014077859, 0)
+TextLabel.Position = UDim2.new(-0.369911134, 0, -0.00042598322, 0)
 TextLabel.Size = UDim2.new(0.115885235, 0, 0.0680424646, 0)
 TextLabel.Font = Enum.Font.SourceSansBold
 TextLabel.Text = "vox"
@@ -243,15 +243,15 @@ UITextSizeConstraint_5.MaxTextSize = 25
 
 -- Scripts:
 
-local function DBFAMPF_fake_script() -- Circle.LocalScript 
+local function TQGR_fake_script() -- Circle.LocalScript 
 	local script = Instance.new('LocalScript', Circle)
 
 	local stroke = circle:WaitForChild("UIStroke")
 	stroke.Color = circle.BackgroundColor3
 	stroke.Thickness = 2
 end
-coroutine.wrap(DBFAMPF_fake_script)()
-local function CVYGOJ_fake_script() -- ImageButton.LocalScript 
+coroutine.wrap(TQGR_fake_script)()
+local function LEQII_fake_script() -- ImageButton.LocalScript 
 	local script = Instance.new('LocalScript', ImageButton)
 
 	local button = script.Parent
@@ -271,4 +271,4 @@ local function CVYGOJ_fake_script() -- ImageButton.LocalScript
 		end
 	end)
 end
-coroutine.wrap(CVYGOJ_fake_script)()
+coroutine.wrap(LEQII_fake_script)()
