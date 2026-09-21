@@ -208,7 +208,7 @@ UITextSizeConstraint_5.MaxTextSize = 26
 
 -- Scripts:
 
-local function BFADGD_fake_script() -- ImageButton.LocalScript 
+local function QBMJJ_fake_script() -- ImageButton.LocalScript 
 	local script = Instance.new('LocalScript', ImageButton)
 
 	local button = script.Parent
@@ -228,16 +228,16 @@ local function BFADGD_fake_script() -- ImageButton.LocalScript
 		end
 	end)
 end
-coroutine.wrap(BFADGD_fake_script)()
-local function ZGMIFGU_fake_script() -- Circle.LocalScript 
+coroutine.wrap(QBMJJ_fake_script)()
+local function BOBX_fake_script() -- Circle.LocalScript 
 	local script = Instance.new('LocalScript', Circle)
 
 	local stroke = circle:WaitForChild("UIStroke")
 	stroke.Color = circle.BackgroundColor3
 	stroke.Thickness = 2
 end
-coroutine.wrap(ZGMIFGU_fake_script)()
-local function UVWRLHU_fake_script() -- BucksButton.LocalScript 
+coroutine.wrap(BOBX_fake_script)()
+local function WRSDQTX_fake_script() -- BucksButton.LocalScript 
 	local script = Instance.new('LocalScript', BucksButton)
 
 	local button = script.Parent
@@ -254,8 +254,8 @@ local function UVWRLHU_fake_script() -- BucksButton.LocalScript
 		bucks.Visible = true
 	end)
 end
-coroutine.wrap(UVWRLHU_fake_script)()
-local function FNBFWN_fake_script() -- TradingButton.LocalScript 
+coroutine.wrap(WRSDQTX_fake_script)()
+local function PJIKLT_fake_script() -- TradingButton.LocalScript 
 	local script = Instance.new('LocalScript', TradingButton)
 
 	local button = script.Parent
@@ -272,8 +272,8 @@ local function FNBFWN_fake_script() -- TradingButton.LocalScript
 		bucks.Visible = false
 	end)
 end
-coroutine.wrap(FNBFWN_fake_script)()
-local function AJGDTBN_fake_script() -- PotionButton.LocalScript 
+coroutine.wrap(PJIKLT_fake_script)()
+local function EEWDSAU_fake_script() -- PotionButton.LocalScript 
 	local script = Instance.new('LocalScript', PotionButton)
 
 	local button = script.Parent
@@ -290,8 +290,8 @@ local function AJGDTBN_fake_script() -- PotionButton.LocalScript
 		bucks.Visible = false
 	end)
 end
-coroutine.wrap(AJGDTBN_fake_script)()
-local function MBEV_fake_script() -- ShopButton.LocalScript 
+coroutine.wrap(EEWDSAU_fake_script)()
+local function SXOYJK_fake_script() -- ShopButton.LocalScript 
 	local script = Instance.new('LocalScript', ShopButton)
 
 	local button = script.Parent
@@ -308,4 +308,4 @@ local function MBEV_fake_script() -- ShopButton.LocalScript
 		bucks.Visible = false
 	end)
 end
-coroutine.wrap(MBEV_fake_script)()
+coroutine.wrap(SXOYJK_fake_script)()
