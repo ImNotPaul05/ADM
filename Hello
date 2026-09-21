@@ -29,12 +29,6 @@ local Circle = Instance.new("Frame")
 local UICorner_7 = Instance.new("UICorner")
 local TextLabel_5 = Instance.new("TextLabel")
 local UITextSizeConstraint_5 = Instance.new("UITextSizeConstraint")
-local Background = Instance.new("Frame")
-local UICorner_8 = Instance.new("UICorner")
-local userInterface = Instance.new("Frame")
-local UICorner_9 = Instance.new("UICorner")
-local Playernamehere = Instance.new("TextButton")
-local UICorner_10 = Instance.new("UICorner")
 local TextLabel_6 = Instance.new("TextLabel")
 
 --Properties:
@@ -218,43 +212,6 @@ TextLabel_5.TextWrapped = true
 UITextSizeConstraint_5.Parent = TextLabel_5
 UITextSizeConstraint_5.MaxTextSize = 25
 
-Background.Name = "Background"
-Background.Parent = Trading
-Background.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-Background.BackgroundTransparency = 0.600
-Background.BorderColor3 = Color3.fromRGB(0, 0, 0)
-Background.BorderSizePixel = 0
-Background.Position = UDim2.new(0.295456678, 0, 0.191429839, 0)
-Background.Size = UDim2.new(0.408046514, 0, 0.284376949, 0)
-
-UICorner_8.CornerRadius = UDim.new(0, 15)
-UICorner_8.Parent = Background
-
-userInterface.Name = "userInterface"
-userInterface.Parent = Background
-userInterface.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-userInterface.BorderColor3 = Color3.fromRGB(0, 0, 0)
-userInterface.BorderSizePixel = 0
-userInterface.Position = UDim2.new(0.0458743274, 0, 0.0893756375, 0)
-userInterface.Size = UDim2.new(0.908981204, 0, 0.816569149, 0)
-
-UICorner_9.CornerRadius = UDim.new(0, 10)
-UICorner_9.Parent = userInterface
-
-Playernamehere.Name = "Playername here"
-Playernamehere.Parent = userInterface
-Playernamehere.BackgroundColor3 = Color3.fromRGB(131, 131, 131)
-Playernamehere.BorderColor3 = Color3.fromRGB(0, 0, 0)
-Playernamehere.BorderSizePixel = 0
-Playernamehere.Position = UDim2.new(0.0339537039, 0, 0.0791015625, 0)
-Playernamehere.Size = UDim2.new(0.927558243, 0, 0.124119356, 0)
-Playernamehere.Font = Enum.Font.SourceSansBold
-Playernamehere.Text = ""
-Playernamehere.TextColor3 = Color3.fromRGB(0, 0, 0)
-Playernamehere.TextSize = 14.000
-
-UICorner_10.Parent = Playernamehere
-
 TextLabel_6.Parent = Main
 TextLabel_6.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 TextLabel_6.BackgroundTransparency = 1.000
@@ -269,7 +226,7 @@ TextLabel_6.TextSize = 14.000
 
 -- Scripts:
 
-local function QWUGWGB_fake_script() -- BucksButton.LocalScript 
+local function VMUKP_fake_script() -- BucksButton.LocalScript 
 	local script = Instance.new('LocalScript', BucksButton)
 
 	local button = script.Parent
@@ -286,8 +243,8 @@ local function QWUGWGB_fake_script() -- BucksButton.LocalScript
 		bucks.Visible = true
 	end)
 end
-coroutine.wrap(QWUGWGB_fake_script)()
-local function TKDNHFP_fake_script() -- TradingButton.LocalScript 
+coroutine.wrap(VMUKP_fake_script)()
+local function GUOODZM_fake_script() -- TradingButton.LocalScript 
 	local script = Instance.new('LocalScript', TradingButton)
 
 	local button = script.Parent
@@ -304,8 +261,8 @@ local function TKDNHFP_fake_script() -- TradingButton.LocalScript
 		bucks.Visible = false
 	end)
 end
-coroutine.wrap(TKDNHFP_fake_script)()
-local function TELFMUG_fake_script() -- PotionButton.LocalScript 
+coroutine.wrap(GUOODZM_fake_script)()
+local function CJXR_fake_script() -- PotionButton.LocalScript 
 	local script = Instance.new('LocalScript', PotionButton)
 
 	local button = script.Parent
@@ -322,8 +279,8 @@ local function TELFMUG_fake_script() -- PotionButton.LocalScript
 		bucks.Visible = false
 	end)
 end
-coroutine.wrap(TELFMUG_fake_script)()
-local function OCSA_fake_script() -- ShopButton.LocalScript 
+coroutine.wrap(CJXR_fake_script)()
+local function PRXKZY_fake_script() -- ShopButton.LocalScript 
 	local script = Instance.new('LocalScript', ShopButton)
 
 	local button = script.Parent
@@ -340,8 +297,8 @@ local function OCSA_fake_script() -- ShopButton.LocalScript
 		bucks.Visible = false
 	end)
 end
-coroutine.wrap(OCSA_fake_script)()
-local function EUKDR_fake_script() -- ImageButton.LocalScript 
+coroutine.wrap(PRXKZY_fake_script)()
+local function AUXKBV_fake_script() -- ImageButton.LocalScript 
 	local script = Instance.new('LocalScript', ImageButton)
 
 	local button = script.Parent
@@ -361,28 +318,12 @@ local function EUKDR_fake_script() -- ImageButton.LocalScript
 		end
 	end)
 end
-coroutine.wrap(EUKDR_fake_script)()
-local function NLOUYE_fake_script() -- Circle.LocalScript 
+coroutine.wrap(AUXKBV_fake_script)()
+local function OHJSZ_fake_script() -- Circle.LocalScript 
 	local script = Instance.new('LocalScript', Circle)
 
 	local stroke = circle:WaitForChild("UIStroke")
 	stroke.Color = circle.BackgroundColor3
 	stroke.Thickness = 2
 end
-coroutine.wrap(NLOUYE_fake_script)()
-local function OMEELVF_fake_script() -- userInterface.LocalScript 
-	local script = Instance.new('LocalScript', userInterface)
-
-	local script = Instance.new('LocalScript', ScrollingFrame)
-	local Players = game:GetService("Players")
-	local playerList = script.Parent
-	local playerButtonTemplate = playerList:WaitForChild("Playername here")
-	local layout = playerList:WaitForChild("UIListLayout")
-	local selectedPlayer
-	
-	local function addPlayer(player)
-		if playerList:FindFirstChild(player.Name) then
-			return
-		end
-end
-coroutine.wrap(OMEELVF_fake_script)()
+coroutine.wrap(OHJSZ_fake_script)()
