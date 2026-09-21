@@ -1,3 +1,8 @@
+-- Gui to Lua
+-- Version: 3.2
+
+-- Instances:
+
 local test = Instance.new("ScreenGui")
 local Background = Instance.new("Frame")
 local UICorner = Instance.new("UICorner")
@@ -66,4 +71,3 @@ local function ANOTY_fake_script() -- ScrollingFrame.LocalScript
 			return
 		end
 end
-coroutine.wrap(ANOTY_fake_script)()
