@@ -3,61 +3,375 @@
 
 -- Instances:
 
-local test = Instance.new("ScreenGui")
-local Background = Instance.new("Frame")
+local Main = Instance.new("ScreenGui")
+local Trading = Instance.new("Frame")
 local UICorner = Instance.new("UICorner")
-local ScrollingFrame = Instance.new("ScrollingFrame")
+local Bar = Instance.new("Frame")
 local UICorner_2 = Instance.new("UICorner")
-local Playernamehere = Instance.new("TextButton")
+local BucksButton = Instance.new("ImageButton")
 local UICorner_3 = Instance.new("UICorner")
+local TextLabel = Instance.new("TextLabel")
+local UITextSizeConstraint = Instance.new("UITextSizeConstraint")
+local TradingButton = Instance.new("ImageButton")
+local UICorner_4 = Instance.new("UICorner")
+local TextLabel_2 = Instance.new("TextLabel")
+local UITextSizeConstraint_2 = Instance.new("UITextSizeConstraint")
+local PotionButton = Instance.new("ImageButton")
+local UICorner_5 = Instance.new("UICorner")
+local TextLabel_3 = Instance.new("TextLabel")
+local UITextSizeConstraint_3 = Instance.new("UITextSizeConstraint")
+local ShopButton = Instance.new("ImageButton")
+local UICorner_6 = Instance.new("UICorner")
+local TextLabel_4 = Instance.new("TextLabel")
+local UITextSizeConstraint_4 = Instance.new("UITextSizeConstraint")
+local ImageButton = Instance.new("ImageButton")
+local Circle = Instance.new("Frame")
+local UICorner_7 = Instance.new("UICorner")
+local TextLabel_5 = Instance.new("TextLabel")
+local UITextSizeConstraint_5 = Instance.new("UITextSizeConstraint")
+local Background = Instance.new("Frame")
+local UICorner_8 = Instance.new("UICorner")
+local userInterface = Instance.new("Frame")
+local UICorner_9 = Instance.new("UICorner")
+local Playernamehere = Instance.new("TextButton")
+local UICorner_10 = Instance.new("UICorner")
+local TextLabel_6 = Instance.new("TextLabel")
 
 --Properties:
 
-test.Name = "test"
-test.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-test.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+Main.Name = "Main"
+Main.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+Main.DisplayOrder = 20
+
+Trading.Name = "Trading"
+Trading.Parent = Main
+Trading.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Trading.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Trading.BorderSizePixel = 0
+Trading.Position = UDim2.new(0.19008939, 0, 0.0159171093, 0)
+Trading.Size = UDim2.new(0.622666836, 0, 0.943796039, 0)
+
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = Trading
+
+Bar.Name = "Bar"
+Bar.Parent = Trading
+Bar.BackgroundColor3 = Color3.fromRGB(58, 58, 58)
+Bar.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Bar.BorderSizePixel = 0
+Bar.Position = UDim2.new(0.250769347, 0, 0.0377021693, 0)
+Bar.Size = UDim2.new(0.486398637, 0, 0.0728212968, 0)
+
+UICorner_2.CornerRadius = UDim.new(0, 10)
+UICorner_2.Parent = Bar
+
+BucksButton.Name = "Bucks/Button"
+BucksButton.Parent = Bar
+BucksButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+BucksButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+BucksButton.BorderSizePixel = 0
+BucksButton.Position = UDim2.new(0.76361531, 0, 0.080995068, 0)
+BucksButton.Size = UDim2.new(0.202380061, 0, 0.807396531, 0)
+BucksButton.Image = "rbxassetid://107656778984704"
+
+UICorner_3.CornerRadius = UDim.new(0, 10)
+UICorner_3.Parent = BucksButton
+
+TextLabel.Parent = BucksButton
+TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.BackgroundTransparency = 1.000
+TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel.BorderSizePixel = 0
+TextLabel.Position = UDim2.new(0.220704302, 0, 0.161271185, 0)
+TextLabel.Size = UDim2.new(0.551760733, 0, 0.654418886, 0)
+TextLabel.Font = Enum.Font.SourceSansBold
+TextLabel.Text = "Bucks"
+TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.TextScaled = true
+TextLabel.TextSize = 17.000
+TextLabel.TextWrapped = true
+
+UITextSizeConstraint.Parent = TextLabel
+UITextSizeConstraint.MaxTextSize = 22
+
+TradingButton.Name = "Trading/Button"
+TradingButton.Parent = Bar
+TradingButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TradingButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TradingButton.BorderSizePixel = 0
+TradingButton.Position = UDim2.new(0.290538877, 0, 0.080995068, 0)
+TradingButton.Size = UDim2.new(0.202379927, 0, 0.807396531, 0)
+TradingButton.Image = "rbxassetid://107656778984704"
+
+UICorner_4.CornerRadius = UDim.new(0, 10)
+UICorner_4.Parent = TradingButton
+
+TextLabel_2.Parent = TradingButton
+TextLabel_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_2.BackgroundTransparency = 1.000
+TextLabel_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_2.BorderSizePixel = 0
+TextLabel_2.Position = UDim2.new(0, 0, 0.0248907506, 0)
+TextLabel_2.Size = UDim2.new(1.02764237, 0, 0.940143883, 0)
+TextLabel_2.Font = Enum.Font.SourceSansBold
+TextLabel_2.Text = "Trading"
+TextLabel_2.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_2.TextScaled = true
+TextLabel_2.TextSize = 17.000
+TextLabel_2.TextWrapped = true
+
+UITextSizeConstraint_2.Parent = TextLabel_2
+UITextSizeConstraint_2.MaxTextSize = 17
+
+PotionButton.Name = "Potion/Button"
+PotionButton.Parent = Bar
+PotionButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+PotionButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+PotionButton.BorderSizePixel = 0
+PotionButton.Position = UDim2.new(0.0377910286, 0, 0.080995068, 0)
+PotionButton.Size = UDim2.new(0.202379957, 0, 0.807396531, 0)
+PotionButton.Image = "rbxassetid://107656778984704"
+
+UICorner_5.CornerRadius = UDim.new(0, 10)
+UICorner_5.Parent = PotionButton
+
+TextLabel_3.Parent = PotionButton
+TextLabel_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_3.BackgroundTransparency = 1.000
+TextLabel_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_3.BorderSizePixel = 0
+TextLabel_3.Position = UDim2.new(0.220704302, 0, 0.161271185, 0)
+TextLabel_3.Size = UDim2.new(0.551760733, 0, 0.654418886, 0)
+TextLabel_3.Font = Enum.Font.SourceSansBold
+TextLabel_3.Text = "Potion"
+TextLabel_3.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_3.TextScaled = true
+TextLabel_3.TextSize = 17.000
+TextLabel_3.TextWrapped = true
+
+UITextSizeConstraint_3.Parent = TextLabel_3
+UITextSizeConstraint_3.MaxTextSize = 20
+
+ShopButton.Name = "Shop/Button"
+ShopButton.Parent = Bar
+ShopButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ShopButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ShopButton.BorderSizePixel = 0
+ShopButton.Position = UDim2.new(0.517951667, 0, 0.080995068, 0)
+ShopButton.Size = UDim2.new(0.202380061, 0, 0.807396531, 0)
+ShopButton.Image = "rbxassetid://107656778984704"
+
+UICorner_6.CornerRadius = UDim.new(0, 10)
+UICorner_6.Parent = ShopButton
+
+TextLabel_4.Parent = ShopButton
+TextLabel_4.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_4.BackgroundTransparency = 1.000
+TextLabel_4.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_4.BorderSizePixel = 0
+TextLabel_4.Position = UDim2.new(0.220704302, 0, 0.161271185, 0)
+TextLabel_4.Size = UDim2.new(0.551760733, 0, 0.654418886, 0)
+TextLabel_4.Font = Enum.Font.SourceSansBold
+TextLabel_4.Text = "Shop"
+TextLabel_4.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_4.TextScaled = true
+TextLabel_4.TextSize = 17.000
+TextLabel_4.TextWrapped = true
+
+UITextSizeConstraint_4.Parent = TextLabel_4
+UITextSizeConstraint_4.MaxTextSize = 26
+
+ImageButton.Parent = Trading
+ImageButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ImageButton.BackgroundTransparency = 1.000
+ImageButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ImageButton.BorderSizePixel = 0
+ImageButton.Position = UDim2.new(0.363022149, 0, 0.781258583, 0)
+ImageButton.Size = UDim2.new(0.305233687, 0, 0.094198145, 0)
+ImageButton.Image = "rbxassetid://110536668013306"
+
+Circle.Name = "Circle"
+Circle.Parent = ImageButton
+Circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Circle.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Circle.BorderSizePixel = 0
+Circle.Position = UDim2.new(0.917045534, 0, 0.164395496, 0)
+Circle.Size = UDim2.new(0.0552647971, 0, 0.222142398, 0)
+
+UICorner_7.CornerRadius = UDim.new(0, 100)
+UICorner_7.Parent = Circle
+
+TextLabel_5.Parent = ImageButton
+TextLabel_5.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_5.BackgroundTransparency = 1.000
+TextLabel_5.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_5.BorderSizePixel = 0
+TextLabel_5.Position = UDim2.new(0.117543533, 0, 0.284577906, 0)
+TextLabel_5.Size = UDim2.new(0.761310041, 0, 0.391448528, 0)
+TextLabel_5.Font = Enum.Font.SourceSansBold
+TextLabel_5.Text = "Send trade request"
+TextLabel_5.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_5.TextScaled = true
+TextLabel_5.TextSize = 25.000
+TextLabel_5.TextWrapped = true
+
+UITextSizeConstraint_5.Parent = TextLabel_5
+UITextSizeConstraint_5.MaxTextSize = 25
 
 Background.Name = "Background"
-Background.Parent = test
+Background.Parent = Trading
 Background.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 Background.BackgroundTransparency = 0.600
 Background.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Background.BorderSizePixel = 0
-Background.Position = UDim2.new(0.658131063, 0, 0.375562966, 0)
-Background.Size = UDim2.new(0.271244854, 0, 0.339988738, 0)
+Background.Position = UDim2.new(0.295456678, 0, 0.191429839, 0)
+Background.Size = UDim2.new(0.408046514, 0, 0.284376949, 0)
 
-UICorner.CornerRadius = UDim.new(0, 15)
-UICorner.Parent = Background
+UICorner_8.CornerRadius = UDim.new(0, 15)
+UICorner_8.Parent = Background
 
-ScrollingFrame.Parent = Background
-ScrollingFrame.Active = true
-ScrollingFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-ScrollingFrame.BorderSizePixel = 0
-ScrollingFrame.Position = UDim2.new(0.0528217368, 0, 0.101883687, 0)
-ScrollingFrame.Size = UDim2.new(0.895072281, 0, 0.793078661, 0)
+userInterface.Name = "userInterface"
+userInterface.Parent = Background
+userInterface.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+userInterface.BorderColor3 = Color3.fromRGB(0, 0, 0)
+userInterface.BorderSizePixel = 0
+userInterface.Position = UDim2.new(0.0458743274, 0, 0.0893756375, 0)
+userInterface.Size = UDim2.new(0.908981204, 0, 0.816569149, 0)
 
-UICorner_2.CornerRadius = UDim.new(0, 10)
-UICorner_2.Parent = ScrollingFrame
+UICorner_9.CornerRadius = UDim.new(0, 10)
+UICorner_9.Parent = userInterface
 
 Playernamehere.Name = "Playername here"
-Playernamehere.Parent = ScrollingFrame
+Playernamehere.Parent = userInterface
 Playernamehere.BackgroundColor3 = Color3.fromRGB(131, 131, 131)
 Playernamehere.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Playernamehere.BorderSizePixel = 0
-Playernamehere.Position = UDim2.new(0.0283670239, 0, 0.0243751984, 0)
-Playernamehere.Size = UDim2.new(0.924764991, 0, 0.0594427548, 0)
+Playernamehere.Position = UDim2.new(0.0339537039, 0, 0.0791015625, 0)
+Playernamehere.Size = UDim2.new(0.927558243, 0, 0.124119356, 0)
 Playernamehere.Font = Enum.Font.SourceSansBold
 Playernamehere.Text = ""
 Playernamehere.TextColor3 = Color3.fromRGB(0, 0, 0)
 Playernamehere.TextSize = 14.000
 
-UICorner_3.Parent = Playernamehere
+UICorner_10.Parent = Playernamehere
+
+TextLabel_6.Parent = Main
+TextLabel_6.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_6.BackgroundTransparency = 1.000
+TextLabel_6.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_6.BorderSizePixel = 0
+TextLabel_6.Position = UDim2.new(-0.369911134, 0, -0.00042598322, 0)
+TextLabel_6.Size = UDim2.new(0.115885235, 0, 0.0680424646, 0)
+TextLabel_6.Font = Enum.Font.SourceSansBold
+TextLabel_6.Text = "vox"
+TextLabel_6.TextColor3 = Color3.fromRGB(255, 0, 255)
+TextLabel_6.TextSize = 14.000
 
 -- Scripts:
 
-local function ANOTY_fake_script() -- ScrollingFrame.LocalScript 
-	local script = Instance.new('LocalScript', ScrollingFrame)
+local function QWUGWGB_fake_script() -- BucksButton.LocalScript 
+	local script = Instance.new('LocalScript', BucksButton)
+
+	local button = script.Parent
+	local main = button:FindFirstAncestor("Main")
+	local potion = main:WaitForChild("Potion")
+	local trading = main:WaitForChild("Trading")
+	local shop = button:FindFirstAncestor("Shop")
+	local bucks = main:WaitForChild("Bucks")
+	
+	button.Activated:Connect(function()
+		potion.Visible = false
+		trading.Visible = false
+		shop.Visible = false
+		bucks.Visible = true
+	end)
+end
+coroutine.wrap(QWUGWGB_fake_script)()
+local function TKDNHFP_fake_script() -- TradingButton.LocalScript 
+	local script = Instance.new('LocalScript', TradingButton)
+
+	local button = script.Parent
+	local main = button:FindFirstAncestor("Main")
+	local potion = main:WaitForChild("Potion")
+	local trading = main:WaitForChild("Trading")
+	local shop = button:FindFirstAncestor("Shop")
+	local bucks = main:WaitForChild("Bucks")
+	
+	button.Activated:Connect(function()
+		potion.Visible = false
+		trading.Visible = true
+		shop.Visible = false
+		bucks.Visible = false
+	end)
+end
+coroutine.wrap(TKDNHFP_fake_script)()
+local function TELFMUG_fake_script() -- PotionButton.LocalScript 
+	local script = Instance.new('LocalScript', PotionButton)
+
+	local button = script.Parent
+	local main = button:FindFirstAncestor("Main")
+	local potion = main:WaitForChild("Potion")
+	local trading = main:WaitForChild("Trading")
+	local shop = button:FindFirstAncestor("Shop")
+	local bucks = main:WaitForChild("Bucks")
+	
+	button.Activated:Connect(function()
+		potion.Visible = true
+		trading.Visible = false
+		shop.Visible = false
+		bucks.Visible = false
+	end)
+end
+coroutine.wrap(TELFMUG_fake_script)()
+local function OCSA_fake_script() -- ShopButton.LocalScript 
+	local script = Instance.new('LocalScript', ShopButton)
+
+	local button = script.Parent
+	local main = button:FindFirstAncestor("Main")
+	local potion = main:WaitForChild("Potion")
+	local trading = main:WaitForChild("Trading")
+	local shop = button:FindFirstAncestor("Shop")
+	local bucks = main:WaitForChild("Bucks")
+	
+	button.Activated:Connect(function()
+		potion.Visible = false
+		trading.Visible = false
+		shop.Visible = true
+		bucks.Visible = false
+	end)
+end
+coroutine.wrap(OCSA_fake_script)()
+local function EUKDR_fake_script() -- ImageButton.LocalScript 
+	local script = Instance.new('LocalScript', ImageButton)
+
+	local button = script.Parent
+	local circle = button:WaitForChild("Circle")
+	
+	local green = false
+	
+	circle.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+	
+	button.Activated:Connect(function()
+		green = not green
+	
+		if green then
+			circle.BackgroundColor3 = Color3.fromRGB(57, 255, 20) -- neon green
+		else
+			circle.BackgroundColor3 = Color3.fromRGB(255, 20, 20) -- neon red
+		end
+	end)
+end
+coroutine.wrap(EUKDR_fake_script)()
+local function NLOUYE_fake_script() -- Circle.LocalScript 
+	local script = Instance.new('LocalScript', Circle)
+
+	local stroke = circle:WaitForChild("UIStroke")
+	stroke.Color = circle.BackgroundColor3
+	stroke.Thickness = 2
+end
+coroutine.wrap(NLOUYE_fake_script)()
+local function OMEELVF_fake_script() -- userInterface.LocalScript 
+	local script = Instance.new('LocalScript', userInterface)
 
 	local script = Instance.new('LocalScript', ScrollingFrame)
 	local Players = game:GetService("Players")
@@ -71,3 +385,4 @@ local function ANOTY_fake_script() -- ScrollingFrame.LocalScript
 			return
 		end
 end
+coroutine.wrap(OMEELVF_fake_script)()
