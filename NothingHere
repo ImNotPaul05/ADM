@@ -1,8 +1,3 @@
--- Gui to Lua
--- Version: 3.2
-
--- Instances:
-
 local Main = Instance.new("ScreenGui")
 local Potion = Instance.new("Frame")
 local UICorner = Instance.new("UICorner")
@@ -1131,4 +1126,3 @@ local function OXSR_fake_script() -- Icon.LocalScript
 		trading.Visible = false
 	end)
 end
-coroutine.wrap(OXSR_fake_script)()
