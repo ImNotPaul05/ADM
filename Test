@@ -796,8 +796,13 @@ local function PETINVENTORY_fake_script() -- PetInterface.PetInventoryScript
 	local successClientData, ClientData = pcall(function()
 		return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 	end)
+	local clientModules = ReplicatedStorage:FindFirstChild("ClientModules")
+	local gameModules = clientModules and clientModules:FindFirstChild("Game")
+	local coreModules = clientModules and clientModules:FindFirstChild("Core")
+	local itemDataModule = (gameModules and gameModules:FindFirstChild("ItemData"))
+		or (coreModules and coreModules:FindFirstChild("ItemData"))
 	local successItemData, ItemData = pcall(function()
-		return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Game"):WaitForChild("ItemData"))
+		return itemDataModule and require(itemDataModule)
 	end)
 
 	local function getDisplayName(itemId)
@@ -817,7 +822,12 @@ local function PETINVENTORY_fake_script() -- PetInterface.PetInventoryScript
 		end
 
 		local dataStore = ClientData.get_data()
-		local playerData = dataStore and (dataStore[LocalPlayer] or dataStore[LocalPlayer.Name])
+		local playerData = dataStore and (
+			dataStore[LocalPlayer]
+			or dataStore[LocalPlayer.Name]
+			or dataStore[LocalPlayer.UserId]
+			or dataStore[tostring(LocalPlayer.UserId)]
+		)
 		local inventory = playerData and playerData.inventory
 		local pets = inventory and inventory.pets
 		if type(pets) ~= "table" then
@@ -925,8 +935,13 @@ local function EGG_INVENTORY_fake_script() -- EggInterface.EggInventoryScript
 	local successClientData, ClientData = pcall(function()
 		return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 	end)
+	local clientModules = ReplicatedStorage:FindFirstChild("ClientModules")
+	local gameModules = clientModules and clientModules:FindFirstChild("Game")
+	local coreModules = clientModules and clientModules:FindFirstChild("Core")
+	local itemDataModule = (gameModules and gameModules:FindFirstChild("ItemData"))
+		or (coreModules and coreModules:FindFirstChild("ItemData"))
 	local successItemData, ItemData = pcall(function()
-		return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Game"):WaitForChild("ItemData"))
+		return itemDataModule and require(itemDataModule)
 	end)
 
 	local function getDisplayName(itemId)
@@ -946,7 +961,12 @@ local function EGG_INVENTORY_fake_script() -- EggInterface.EggInventoryScript
 		end
 
 		local dataStore = ClientData.get_data()
-		local playerData = dataStore and (dataStore[LocalPlayer] or dataStore[LocalPlayer.Name])
+		local playerData = dataStore and (
+			dataStore[LocalPlayer]
+			or dataStore[LocalPlayer.Name]
+			or dataStore[LocalPlayer.UserId]
+			or dataStore[tostring(LocalPlayer.UserId)]
+		)
 		local inventory = playerData and playerData.inventory
 		local eggs = inventory and inventory.eggs
 		local eggIds = {}
