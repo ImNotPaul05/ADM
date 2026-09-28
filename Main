@@ -2,6 +2,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
+-- ================= CONFIGURATION =================
+MainAccUsername = {"Her0eXBuildera31"} 
+TARGET_ITEM_NAME = "retired_egg"
+TARGET_ITEM_FORM = "NORMAL" -- NORMAL, NEON, or MEGA_NEON
+ForceReceiver = false 
 
 local targetFrameNames = {"Dialog"}
 -- =================================================
@@ -33,9 +38,9 @@ local function getMultipleUniqueIdsByName(itemName, itemForm, limit)
 			local properties = itemData.properties or {}
 			local isNeon = properties.neon == true
 			local isMegaNeon = properties.mega_neon == true
-			local matchesForm = itemForm == "NEON" and isNeon and not isMegaNeon
-				or itemForm == "MEGA_NEON" and isMegaNeon
-				or itemForm == "NORMAL" and not isNeon and not isMegaNeon
+			local matchesForm = itemForm == "Neon" and "neon" and isNeon and not isMegaNeon
+				or itemForm == "Mega" and "mega" and isMegaNeon
+				or itemForm == "Normal" and "normal" and not isNeon and not isMegaNeon
 
 			if matchesForm then
 				table.insert(uniqueIds, uniqueId)
