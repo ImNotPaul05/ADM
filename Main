@@ -32,25 +32,29 @@ local function getMultipleUniqueIdsByName(itemName, itemForm, limit)
 		return {}
 	end
 
-	local uniqueIds = {}
-	for uniqueId, itemData in pairs(playerData.inventory.pets) do
-		if itemData and itemData.kind == itemName then
-			local properties = itemData.properties or {}
-			local isNeon = properties.neon == true
-			local isMegaNeon = properties.mega_neon == true
-			local matchesForm = itemForm == "Neon" and "neon" and isNeon and not isMegaNeon
-				or itemForm == "Mega" and "mega" and isMegaNeon
-				or itemForm == "Normal" and "normal" and not isNeon and not isMegaNeon
+local uniqueIds = {}
+    -- Normalize itemForm to lowercase to handle any casing
+    local formLower = itemForm and string.lower(itemForm) or ""
 
-			if matchesForm then
-				table.insert(uniqueIds, uniqueId)
-				if #uniqueIds >= limit then
-					break
-				end
-			end
-		end
-	end
-	return uniqueIds
+    for uniqueId, itemData in pairs(playerData.inventory.pets) do
+        if itemData and itemData.kind == itemName then
+            local properties = itemData.properties or {}
+            local isNeon = properties.neon == true
+            local isMegaNeon = properties.mega_neon == true
+            
+            local matchesForm = (formLower == "neon" and isNeon and not isMegaNeon)
+                or (formLower == "mega" and isMegaNeon)
+                or (formLower == "normal" and not isNeon and not isMegaNeon)
+
+            if matchesForm then
+                table.insert(uniqueIds, uniqueId)
+                if #uniqueIds >= limit then
+                    break
+                end
+            end
+        end
+    end
+    return uniqueIds
 end
 
 local function sendTradeRequest(playerName)
