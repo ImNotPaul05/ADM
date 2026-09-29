@@ -2,6 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
+-- ================= CONFIGURATION =================
 local targetFrameNames = {"Dialog"}
 -- =================================================
 
@@ -86,24 +87,42 @@ local function acceptTradeForAll()
 end
 
 task.spawn(function()
-	while true do
-		if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
-			for _, playerName in ipairs(MainAccUsername) do
-				if Players:FindFirstChild(playerName) then
-					local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, TARGET_ITEM_FORM, 18)
+    local hasAddedItems = false
 
-					for _, uniqueId in ipairs(uniqueIds) do
-						pcall(function()
-							addItemRemote:FireServer(uniqueId)
-						end)
-					end
-					break
-				end
-			end
-		end
+    while true do
+        local mainAccountFound = false
 
-		task.wait(1)
-	end
+        if MainAccUsername and #MainAccUsername > 0 and MainAccUsername[1] ~= "" then
+            for _, playerName in ipairs(MainAccUsername) do
+                if Players:FindFirstChild(playerName) then
+                    mainAccountFound = true
+                    
+                    -- Only run if we haven't already added items for this trade session
+                    if not hasAddedItems then
+                        local uniqueIds = getMultipleUniqueIdsByName(TARGET_ITEM_NAME, TARGET_ITEM_FORM, 18)
+
+                        if #uniqueIds > 0 then
+                            for _, uniqueId in ipairs(uniqueIds) do
+                                pcall(function()
+                                    addItemRemote:FireServer(uniqueId)
+                                    task.wait(0.1) -- Small delay between fires to prevent rate-limiting
+                                end)
+                            end
+                            hasAddedItems = true -- Lock it so it doesn't spam every second
+                        end
+                    end
+                    break
+                end
+            end
+        end
+
+        -- If the main account leaves or the trade ends, reset the trigger
+        if not mainAccountFound then
+            hasAddedItems = false
+        end
+
+        task.wait(1)
+    end
 end)
 
 task.spawn(function()
