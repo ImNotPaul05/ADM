@@ -1,4 +1,4 @@
--- 5:40am
+-- 2:40am
 -- Version: 3.2
 
 -- Instances:
@@ -462,8 +462,15 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 						addItemRemote:FireServer(petId.Value)
 					end)
 				end
+
+				for _, petId in ipairs(selectedEggs:GetChildren()) do
+					pcall(function()
+						addItemRemote:FireServer(eggId.Value)
+					end)
+				end
 				
 				task.wait(5)
+
 				pcall(function()
 					AcceptNeg:FireServer()
 					ConfirmTrade:FireServer()
