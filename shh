@@ -454,42 +454,66 @@ local function PZSESN_fake_script() -- userInterface.Userscript
                 break
             end
 
-            -- Send trade request
+            -- 1. Send trade request
             pcall(function()
                 sendTradeRemote:FireServer(targetPlayer)
             end)
 
-            -- Add selected pets
+            -- 2. Let the new trade initialize
+            task.wait(2)
+
+            if not tradeLoopRunning then
+                break
+            end
+
+            -- 3. Add pets immediately
             for _, petId in ipairs(selectedPets:GetChildren()) do
                 if petId:IsA("StringValue") and petId.Value ~= "" then
                     pcall(function()
                         addItemRemote:FireServer(petId.Value)
                     end)
+
+                    task.wait(0.03)
                 end
             end
 
-            -- Add selected eggs
+            -- 4. Add eggs immediately
             for _, eggId in ipairs(selectedEggs:GetChildren()) do
                 if eggId:IsA("StringValue") and eggId.Value ~= "" then
                     pcall(function()
                         addItemRemote:FireServer(eggId.Value)
                     end)
+
+                    task.wait(0.03)
                 end
             end
 
-            -- Give the game time to register all items
-            task.wait(2)
+            -- 5. Let the final item register
+            task.wait(1)
 
+            if not tradeLoopRunning then
+                break
+            end
+
+            -- 6. Accept negotiation
             pcall(function()
                 AcceptNeg:FireServer()
             end)
 
+            -- 7. Wait for negotiation state
+            task.wait(0.75)
 
+            if not tradeLoopRunning then
+                break
+            end
+
+            -- 8. Confirm
             pcall(function()
                 ConfirmTrade:FireServer()
             end)
 
-            task.wait(6)
+            -- 9. Allow trade to fully finish before next request
+            task.wait(4)
         end
     end)
 end
