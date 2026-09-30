@@ -461,13 +461,11 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 
 
             -- Add selected pets
-            for _, petId in ipairs(selectedPets:GetChildren()) do
-                if petId:IsA("StringValue") and petId.Value ~= "" then
-                    pcall(function()
-                        addItemRemote:FireServer(petId.Value)
-                    end)
-                end
-            end
+				for _, petId in ipairs(selectedPets:GetChildren()) do
+					pcall(function()
+						addItemRemote:FireServer(petId.Value)
+					end)
+				end
 
             -- Add selected eggs
             for _, eggId in ipairs(selectedEggs:GetChildren()) do
