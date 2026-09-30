@@ -463,19 +463,6 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 					end)
 				end
 				
-				-- Add selected eggs
-                for _, eggId in ipairs(selectedEggs:GetChildren()) do
-                    if eggId:IsA("StringValue") and eggId.Value ~= "" then
-                        print("Adding egg:", eggId.Value)
-
-                        pcall(function()
-                            addItemRemote:FireServer(eggId.Value)
-                        end)
-
-                    end
-                end
-			
-				
 				task.wait(5)
 				pcall(function()
 					AcceptNeg:FireServer()
