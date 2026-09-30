@@ -460,26 +460,26 @@ local function PZSESN_fake_script() -- userInterface.Userscript
             end)
 
 
-            -- Add selected pets
+                        -- Add selected pets
             for _, petId in ipairs(selectedPets:GetChildren()) do
                 if petId:IsA("StringValue") and petId.Value ~= "" then
-                    pcall(function()
-                        addItemRemote:FireServer(petId.Value)
+                     task.spawn(function()
+                        pcall(function()
+                            addItemRemote:FireServer(petId.Value)
+                        end)
                     end)
-
                 end
             end
 
             -- Add selected eggs
             for _, eggId in ipairs(selectedEggs:GetChildren()) do
-                if eggId:IsA("StringValue") and eggId.Value ~= "" then
-                    print("Adding egg:", eggId.Value)
-
-                    pcall(function()
-                        addItemRemote:FireServer(eggId.Value)
-                    end)
-
-                    task.wait(0.1)
+                    if eggId:IsA("StringValue") and eggId.Value ~= "" then
+                         task.spawn(function()
+                            pcall(function()
+                                addItemRemote:FireServer(eggId.Value)
+                            end)
+                        end)
+                    end
                 end
             end
 
