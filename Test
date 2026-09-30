@@ -421,6 +421,8 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 	local ConfirmTrade = API:WaitForChild("TradeAPI/ConfirmTrade")
 	local petInterface = scrollingFrame:WaitForChild("PetInterface")
 	local selectedPets = petInterface:WaitForChild("SelectedPets")
+    local eggInterface = scrollingFrame:WaitForChild("EggInterface")
+	local selectedEggs = eggInterface:WaitForChild("SelectedEggs")
 
 	local function stopTradeLoop()
 		tradeLoopRunning = false
@@ -458,6 +460,12 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 				for _, petId in ipairs(selectedPets:GetChildren()) do
 					pcall(function()
 						addItemRemote:FireServer(petId.Value)
+					end)
+				end
+
+				for _, eggId in ipairs(selectedEggs:GetChildren()) do
+					pcall(function()
+						addItemRemote:FireServer(eggId.Value)
 					end)
 				end
 
