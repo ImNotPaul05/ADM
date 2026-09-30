@@ -454,21 +454,19 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 					sendTradeRemote:FireServer(targetPlayer)
 				end)
 
+				task.wait(2)
 				for _, petId in ipairs(selectedPets:GetChildren()) do
 					pcall(function()
 						addItemRemote:FireServer(petId.Value)
 					end)
 				end
 
-				task.wait(5)
 				pcall(function()
 					AcceptNeg:FireServer()
-				end)
-
-				pcall(function()
 					ConfirmTrade:FireServer()
 				end)
 
+				task.wait(1)
 			end
 		end)
 	end
