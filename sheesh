@@ -444,7 +444,7 @@ local function startTradeLoop()
             tradeInProgress = true
 
             -- Send trade request
-            SendTradeRequest:FireServer(targetPlayer)
+            sendTradeRemote:FireServer(targetPlayer)
 
             task.wait(2)
 
