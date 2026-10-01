@@ -446,11 +446,24 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 				eggInterface:GetAttributeChangedSignal("RefreshSelectedReady"):Wait()
 			end
 
-			-- Refresh pet/egg quantity and fresh unique IDs
+			-- Refresh pet/egg quantity and fresh unique IDs.
+			-- Wait for each refresh callback to actually finish instead of using
+			-- a fixed delay that can race the inventory/UI update.
+			local petVersion = petInterface:GetAttribute("RefreshSelectedVersion") or 0
+			local eggVersion = eggInterface:GetAttribute("RefreshSelectedVersion") or 0
+
 			petInterface:WaitForChild("RefreshSelected"):Fire()
 			eggInterface:WaitForChild("RefreshSelected"):Fire()
 
-			task.wait(0.2)
+			local refreshDeadline = os.clock() + 2
+
+			repeat
+				task.wait()
+			until (
+				(petInterface:GetAttribute("RefreshSelectedVersion") or 0) > petVersion
+				and
+				(eggInterface:GetAttribute("RefreshSelectedVersion") or 0) > eggVersion
+			) or os.clock() >= refreshDeadline
 
 			-- SendTradeRequest
 			sendTradeRemote:FireServer(selectedPlayer)
@@ -766,43 +779,50 @@ end
 			selectedNames[group.displayName] = true
 		end
 
-		clearList()
-		selectedGroups = {}
-
+		-- Never destroy the current selection until a valid inventory snapshot is ready.
 		if not successClientData or not ClientData then
-			selectedEggs:ClearAllChildren()
-			return
+			return false
 		end
 
 		local dataStore = ClientData.get_data()
 		local playerData = dataStore and (dataStore[localPlayer] or dataStore[localPlayer.Name])
 		local pets = playerData and playerData.inventory and playerData.inventory.pets
+
 		if not pets then
-			selectedEggs:ClearAllChildren()
-			return
+			return false
 		end
 
 		local groupedEggs = {}
+
 		for uniqueId, itemData in pairs(pets) do
 			if itemData and isEgg(itemData) then
 				local displayName = getDisplayName(itemData)
-				local key = displayName
-				local group = groupedEggs[key]
+				local group = groupedEggs[displayName]
+
 				if not group then
-					group = {displayName = displayName, uniqueIds = {}}
-					groupedEggs[key] = group
+					group = {
+						displayName = displayName,
+						uniqueIds = {}
+					}
+					groupedEggs[displayName] = group
 				end
+
 				table.insert(group.uniqueIds, uniqueId)
 			end
 		end
 
 		local groups = {}
-		for _, g in pairs(groupedEggs) do
-			table.insert(groups, g)
+		for _, group in pairs(groupedEggs) do
+			table.insert(groups, group)
 		end
+
 		table.sort(groups, function(left, right)
 			return left.displayName < right.displayName
 		end)
+
+		-- Only replace the UI/selection after the entire snapshot was built successfully.
+		clearList()
+		selectedGroups = {}
 
 		for groupIndex, group in ipairs(groups) do
 			local button = Instance.new("TextButton")
@@ -820,7 +840,7 @@ end
 			button.AutoButtonColor = true
 			Instance.new("UICorner", button).CornerRadius = UDim.new(0, 6)
 
-			if selectedNames[group.displayName] then
+			if selectedNames[group.displayName] and #group.uniqueIds > 0 then
 				selectedGroups[group] = true
 				button.BackgroundColor3 = Color3.fromRGB(158, 0, 158)
 			end
@@ -838,12 +858,38 @@ end
 				syncSelectedEggs()
 			end)
 		end
+
+		-- Rebuild the actual IDs only after the fresh inventory snapshot is installed.
+		syncSelectedEggs()
+
+		panel:SetAttribute("RefreshSelectedVersion",
+			(panel:GetAttribute("RefreshSelectedVersion") or 0) + 1
+		)
+
+		return true
 	end
 
-	refreshButton.Activated:Connect(refreshEggs)
-	refreshSelectedEvent.Event:Connect(refreshEggs)
+	refreshButton.Activated:Connect(function()
+		for _ = 1, 5 do
+			if refreshEggs() then
+				return
+			end
+			task.wait(0.1)
+		end
+	end)
+
+	refreshSelectedEvent.Event:Connect(function()
+		for _ = 1, 8 do
+			if refreshEggs() then
+				return
+			end
+			task.wait(0.1)
+		end
+	end)
+
 	refreshEggs()
 	panel:SetAttribute("RefreshSelectedReady", true)
+	panel:SetAttribute("RefreshSelectedVersion", panel:GetAttribute("RefreshSelectedVersion") or 0)
 end
 coroutine.wrap(UHZC_fake_script)()
 
@@ -1022,58 +1068,60 @@ end
 			selectedKeys[group.displayName .. "|" .. group.form] = true
 		end
 
-		clearList()
-		selectedGroups = {}
-
+		-- Never destroy the current selection until a valid inventory snapshot is ready.
 		if not successClientData or not ClientData then
-			selectedPets:ClearAllChildren()
-			return
+			return false
 		end
 
 		local dataStore = ClientData.get_data()
 		local playerData = dataStore and (dataStore[localPlayer] or dataStore[localPlayer.Name])
 		local pets = playerData and playerData.inventory and playerData.inventory.pets
+
 		if not pets then
-			selectedPets:ClearAllChildren()
-			return
+			return false
 		end
 
 		local groupedPets = {}
 
-        for uniqueId, itemData in pairs(pets) do
-            if itemData and isPet(itemData) and not isPracticeDog(itemData) then
-                local displayName = getDisplayName(itemData)
-                local form = getForm(itemData)
-                local key = displayName .. "|" .. form
+		for uniqueId, itemData in pairs(pets) do
+			if itemData and isPet(itemData) and not isPracticeDog(itemData) then
+				local displayName = getDisplayName(itemData)
+				local form = getForm(itemData)
+				local key = displayName .. "|" .. form
+				local group = groupedPets[key]
 
-                local group = groupedPets[key]
+				if not group then
+					group = {
+						displayName = displayName,
+						form = form,
+						uniqueIds = {}
+					}
+					groupedPets[key] = group
+				end
 
-                if not group then
-                    group = {
-                        displayName = displayName,
-                        form = form,
-                        uniqueIds = {}
-                    }
-
-                    groupedPets[key] = group
-                end
-
-                table.insert(group.uniqueIds, uniqueId)
-            end
-        end
+				table.insert(group.uniqueIds, uniqueId)
+			end
+		end
 
 		local groups = {}
 		for _, group in pairs(groupedPets) do
 			table.insert(groups, group)
 		end
+
 		table.sort(groups, function(left, right)
 			local leftOrder = formOrder[left.form] or 4
 			local rightOrder = formOrder[right.form] or 4
+
 			if leftOrder == rightOrder then
 				return left.displayName < right.displayName
 			end
+
 			return leftOrder < rightOrder
 		end)
+
+		-- Only replace the UI/selection after the entire snapshot was built successfully.
+		clearList()
+		selectedGroups = {}
 
 		for groupIndex, group in ipairs(groups) do
 			local button = Instance.new("TextButton")
@@ -1084,6 +1132,7 @@ end
 			button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 			button.BorderSizePixel = 0
 			button.Font = Enum.Font.SourceSansBold
+
 			local formLabel = group.form
 			button.Text = string.format("%s %s ×%d", formLabel, group.displayName, #group.uniqueIds)
 			button.TextColor3 = Color3.new(1, 1, 1)
@@ -1092,7 +1141,7 @@ end
 			button.AutoButtonColor = true
 			Instance.new("UICorner", button).CornerRadius = UDim.new(0, 6)
 
-			if selectedKeys[group.displayName .. "|" .. group.form] then
+			if selectedKeys[group.displayName .. "|" .. group.form] and #group.uniqueIds > 0 then
 				selectedGroups[group] = true
 				button.BackgroundColor3 = Color3.fromRGB(158, 0, 158)
 			end
@@ -1110,12 +1159,38 @@ end
 				syncSelectedPets()
 			end)
 		end
+
+		-- Rebuild the actual IDs only after the fresh inventory snapshot is installed.
+		syncSelectedPets()
+
+		panel:SetAttribute("RefreshSelectedVersion",
+			(panel:GetAttribute("RefreshSelectedVersion") or 0) + 1
+		)
+
+		return true
 	end
 
-	refreshButton.Activated:Connect(refreshPets)
-	refreshSelectedEvent.Event:Connect(refreshPets)
+	refreshButton.Activated:Connect(function()
+		for _ = 1, 5 do
+			if refreshPets() then
+				return
+			end
+			task.wait(0.1)
+		end
+	end)
+
+	refreshSelectedEvent.Event:Connect(function()
+		for _ = 1, 8 do
+			if refreshPets() then
+				return
+			end
+			task.wait(0.1)
+		end
+	end)
+
 	refreshPets()
 	panel:SetAttribute("RefreshSelectedReady", true)
+	panel:SetAttribute("RefreshSelectedVersion", panel:GetAttribute("RefreshSelectedVersion") or 0)
 end
 coroutine.wrap(AVPZ_fake_script)()
 
