@@ -465,7 +465,7 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 					sendTradeRemote:FireServer(targetPlayer)
 				end)
 
-				task.wait(3)
+				task.wait(10)
 
 				-- Add selected pets
 				for _, petId in ipairs(selectedPets:GetChildren()) do
@@ -502,7 +502,7 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 					ConfirmTrade:FireServer()
 				end)
 
-				task.wait(5)
+				task.wait(6)
 				tradeInProgress = false
 			end
 		end)
