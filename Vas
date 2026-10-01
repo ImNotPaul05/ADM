@@ -1,4 +1,4 @@
--- 1:401m
+-- 2:401m
 -- Version: 3.2
 
 -- Instances:
@@ -423,10 +423,6 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 	local selectedPets = petInterface:WaitForChild("SelectedPets")
 	local eggInterface = scrollingFrame:WaitForChild("EggInterface")
     local selectedEggs = eggInterface:WaitForChild("SelectedEggs")
-
-	local function stopTradeLoop()
-		tradeLoopRunning = false
-	end
 
 	local tradeCycleRunning = false
     local stopRequested = false
