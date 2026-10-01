@@ -1,7 +1,4 @@
--- 7:401m
--- Version: 3.2
-
--- Instances:
+-- 1
 
 local Main = Instance.new("ScreenGui")
 local Trading = Instance.new("Frame")
