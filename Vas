@@ -438,6 +438,12 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 	task.spawn(function()
 		while not stopRequested do
 
+			-- Refresh selected pet/egg IDs from current inventory
+			petInterface:WaitForChild("RefreshSelected"):Fire()
+			eggInterface:WaitForChild("RefreshSelected"):Fire()
+
+			task.wait(0.2)
+
 			-- SendTradeRequest
 			sendTradeRemote:FireServer(selectedPlayer)
 
@@ -639,6 +645,9 @@ local function UHZC_fake_script() -- EggInterface.EggScript
 		return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 	end)
 	local selectedGroups = {}
+	local refreshSelectedEvent = Instance.new("BindableEvent")
+	refreshSelectedEvent.Name = "RefreshSelected"
+	refreshSelectedEvent.Parent = panel
 
 	local function removeEventPrefix(displayName)
 		local text = tostring(displayName)
@@ -795,6 +804,8 @@ end
 		syncSelectedEggs()
 	end
 
+	refreshSelectedEvent.Event:Connect(refreshSelectedEggs)
+
 	local function refreshEggs()
 		clearList()
 		if not successClientData or not ClientData then
@@ -898,6 +909,9 @@ local function AVPZ_fake_script() -- PetInterface.Petscript
 		return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 	end)
 	local selectedGroups = {}
+	local refreshSelectedEvent = Instance.new("BindableEvent")
+	refreshSelectedEvent.Name = "RefreshSelected"
+	refreshSelectedEvent.Parent = panel
 
 	local function removeEventPrefix(displayName)
 		local cleanedName = tostring(displayName):gsub("^[%a%s_%-]+%d%d%d%d[%s_%-]+", "")
@@ -1086,6 +1100,8 @@ end
 
 		syncSelectedPets()
 	end
+
+	refreshSelectedEvent.Event:Connect(refreshSelectedPets)
 
 	local function refreshPets()
 		clearList()
