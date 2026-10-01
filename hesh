@@ -452,29 +452,33 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 					break
 				end
 
-				pcall(function()
+				task.spawn(function()
 					sendTradeRemote:FireServer(targetPlayer)
 				end)
 
-				task.wait(10)
-				for _, petId in ipairs(selectedPets:GetChildren()) do
-					if petId:IsA("StringValue") and petId.Value ~= "" then
-						pcall(function()
+				task.spawn(function()
+				    for _, petId in ipairs(selectedPets:GetChildren()) do
+					    if petId:IsA("StringValue") and petId.Value ~= "" then
 							addItemRemote:FireServer(petId.Value)
-						end)
+						end
 					end
-				end
+				end)
 
-				for _, eggId in ipairs(selectedEggs:GetChildren()) do
-					if eggId:IsA("StringValue") and eggId.Value ~= "" then
-						pcall(function()
+				task.spawn(function()
+				    for _, eggId in ipairs(selectedEggs:GetChildren()) do
+					    if eggId:IsA("StringValue") and eggId.Value ~= "" then
 							addItemRemote:FireServer(eggId.Value)
-						end)
+						end
 					end
-				end
+				end)
 
-				pcall(function()
+				task.spawn(function()
 					AcceptNeg:FireServer()
+				end)
+
+				task.wait(20)
+
+				task.spawn(function()
 					ConfirmTrade:FireServer()
 				end)
 
