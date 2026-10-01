@@ -493,6 +493,14 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 
 			ConfirmTrade:FireServer()
 
+			-- Current trade is allowed to finish even if Stop was pressed.
+			task.wait(4)
+			tradeInProgress = false
+
+			if not tradeLoopRunning then
+				break
+			end
+
 			-- CURRENT TRADE MUST FINISH BEFORE LOOP CAN CONTINUE
 			task.wait(4)
 
