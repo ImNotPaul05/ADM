@@ -1,4 +1,4 @@
--- Gui to Lua
+-- 2:401m
 -- Version: 3.2
 
 -- Instances:
@@ -30,11 +30,8 @@ local RefreshPetButton = Instance.new("TextButton")
 local UICorner_11 = Instance.new("UICorner")
 local RefreshEggButton = Instance.new("TextButton")
 local UICorner_12 = Instance.new("UICorner")
-local Target1 = Instance.new("TextLabel")
 local TextLabel_2 = Instance.new("TextLabel")
-local Mannequin = Instance.new("TextLabel")
 local TextLabel_3 = Instance.new("TextLabel")
-local TextLabel_4 = Instance.new("TextLabel")
 local TradingButton = Instance.new("TextButton")
 local UICorner_13 = Instance.new("UICorner")
 local ShopButton = Instance.new("TextButton")
@@ -47,13 +44,18 @@ local ClosedButton = Instance.new("TextButton")
 local UICorner_17 = Instance.new("UICorner")
 local CosnoleButton = Instance.new("TextButton")
 local UICorner_18 = Instance.new("UICorner")
-local Icon = Instance.new("TextButton")
+local Icon2 = Instance.new("TextButton")
 local UICorner_19 = Instance.new("UICorner")
 
 --Properties:
 
 Main.Name = "Main"
-Main.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+local playerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+local previousMain = playerGui:FindFirstChild("Main")
+if previousMain then
+	previousMain:Destroy()
+end
+Main.Parent = playerGui
 Main.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 Trading.Name = "Trading"
@@ -61,7 +63,7 @@ Trading.Parent = Main
 Trading.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 Trading.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Trading.BorderSizePixel = 0
-Trading.Position = UDim2.new(0.28639701, 0, -0.0764228478, 0)
+Trading.Position = UDim2.new(0.287127972, 0, -0.000489780679, 0)
 Trading.Size = UDim2.new(0.458353192, 0, 1.00048983, 0)
 
 ScrollingFrame.Parent = Trading
@@ -70,7 +72,7 @@ ScrollingFrame.BackgroundColor3 = Color3.fromRGB(75, 75, 75)
 ScrollingFrame.BackgroundTransparency = 0.600
 ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 ScrollingFrame.BorderSizePixel = 0
-ScrollingFrame.Position = UDim2.new(0.0173499268, 0, 0.161872461, 0)
+ScrollingFrame.Position = UDim2.new(0.0173499323, 0, 0.163158834, 0)
 ScrollingFrame.Size = UDim2.new(0.964724481, 0, 0.818428278, 0)
 
 userInterface.Name = "userInterface"
@@ -79,7 +81,7 @@ userInterface.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 userInterface.BackgroundTransparency = 0.300
 userInterface.BorderColor3 = Color3.fromRGB(0, 0, 0)
 userInterface.BorderSizePixel = 0
-userInterface.Position = UDim2.new(0.0591630675, 0, 0.0771212056, 0)
+userInterface.Position = UDim2.new(0.045937907, 0, 0.0430323742, 0)
 userInterface.Size = UDim2.new(0.880377054, 0, 0.140611932, 0)
 
 UICorner.CornerRadius = UDim.new(0, 10)
@@ -91,11 +93,11 @@ UICorner_2.Parent = ScrollingFrame
 AutoAccept.Name = "AutoAccept"
 AutoAccept.Parent = ScrollingFrame
 AutoAccept.BackgroundColor3 = Color3.fromRGB(132, 0, 132)
-AutoAccept.BackgroundTransparency = 0.400
+AutoAccept.BackgroundTransparency = 0.700
 AutoAccept.BorderColor3 = Color3.fromRGB(0, 0, 0)
 AutoAccept.BorderSizePixel = 0
-AutoAccept.Position = UDim2.new(0.052236747, 0, 0.228437871, 0)
-AutoAccept.Size = UDim2.new(0.885999978, 0, 0.023, 0)
+AutoAccept.Position = UDim2.new(0.0456242338, 0, 0.197564989, 0)
+AutoAccept.Size = UDim2.new(0.881985605, 0, 0.0271360837, 0)
 
 UICorner_3.CornerRadius = UDim.new(0, 10)
 UICorner_3.Parent = AutoAccept
@@ -144,7 +146,7 @@ EggInterface.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 EggInterface.BackgroundTransparency = 0.300
 EggInterface.BorderColor3 = Color3.fromRGB(0, 0, 0)
 EggInterface.BorderSizePixel = 0
-EggInterface.Position = UDim2.new(0.0588048734, 0, 0.520651042, 0)
+EggInterface.Position = UDim2.new(0.04723287, 0, 0.468552977, 0)
 EggInterface.Size = UDim2.new(0.880377054, 0, 0.138668194, 0)
 
 UICorner_6.CornerRadius = UDim.new(0, 10)
@@ -156,7 +158,7 @@ PetInterface.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 PetInterface.BackgroundTransparency = 0.300
 PetInterface.BorderColor3 = Color3.fromRGB(0, 0, 0)
 PetInterface.BorderSizePixel = 0
-PetInterface.Position = UDim2.new(0.0588048734, 0, 0.313508183, 0)
+PetInterface.Position = UDim2.new(0.04723287, 0, 0.280062526, 0)
 PetInterface.Size = UDim2.new(0.880377054, 0, 0.138668194, 0)
 
 UICorner_7.CornerRadius = UDim.new(0, 10)
@@ -167,7 +169,7 @@ StopTradeButton.Parent = ScrollingFrame
 StopTradeButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 StopTradeButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
 StopTradeButton.BorderSizePixel = 0
-StopTradeButton.Position = UDim2.new(0.12115138, 0, 0.671683073, 0)
+StopTradeButton.Position = UDim2.new(0.136029661, 0, 0.62344408, 0)
 StopTradeButton.SelectionImageObject = ScrollingFrame
 StopTradeButton.Size = UDim2.new(0.280000001, 0, 0.0320000015, 0)
 StopTradeButton.Font = Enum.Font.SourceSansBold
@@ -183,7 +185,7 @@ SendTradeButton.Parent = ScrollingFrame
 SendTradeButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 SendTradeButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
 SendTradeButton.BorderSizePixel = 0
-SendTradeButton.Position = UDim2.new(0.562178016, 0, 0.672091484, 0)
+SendTradeButton.Position = UDim2.new(0.517543137, 0, 0.623852551, 0)
 SendTradeButton.Size = UDim2.new(0.280323267, 0, 0.0319797136, 0)
 SendTradeButton.Font = Enum.Font.SourceSansBold
 SendTradeButton.Text = "Start auto-trade"
@@ -196,11 +198,11 @@ UICorner_9.Parent = SendTradeButton
 RefreshPlrButton.Name = "RefreshPlr/Button"
 RefreshPlrButton.Parent = ScrollingFrame
 RefreshPlrButton.BackgroundColor3 = Color3.fromRGB(132, 0, 132)
-RefreshPlrButton.BackgroundTransparency = 0.400
+RefreshPlrButton.BackgroundTransparency = 0.700
 RefreshPlrButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
 RefreshPlrButton.BorderSizePixel = 0
-RefreshPlrButton.Position = UDim2.new(0.0538898893, 0, 0.0460126363, 0)
-RefreshPlrButton.Size = UDim2.new(0.885667562, 0, 0.0229612049, 0)
+RefreshPlrButton.Position = UDim2.new(0.0468518287, 0, 0.0091734333, 0)
+RefreshPlrButton.Size = UDim2.new(0.880758107, 0, 0.0262245052, 0)
 RefreshPlrButton.Font = Enum.Font.SourceSansBold
 RefreshPlrButton.Text = "Refresh player  list"
 RefreshPlrButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -212,11 +214,11 @@ UICorner_10.Parent = RefreshPlrButton
 RefreshPetButton.Name = "RefreshPet/Button"
 RefreshPetButton.Parent = ScrollingFrame
 RefreshPetButton.BackgroundColor3 = Color3.fromRGB(132, 0, 132)
-RefreshPetButton.BackgroundTransparency = 0.400
+RefreshPetButton.BackgroundTransparency = 0.700
 RefreshPetButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
 RefreshPetButton.BorderSizePixel = 0
-RefreshPetButton.Position = UDim2.new(0.0567706823, 0, 0.281929702, 0)
-RefreshPetButton.Size = UDim2.new(0.885999978, 0, 0.023, 0)
+RefreshPetButton.Position = UDim2.new(0.0468518287, 0, 0.244624898, 0)
+RefreshPetButton.Size = UDim2.new(0.880758107, 0, 0.0262245052, 0)
 RefreshPetButton.Font = Enum.Font.SourceSansBold
 RefreshPetButton.Text = "Refresh pet list"
 RefreshPetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -228,10 +230,10 @@ UICorner_11.Parent = RefreshPetButton
 RefreshEggButton.Name = "RefreshEgg/Button"
 RefreshEggButton.Parent = ScrollingFrame
 RefreshEggButton.BackgroundColor3 = Color3.fromRGB(132, 0, 132)
-RefreshEggButton.BackgroundTransparency = 0.400
+RefreshEggButton.BackgroundTransparency = 0.700
 RefreshEggButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
 RefreshEggButton.BorderSizePixel = 0
-RefreshEggButton.Position = UDim2.new(0.0521868542, 0, 0.485785306, 0)
+RefreshEggButton.Position = UDim2.new(0.0587994158, 0, 0.434973627, 0)
 RefreshEggButton.Size = UDim2.new(0.880758107, 0, 0.0262245052, 0)
 RefreshEggButton.Font = Enum.Font.SourceSansBold
 RefreshEggButton.Text = "Refresh egg list"
@@ -241,68 +243,28 @@ RefreshEggButton.TextSize = 17.000
 UICorner_12.CornerRadius = UDim.new(0, 9)
 UICorner_12.Parent = RefreshEggButton
 
-Target1.Name = "Target1"
-Target1.Parent = ScrollingFrame
-Target1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-Target1.BackgroundTransparency = 1.000
-Target1.BorderColor3 = Color3.fromRGB(0, 0, 0)
-Target1.BorderSizePixel = 0
-Target1.Position = UDim2.new(0.121940367, 0, 0.0222332906, 0)
-Target1.Size = UDim2.new(0, 127, 0, 24)
-Target1.Font = Enum.Font.FredokaOne
-Target1.Text = "none"
-Target1.TextColor3 = Color3.fromRGB(255, 255, 255)
-Target1.TextSize = 13.000
-Target1.TextXAlignment = Enum.TextXAlignment.Left
-
-TextLabel_2.Parent = ScrollingFrame
+TextLabel_2.Parent = Trading
 TextLabel_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 TextLabel_2.BackgroundTransparency = 1.000
 TextLabel_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
 TextLabel_2.BorderSizePixel = 0
-TextLabel_2.Position = UDim2.new(0.0183468666, 0, 0.0221975371, 0)
-TextLabel_2.Size = UDim2.new(0.0846263617, 0, 0.0178367291, 0)
-TextLabel_2.Font = Enum.Font.FredokaOne
-TextLabel_2.Text = "Target -"
-TextLabel_2.TextColor3 = Color3.fromRGB(255, 255, 255)
-TextLabel_2.TextSize = 14.000
-TextLabel_2.TextWrapped = true
+TextLabel_2.Size = UDim2.new(0, 45, 0, 24)
+TextLabel_2.Font = Enum.Font.Unknown
+TextLabel_2.Text = "vox"
+TextLabel_2.TextColor3 = Color3.fromRGB(255, 0, 255)
+TextLabel_2.TextSize = 19.000
 
-Mannequin.Name = "Mannequin"
-Mannequin.Parent = ScrollingFrame
-Mannequin.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-Mannequin.BackgroundTransparency = 1.000
-Mannequin.BorderColor3 = Color3.fromRGB(0, 0, 0)
-Mannequin.BorderSizePixel = 0
-Mannequin.Position = UDim2.new(0, 11, 0, 2)
-Mannequin.Size = UDim2.new(0, 153, 0, 24)
-Mannequin.Font = Enum.Font.FredokaOne
-Mannequin.Text = "Select player to trade"
-Mannequin.TextColor3 = Color3.fromRGB(255, 0, 255)
-Mannequin.TextSize = 16.000
-
-TextLabel_3.Parent = Trading
+TextLabel_3.Parent = TextLabel_2
 TextLabel_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 TextLabel_3.BackgroundTransparency = 1.000
 TextLabel_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
 TextLabel_3.BorderSizePixel = 0
-TextLabel_3.Size = UDim2.new(0, 45, 0, 24)
-TextLabel_3.Font = Enum.Font.Unknown
-TextLabel_3.Text = "vox"
+TextLabel_3.Position = UDim2.new(0.625474036, 0, 0.791666687, 0)
+TextLabel_3.Size = UDim2.new(0.888032615, 0, 0.894831359, 0)
+TextLabel_3.Font = Enum.Font.FredokaOne
+TextLabel_3.Text = "ADM"
 TextLabel_3.TextColor3 = Color3.fromRGB(255, 0, 255)
-TextLabel_3.TextSize = 19.000
-
-TextLabel_4.Parent = TextLabel_3
-TextLabel_4.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-TextLabel_4.BackgroundTransparency = 1.000
-TextLabel_4.BorderColor3 = Color3.fromRGB(0, 0, 0)
-TextLabel_4.BorderSizePixel = 0
-TextLabel_4.Position = UDim2.new(0.625474036, 0, 0.791666687, 0)
-TextLabel_4.Size = UDim2.new(0.888032615, 0, 0.894831359, 0)
-TextLabel_4.Font = Enum.Font.FredokaOne
-TextLabel_4.Text = "ADM"
-TextLabel_4.TextColor3 = Color3.fromRGB(255, 0, 255)
-TextLabel_4.TextSize = 14.000
+TextLabel_3.TextSize = 14.000
 
 TradingButton.Name = "Trading/Button"
 TradingButton.Parent = Trading
@@ -400,26 +362,31 @@ CosnoleButton.TextSize = 17.000
 UICorner_18.CornerRadius = UDim.new(0, 9)
 UICorner_18.Parent = CosnoleButton
 
-Icon.Name = "Icon"
-Icon.Parent = Main
-Icon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
-Icon.BorderSizePixel = 0
-Icon.Position = UDim2.new(0.520480394, 0, 0.262028873, 0)
-Icon.Size = UDim2.new(0.0389164649, 0, 0.0621546954, 0)
-Icon.Visible = false
-Icon.Font = Enum.Font.SourceSansBold
-Icon.Text = "vox"
-Icon.TextColor3 = Color3.fromRGB(255, 0, 255)
-Icon.TextSize = 20.000
-Icon.TextWrapped = true
+Icon2.Name = "Icon2"
+Icon2.Parent = Main
+Icon2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Icon2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Icon2.BorderSizePixel = 0
+Icon2.Position = UDim2.new(0.520480394, 0, 0.262028873, 0)
+Icon2.Size = UDim2.new(0.0389164649, 0, 0.0621546954, 0)
+Icon2.Visible = false
+Icon2.Font = Enum.Font.SourceSansBold
+Icon2.Text = "vox"
+Icon2.TextColor3 = Color3.fromRGB(255, 0, 255)
+Icon2.TextSize = 20.000
+Icon2.TextWrapped = true
 
 UICorner_19.CornerRadius = UDim.new(0, 100)
-UICorner_19.Parent = Icon
+UICorner_19.Parent = Icon2
 
 -- Scripts:
 
-local function GOFTBVS_fake_script() -- userInterface.Userscript 
+local function KDTGAY_fake_script() -- Main.MainLocalScript 
+	local script = Instance.new('LocalScript', Main)
+end
+coroutine.wrap(KDTGAY_fake_script)()
+
+local function PZSESN_fake_script() -- userInterface.Userscript 
 	local script = Instance.new('LocalScript', userInterface)
 
 	local Players = game:GetService("Players")
@@ -455,64 +422,64 @@ local function GOFTBVS_fake_script() -- userInterface.Userscript
 	local petInterface = scrollingFrame:WaitForChild("PetInterface")
 	local selectedPets = petInterface:WaitForChild("SelectedPets")
 	local eggInterface = scrollingFrame:WaitForChild("EggInterface")
-	local selectedEggs = eggInterface:WaitForChild("SelectedEggs")
-	
+    local selectedEggs = eggInterface:WaitForChild("SelectedEggs")
+
 	local tradeCycleRunning = false
-	local stopRequested = false
-	
+    local stopRequested = false
+
 	local function startTradeLoop()
-		if tradeCycleRunning then
-			return
-		end
-	
-		tradeCycleRunning = true
-		stopRequested = false
-	
-		task.spawn(function()
-			while not stopRequested do
-	
-				-- SendTradeRequest
-				sendTradeRemote:FireServer(selectedPlayer)
-	
-				task.wait(2)
-	
-				-- Add pets
-				for _, petId in ipairs(selectedPets:GetChildren()) do
-					if petId:IsA("StringValue") and petId.Value ~= "" then
-						addItemRemote:FireServer(petId.Value)
-					end
+	if tradeCycleRunning then
+		return
+	end
+
+	tradeCycleRunning = true
+	stopRequested = false
+
+	task.spawn(function()
+		while not stopRequested do
+
+			-- SendTradeRequest
+			sendTradeRemote:FireServer(selectedPlayer)
+
+			task.wait(2)
+
+			-- Add pets
+			for _, petId in ipairs(selectedPets:GetChildren()) do
+				if petId:IsA("StringValue") and petId.Value ~= "" then
+					addItemRemote:FireServer(petId.Value)
 				end
-	
-				-- Add eggs
-				for _, eggId in ipairs(selectedEggs:GetChildren()) do
-					if eggId:IsA("StringValue") and eggId.Value ~= "" then
-						addItemRemote:FireServer(eggId.Value)
-					end
-				end
-	
-				-- Give the current trade time to process
-				task.wait(1)
-	
-				AcceptNeg:FireServer()
-	
-				task.wait(0.5)
-	
-				ConfirmTrade:FireServer()
-	
-				-- CURRENT TRADE MUST FINISH BEFORE LOOP CAN CONTINUE
-				task.wait(4)
-	
-				-- Only NOW can another SendTradeRequest happen
 			end
-	
-			tradeCycleRunning = false
-		end)
-	end
-	
-	local function stopTradeLoop()
-		stopRequested = true
-	end
-	
+
+			-- Add eggs
+			for _, eggId in ipairs(selectedEggs:GetChildren()) do
+				if eggId:IsA("StringValue") and eggId.Value ~= "" then
+					addItemRemote:FireServer(eggId.Value)
+				end
+			end
+
+			-- Give the current trade time to process
+			task.wait(1)
+
+			AcceptNeg:FireServer()
+
+			task.wait(0.5)
+
+			ConfirmTrade:FireServer()
+
+			-- CURRENT TRADE MUST FINISH BEFORE LOOP CAN CONTINUE
+			task.wait(4)
+
+			-- Only NOW can another SendTradeRequest happen
+		end
+
+		tradeCycleRunning = false
+	end)
+end
+
+    local function stopTradeLoop()
+	    stopRequested = true
+    end
+
 	sendTradeButton.Activated:Connect(startTradeLoop)
 	stopTradeButton.Activated:Connect(stopTradeLoop)
 	
@@ -520,7 +487,7 @@ local function GOFTBVS_fake_script() -- userInterface.Userscript
 		if player == Players.LocalPlayer then
 			return
 		end
-	
+
 		local button = Instance.new("TextButton")
 		button.Name = tostring(player.UserId)
 		button.Parent = playerList
@@ -565,8 +532,9 @@ local function GOFTBVS_fake_script() -- userInterface.Userscript
 		end
 	end)
 end
-coroutine.wrap(GOFTBVS_fake_script)()
-local function CVDD_fake_script() -- SwitchButton.SwitchScript 
+coroutine.wrap(PZSESN_fake_script)()
+
+local function ZEQSNX_fake_script() -- SwitchButton.SwitchScript 
 	local script = Instance.new('LocalScript', SwitchButton)
 
 	local button = script.Parent
@@ -581,35 +549,35 @@ local function CVDD_fake_script() -- SwitchButton.SwitchScript
 	local confirmTrade = API:WaitForChild("TradeAPI/ConfirmTrade")
 	local autoAcceptEnabled = false
 	local runId = 0
-	
+
 	framesToHide = {Dialog = true}
-	
+
 	circle.Position = UDim2.new(0, 0, 0.012, 0)
 	circle.BackgroundColor3 = Color3.fromRGB(132, 0, 132)
-	
+
 	button.Activated:Connect(function()
 		autoAcceptEnabled = not autoAcceptEnabled
 		runId += 1
 		local currentRunId = runId
-	
+
 		if autoAcceptEnabled then
 			circle.Position = UDim2.new(0.47, 0, 0.012, 0)
 			circle.BackgroundColor3 = Color3.fromRGB(255, 0, 255)
-	
+
 			task.spawn(function()
 				while autoAcceptEnabled and currentRunId == runId do
 					for _, targetPlayer in ipairs(Players:GetPlayers()) do
 						if not autoAcceptEnabled or currentRunId ~= runId then
 							break
 						end
-	
+
 						if targetPlayer ~= Players.LocalPlayer then
 							pcall(function()
 								tradeFunction:InvokeServer(targetPlayer, true)
 							end)
 						end
 					end
-	
+
 					pcall(function()
 						acceptNegotiation:FireServer()
 						confirmTrade:FireServer()
@@ -617,27 +585,29 @@ local function CVDD_fake_script() -- SwitchButton.SwitchScript
 					task.wait(2)
 				end
 			end)
-	
-			task.spawn(function()
-				while autoAcceptEnabled and currentRunId == runId do
-					for _, gui in ipairs(PlayerGui:GetDescendants()) do
-						if gui:IsA("Frame") and framesToHide[gui.Name] and gui.Visible then
-							gui.Visible = false
-							print("Successfully hid frame: " .. gui:GetFullName())
-						end
+
+		task.spawn(function()
+			while autoAcceptEnabled and currentRunId == runId do
+				for _, gui in ipairs(PlayerGui:GetDescendants()) do
+					if gui:IsA("Frame") and framesToHide[gui.Name] and gui.Visible then
+						gui.Visible = false
+						print("Successfully hid frame: " .. gui:GetFullName())
 					end
-	
-					task.wait(2)
 				end
-			end)
+
+				task.wait(2)
+			end
+		end)
 		else
 			circle.Position = UDim2.new(0, 0, 0.012, 0)
 			circle.BackgroundColor3 = Color3.fromRGB(132, 0, 132)
 		end
 	end)
 end
-coroutine.wrap(CVDD_fake_script)()
-local function CXEYCNJ_fake_script() -- EggInterface.EggScript 
+coroutine.wrap(ZEQSNX_fake_script)()
+
+-- FULLY UPDATED EGG SCRIPT (Cleans underscores, years, and duplicate 'egg' blocks)
+local function UHZC_fake_script() -- EggInterface.EggScript 
 	local script = Instance.new('LocalScript', EggInterface)
 
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -648,7 +618,7 @@ local function CXEYCNJ_fake_script() -- EggInterface.EggScript
 	local selectedEggs = Instance.new("Folder")
 	selectedEggs.Name = "SelectedEggs"
 	selectedEggs.Parent = panel
-	
+
 	local list = Instance.new("ScrollingFrame")
 	list.Name = "EggList"
 	list.Parent = panel
@@ -659,17 +629,17 @@ local function CXEYCNJ_fake_script() -- EggInterface.EggScript
 	list.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	list.CanvasSize = UDim2.new()
 	list.ScrollBarThickness = 6
-	
+
 	local layout = Instance.new("UIListLayout")
 	layout.Parent = list
 	layout.Padding = UDim.new(0, 5)
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
-	
+
 	local successClientData, ClientData = pcall(function()
 		return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 	end)
 	local selectedGroups = {}
-	
+
 	local function removeEventPrefix(displayName)
 		local text = tostring(displayName)
 		-- Replace underscores and hyphens with spaces
@@ -680,7 +650,7 @@ local function CXEYCNJ_fake_script() -- EggInterface.EggScript
 		text = text:gsub("%s+", " "):gsub("^%s+", ""):gsub("%s+$", "")
 		return text
 	end
-	
+
 	local function capitalizeWords(displayName)
 		local text = displayName:gsub("(%S+)", function(word)
 			return word:sub(1, 1):upper() .. word:sub(2):lower()
@@ -689,7 +659,7 @@ local function CXEYCNJ_fake_script() -- EggInterface.EggScript
 		text = text:gsub("(%a+)%s+%1", "%1")
 		return text
 	end
-	
+
 	local function getDisplayName(itemData)
 		local properties = itemData.properties or {}
 		local displayName = properties.name
@@ -700,55 +670,55 @@ local function CXEYCNJ_fake_script() -- EggInterface.EggScript
 			or itemData.name
 			or itemData.kind
 			or "Unknown egg"
-	
+
 		-- Convert pet_recycler_YYYY_<egg> IDs to just the egg name
 		local kind = tostring(itemData.kind or "")
 		local recyclerEgg = kind:match("^pet_recycler_%d+_(.+)$")
 		if recyclerEgg then
 			displayName = recyclerEgg
 		end
-	
+
 		local cleanedName = removeEventPrefix(displayName)
 		return capitalizeWords(cleanedName)
 	end
-	
+
 	local KindDB = require(
-		ReplicatedStorage
-			:WaitForChild("ClientDB")
-			:WaitForChild("Inventory")
-			:WaitForChild("KindDB")
-	)
-	
-	local function isEgg(itemData)
-		if not itemData then
-			return false
-		end
-	
-		local kind = tostring(itemData.kind or "")
-		local lowerKind = string.lower(kind)
-	
-		-- Exclude basic_egg_2022 pet entries
-		if string.find(lowerKind, "^basic_egg_2022_", 1) then
-			return false
-		end
-	
-		local kindData = KindDB[kind]
-	
-		if kindData then
-			if kindData.is_egg == true then
-				return true
-			end
-	
-			local category = string.lower(tostring(kindData.category or ""))
-	
-			if category == "egg" or category == "eggs" then
-				return true
-			end
-		end
-	
-		-- Fallback for actual egg IDs
-		return string.find(lowerKind, "egg", 1, true) ~= nil
-	end
+    ReplicatedStorage
+        :WaitForChild("ClientDB")
+        :WaitForChild("Inventory")
+        :WaitForChild("KindDB")
+)
+
+local function isEgg(itemData)
+    if not itemData then
+        return false
+    end
+
+    local kind = tostring(itemData.kind or "")
+    local lowerKind = string.lower(kind)
+
+    -- Exclude basic_egg_2022 pet entries
+    if string.find(lowerKind, "^basic_egg_2022_", 1) then
+        return false
+    end
+
+    local kindData = KindDB[kind]
+
+    if kindData then
+        if kindData.is_egg == true then
+            return true
+        end
+
+        local category = string.lower(tostring(kindData.category or ""))
+
+        if category == "egg" or category == "eggs" then
+            return true
+        end
+    end
+
+    -- Fallback for actual egg IDs
+    return string.find(lowerKind, "egg", 1, true) ~= nil
+end
 	
 	local function clearList()
 		for _, child in ipairs(list:GetChildren()) do
@@ -759,7 +729,7 @@ local function CXEYCNJ_fake_script() -- EggInterface.EggScript
 		selectedGroups = {}
 		selectedEggs:ClearAllChildren()
 	end
-	
+
 	local function syncSelectedEggs()
 		selectedEggs:ClearAllChildren()
 		local selectedIndex = 0
@@ -773,20 +743,20 @@ local function CXEYCNJ_fake_script() -- EggInterface.EggScript
 			end
 		end
 	end
-	
+
 	local function refreshEggs()
 		clearList()
 		if not successClientData or not ClientData then
 			return
 		end
-	
+
 		local dataStore = ClientData.get_data()
 		local playerData = dataStore and (dataStore[localPlayer] or dataStore[localPlayer.Name])
 		local pets = playerData and playerData.inventory and playerData.inventory.pets
 		if not pets then
 			return
 		end
-	
+
 		local groupedEggs = {}
 		for uniqueId, itemData in pairs(pets) do
 			if itemData and isEgg(itemData) then
@@ -800,7 +770,7 @@ local function CXEYCNJ_fake_script() -- EggInterface.EggScript
 				table.insert(group.uniqueIds, uniqueId)
 			end
 		end
-	
+
 		local groups = {}
 		for _, g in pairs(groupedEggs) do
 			table.insert(groups, g)
@@ -808,7 +778,7 @@ local function CXEYCNJ_fake_script() -- EggInterface.EggScript
 		table.sort(groups, function(left, right)
 			return left.displayName < right.displayName
 		end)
-	
+
 		for groupIndex, group in ipairs(groups) do
 			local button = Instance.new("TextButton")
 			button.Name = group.displayName
@@ -824,7 +794,7 @@ local function CXEYCNJ_fake_script() -- EggInterface.EggScript
 			button.TextXAlignment = Enum.TextXAlignment.Center
 			button.AutoButtonColor = true
 			Instance.new("UICorner", button).CornerRadius = UDim.new(0, 6)
-	
+
 			button.Activated:Connect(function()
 				if selectedGroups[group] then
 					selectedGroups[group] = nil
@@ -839,13 +809,13 @@ local function CXEYCNJ_fake_script() -- EggInterface.EggScript
 			end)
 		end
 	end
-	
+
 	refreshButton.Activated:Connect(refreshEggs)
 	refreshEggs()
-	end
 end
-coroutine.wrap(CXEYCNJ_fake_script)()
-local function PVNDST_fake_script() -- PetInterface.Petscript 
+coroutine.wrap(UHZC_fake_script)()
+
+local function AVPZ_fake_script() -- PetInterface.Petscript 
 	local script = Instance.new('LocalScript', PetInterface)
 
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -856,7 +826,7 @@ local function PVNDST_fake_script() -- PetInterface.Petscript
 	local selectedPets = Instance.new("Folder")
 	selectedPets.Name = "SelectedPets"
 	selectedPets.Parent = panel
-	
+
 	local list = Instance.new("ScrollingFrame")
 	list.Name = "PetList"
 	list.Parent = panel
@@ -867,44 +837,44 @@ local function PVNDST_fake_script() -- PetInterface.Petscript
 	list.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	list.CanvasSize = UDim2.new()
 	list.ScrollBarThickness = 6
-	
+
 	local layout = Instance.new("UIListLayout")
 	layout.Parent = list
 	layout.Padding = UDim.new(0, 5)
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
-	
+
 	local successClientData, ClientData = pcall(function()
 		return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 	end)
 	local selectedGroups = {}
-	
+
 	local function removeEventPrefix(displayName)
 		local cleanedName = tostring(displayName):gsub("^[%a%s_%-]+%d%d%d%d[%s_%-]+", "")
 		return cleanedName:gsub("^%s+", ""):gsub("%s+$", "")
 	end
-	
+
 	local KindDB = require(
 		ReplicatedStorage
 			:WaitForChild("ClientDB")
 			:WaitForChild("Inventory")
 			:WaitForChild("KindDB")
 	)
-	
+
 	local function capitalizeWords(displayName)
 		return displayName:gsub("(%S+)", function(word)
 			return word:sub(1, 1):upper() .. word:sub(2):lower()
 		end)
 	end
-	
+
 	local function getDisplayName(itemData)
 		local kind = tostring(itemData.kind or "")
 		local kindData = KindDB[kind]
-	
+
 		-- Use the actual pet name from KindDB
 		if kindData and kindData.name and kindData.name ~= "" then
 			return tostring(kindData.name)
 		end
-	
+
 		-- Fallback
 		local properties = itemData.properties or {}
 		local displayName = properties.name
@@ -914,20 +884,20 @@ local function PVNDST_fake_script() -- PetInterface.Petscript
 			or itemData.displayName
 			or itemData.name
 			or kind
-	
+
 		if displayName and displayName ~= "" then
 			local cleanedName = removeEventPrefix(displayName)
-	
+
 			if cleanedName ~= "" then
 				return capitalizeWords(cleanedName)
 			end
 		end
-	
+
 		return capitalizeWords(
 			removeEventPrefix(kind:gsub("[_%-]", " "))
 		)
 	end
-	
+
 	local function getForm(itemData)
 		local properties = itemData.properties or {}
 		if properties.mega_neon then
@@ -937,40 +907,40 @@ local function PVNDST_fake_script() -- PetInterface.Petscript
 		end
 		return "Normal"
 	end
-	
+
 	local formOrder = {
 		Mega = 1,
 		Neon = 2,
 		Normal = 3,
 	}
-	
-	local function isPet(itemData)
-		if not itemData then
-			return false
-		end
-	
-		local kind = tostring(itemData.kind or "")
-		local kindData = KindDB[kind]
-	
-		if kindData then
-			-- KindDB is the main source
-			if kindData.is_egg == true then
-				return false
-			end
-	
-			if string.lower(tostring(kindData.category or "")) == "pets" then
-				return true
-			end
-		end
-	
-		-- Fallback for pet_recycler items / unknown KindDB entries
-		if string.find(string.lower(kind), "egg", 1, true) then
-			return false
-		end
-	
-		return true
-	end
-	
+
+local function isPet(itemData)
+    if not itemData then
+        return false
+    end
+
+    local kind = tostring(itemData.kind or "")
+    local kindData = KindDB[kind]
+
+    if kindData then
+        -- KindDB is the main source
+        if kindData.is_egg == true then
+            return false
+        end
+
+        if string.lower(tostring(kindData.category or "")) == "pets" then
+            return true
+        end
+    end
+
+    -- Fallback for pet_recycler items / unknown KindDB entries
+    if string.find(string.lower(kind), "egg", 1, true) then
+        return false
+    end
+
+    return true
+end
+
 	local function isPracticeDog(itemData)
 		local properties = itemData.properties or {}
 		local kind = string.lower(tostring(itemData.kind or ""))
@@ -982,12 +952,12 @@ local function PVNDST_fake_script() -- PetInterface.Petscript
 				or itemData.displayName
 				or itemData.name
 				or ""
-			))
+		))
 		return kind == "practice_dog"
 			or string.find(kind, "practice_dog", 1, true) ~= nil
 			or string.find(displayName, "practice dog", 1, true) ~= nil
 	end
-	
+
 	local function clearList()
 		for _, child in ipairs(list:GetChildren()) do
 			if child:IsA("TextButton") then
@@ -997,7 +967,7 @@ local function PVNDST_fake_script() -- PetInterface.Petscript
 		selectedGroups = {}
 		selectedPets:ClearAllChildren()
 	end
-	
+
 	local function syncSelectedPets()
 		selectedPets:ClearAllChildren()
 		local selectedIndex = 0
@@ -1011,44 +981,44 @@ local function PVNDST_fake_script() -- PetInterface.Petscript
 			end
 		end
 	end
-	
+
 	local function refreshPets()
 		clearList()
 		if not successClientData or not ClientData then
 			return
 		end
-	
+
 		local dataStore = ClientData.get_data()
 		local playerData = dataStore and (dataStore[localPlayer] or dataStore[localPlayer.Name])
 		local pets = playerData and playerData.inventory and playerData.inventory.pets
 		if not pets then
 			return
 		end
-	
+
 		local groupedPets = {}
-	
-		for uniqueId, itemData in pairs(pets) do
-			if itemData and isPet(itemData) and not isPracticeDog(itemData) then
-				local displayName = getDisplayName(itemData)
-				local form = getForm(itemData)
-				local key = displayName .. "|" .. form
-	
-				local group = groupedPets[key]
-	
-				if not group then
-					group = {
-						displayName = displayName,
-						form = form,
-						uniqueIds = {}
-					}
-	
-					groupedPets[key] = group
-				end
-	
-				table.insert(group.uniqueIds, uniqueId)
-			end
-		end
-	
+
+        for uniqueId, itemData in pairs(pets) do
+            if itemData and isPet(itemData) and not isPracticeDog(itemData) then
+                local displayName = getDisplayName(itemData)
+                local form = getForm(itemData)
+                local key = displayName .. "|" .. form
+
+                local group = groupedPets[key]
+
+                if not group then
+                    group = {
+                        displayName = displayName,
+                        form = form,
+                        uniqueIds = {}
+                    }
+
+                    groupedPets[key] = group
+                end
+
+                table.insert(group.uniqueIds, uniqueId)
+            end
+        end
+
 		local groups = {}
 		for _, group in pairs(groupedPets) do
 			table.insert(groups, group)
@@ -1061,7 +1031,7 @@ local function PVNDST_fake_script() -- PetInterface.Petscript
 			end
 			return leftOrder < rightOrder
 		end)
-	
+
 		for groupIndex, group in ipairs(groups) do
 			local button = Instance.new("TextButton")
 			button.Name = group.displayName .. "_" .. group.form
@@ -1078,7 +1048,7 @@ local function PVNDST_fake_script() -- PetInterface.Petscript
 			button.TextXAlignment = Enum.TextXAlignment.Center
 			button.AutoButtonColor = true
 			Instance.new("UICorner", button).CornerRadius = UDim.new(0, 6)
-	
+
 			button.Activated:Connect(function()
 				if selectedGroups[group] then
 					selectedGroups[group] = nil
@@ -1093,21 +1063,19 @@ local function PVNDST_fake_script() -- PetInterface.Petscript
 			end)
 		end
 	end
-	
+
 	refreshButton.Activated:Connect(refreshPets)
 	refreshPets()
-	end
 end
-coroutine.wrap(PVNDST_fake_script)()
-local function ZQSJ_fake_script() -- StopTradeButton.StopTradeScript 
+coroutine.wrap(AVPZ_fake_script)()
+
+local function JXODJDF_fake_script() -- StopTradeButton.StopTradeScript 
 	local script = Instance.new('LocalScript', StopTradeButton)
-
-	
 end
-coroutine.wrap(ZQSJ_fake_script)()
-local function HQJITN_fake_script() -- SendTradeButton.SendTradeScript 
-	local script = Instance.new('LocalScript', SendTradeButton)
+coroutine.wrap(JXODJDF_fake_script)()
 
+local function MRVNXI_fake_script() -- SendTradeButton.SendTradeScript 
+	local script = Instance.new('LocalScript', SendTradeButton)
 	local TweenService = game:GetService("TweenService")
 	
 	local button = script.Parent
@@ -1166,32 +1134,26 @@ local function HQJITN_fake_script() -- SendTradeButton.SendTradeScript
 	end
 	
 	button.Activated:Connect(playClickFill)
-	end
 end
-coroutine.wrap(HQJITN_fake_script)()
-local function ZQKWI_fake_script() -- RefreshPlrButton.RefreshplrScript 
+coroutine.wrap(MRVNXI_fake_script)()
+
+local function EZWTW_fake_script() -- RefreshPlrButton.RefreshplrScript 
 	local script = Instance.new('LocalScript', RefreshPlrButton)
-
-	
 end
-coroutine.wrap(ZQKWI_fake_script)()
-local function DOID_fake_script() -- RefreshPetButton.RefreshpetScript 
+coroutine.wrap(EZWTW_fake_script)()
+
+local function VKIOV_fake_script() -- RefreshPetButton.RefreshpetScript 
 	local script = Instance.new('LocalScript', RefreshPetButton)
-
-	print("Hello world!")
-	
 end
-coroutine.wrap(DOID_fake_script)()
-local function CUAI_fake_script() -- RefreshEggButton.RefresheggScript 
+coroutine.wrap(VKIOV_fake_script)()
+
+local function LEHU_fake_script() -- RefreshEggButton.RefresheggScript 
 	local script = Instance.new('LocalScript', RefreshEggButton)
-
-	print("Hello world!")
-	
 end
-coroutine.wrap(CUAI_fake_script)()
-local function HPQN_fake_script() -- TradingButton.LocalScript 
-	local script = Instance.new('LocalScript', TradingButton)
+coroutine.wrap(LEHU_fake_script)()
 
+local function WDNV_fake_script() -- TradingButton.LocalScript 
+	local script = Instance.new('LocalScript', TradingButton)
 	local button = script.Parent
 	local main = button:FindFirstAncestor("Main")
 	local potion = main:WaitForChild("Potion")
@@ -1206,10 +1168,10 @@ local function HPQN_fake_script() -- TradingButton.LocalScript
 		trading.Visible = true
 	end)
 end
-coroutine.wrap(HPQN_fake_script)()
-local function CYNII_fake_script() -- ShopButton.LocalScript 
-	local script = Instance.new('LocalScript', ShopButton)
+coroutine.wrap(WDNV_fake_script)()
 
+local function MHXTEQ_fake_script() -- ShopButton.LocalScript 
+	local script = Instance.new('LocalScript', ShopButton)
 	local button = script.Parent
 	local main = button:FindFirstAncestor("Main")
 	local potion = main:WaitForChild("Potion")
@@ -1224,10 +1186,10 @@ local function CYNII_fake_script() -- ShopButton.LocalScript
 		shop.Visible = false
 	end)
 end
-coroutine.wrap(CYNII_fake_script)()
-local function XVTWN_fake_script() -- PotionButton.LocalScript 
-	local script = Instance.new('LocalScript', PotionButton)
+coroutine.wrap(MHXTEQ_fake_script)()
 
+local function DSIPUNY_fake_script() -- PotionButton.LocalScript 
+	local script = Instance.new('LocalScript', PotionButton)
 	local button = script.Parent
 	local main = button:FindFirstAncestor("Main")
 	local potion = main:WaitForChild("Potion")
@@ -1240,14 +1202,12 @@ local function XVTWN_fake_script() -- PotionButton.LocalScript
 	button.Activated:Connect(function()
 		potion.Visible = true
 		trading.Visible = false
-		
-		
 	end)
 end
-coroutine.wrap(XVTWN_fake_script)()
-local function OSXCQ_fake_script() -- BucksButton.LocalScript 
-	local script = Instance.new('LocalScript', BucksButton)
+coroutine.wrap(DSIPUNY_fake_script)()
 
+local function ZOBPAYS_fake_script() -- BucksButton.LocalScript 
+	local script = Instance.new('LocalScript', BucksButton)
 	local button = script.Parent
 	local main = button:FindFirstAncestor("Main")
 	local potion = main:WaitForChild("Potion")
@@ -1262,24 +1222,24 @@ local function OSXCQ_fake_script() -- BucksButton.LocalScript
 		bucks.Visible = true
 	end)
 end
-coroutine.wrap(OSXCQ_fake_script)()
-local function KOPWXON_fake_script() -- ClosedButton.ClosedScript 
-	local script = Instance.new('LocalScript', ClosedButton)
+coroutine.wrap(ZOBPAYS_fake_script)()
 
+local function KWXFAE_fake_script() -- ClosedButton.ClosedScript 
+	local script = Instance.new('LocalScript', ClosedButton)
 	local button = script.Parent
 	local main = button:FindFirstAncestor("Main")
 	local trading = main:WaitForChild("Trading")
-	local icon = main:WaitForChild("Icon")
+	local icon = main:WaitForChild("Icon2")
 	
 	button.Activated:Connect(function()
 		trading.Visible = false
 		icon.Visible = true
 	end)
 end
-coroutine.wrap(KOPWXON_fake_script)()
-local function TKKH_fake_script() -- CosnoleButton.ConsoleScript 
-	local script = Instance.new('LocalScript', CosnoleButton)
+coroutine.wrap(KWXFAE_fake_script)()
 
+local function TQGXY_fake_script() -- CosnoleButton.ConsoleScript 
+	local script = Instance.new('LocalScript', CosnoleButton)
 	local StarterGui = game:GetService("StarterGui")
 	
 	local button = script.Parent
@@ -1305,20 +1265,19 @@ local function TKKH_fake_script() -- CosnoleButton.ConsoleScript
 	end
 	
 	button.Activated:Connect(openDeveloperConsole)
-	
 end
-coroutine.wrap(TKKH_fake_script)()
-local function VBCKYV_fake_script() -- Icon.LocalScript 
-	local script = Instance.new('LocalScript', Icon)
+coroutine.wrap(TQGXY_fake_script)()
 
+local function XOOWGMJ_fake_script() -- Icon2.LocalScript 
+	local script = Instance.new('LocalScript', Icon2)
 	local button = script.Parent
 	local main = button:FindFirstAncestor("Main")
 	local trading = main:WaitForChild("Trading")
-	local icon = main:WaitForChild("Icon")
+	local icon = main:WaitForChild("Icon2")
 	
 	button.Activated:Connect(function()
 		trading.Visible = true
 		icon.Visible = false
 	end)
 end
-coroutine.wrap(VBCKYV_fake_script)()
+coroutine.wrap(XOOWGMJ_fake_script)()
