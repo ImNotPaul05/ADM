@@ -424,6 +424,8 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 	local eggInterface = scrollingFrame:WaitForChild("EggInterface")
     local selectedEggs = eggInterface:WaitForChild("SelectedEggs")
 
+	local addedCount = 0
+
 	local function stopTradeLoop()
 		tradeLoopRunning = false
 	end
@@ -443,30 +445,6 @@ local function PZSESN_fake_script() -- userInterface.Userscript
         return
     end
 
-	for _, petId in ipairs(selectedPets:GetChildren()) do
-    print(
-        "TRADE ADD:",
-        petId.Name,
-        "Value =", petId.Value,
-        "Class =", petId.ClassName
-    )
-
-    if petId:IsA("StringValue") and petId.Value ~= "" then
-        local success, err = pcall(function()
-            addItemRemote:FireServer(petId.Value)
-        end)
-
-        print(
-            "FIRED:",
-            petId.Value,
-            "SUCCESS:",
-            success,
-            "ERROR:",
-            err
-        )
-    end
-end
-
     tradeLoopRunning = true
 
     task.spawn(function()
@@ -484,15 +462,38 @@ end
             end)
 
 
-            -- Add selected pets
-            for _, petId in ipairs(selectedPets:GetChildren()) do
-                if petId:IsA("StringValue") and petId.Value ~= "" then
-                    pcall(function()
-                        addItemRemote:FireServer(petId.Value)
-                    end)
+            local addedCount = 0
 
-                end
+     for _, petId in ipairs(selectedPets:GetChildren()) do
+        print(
+            "TRADE ADD:",
+            petId.Name,
+            "Value =", petId.Value,
+            "Class =", petId.ClassName
+        )
+
+        if petId:IsA("StringValue") and petId.Value ~= "" then
+            local success, err = pcall(function()
+                addItemRemote:FireServer(petId.Value)
+            end)
+
+            if success then
+                addedCount += 1
             end
+
+            print(
+                "FIRED:",
+                petId.Value,
+                "SUCCESS:", success,
+                "ERROR:", err,
+                "COUNT:", addedCount
+            )
+		end
+	end
+
+    print("===== PET ADD TEST COMPLETE =====")
+    print("SelectedPets count:", #selectedPets:GetChildren())
+    print("Fired count:", addedCount)
 
             -- Add selected eggs
             for _, eggId in ipairs(selectedEggs:GetChildren()) do
