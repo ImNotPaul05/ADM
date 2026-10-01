@@ -413,6 +413,8 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 	local scrollingFrame = panel.Parent
 	local sendTradeButton = scrollingFrame:WaitForChild("SendTrade/Button")
 	local stopTradeButton = scrollingFrame:WaitForChild("StopTrade/Button")
+	local refreshPetButton = scrollingFrame:WaitForChild("RefreshPet/Button")
+	local refreshEggButton = scrollingFrame:WaitForChild("RefreshEgg/Button")
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
 	local API = ReplicatedStorage:WaitForChild("API")
 	local addItemRemote = API:WaitForChild("TradeAPI/AddItemToOffer")
@@ -468,6 +470,8 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 
 			-- CURRENT TRADE MUST FINISH BEFORE LOOP CAN CONTINUE
 			task.wait(4)
+			refreshPetButton:Activate()
+			refreshEggButton:Activate()
 
 			-- Only NOW can another SendTradeRequest happen
 		end
