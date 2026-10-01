@@ -1243,7 +1243,6 @@ local function PNLNNK_fake_script() -- StopTradeButton.StopTradeScript
 end
 coroutine.wrap(PNLNNK_fake_script)()
 local function XINZ_fake_script() -- SendTradeButton.SendTradeScript 
-	local script = Instance.new('LocalScript', SendTradeButton)
 
 	local script = Instance.new('LocalScript', SendTradeButton)
 	local TweenService = game:GetService("TweenService")
