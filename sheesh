@@ -444,7 +444,7 @@ local function PZSESN_fake_script() -- userInterface.Userscript
                 tradeInProgress = true
 
                 -- Send trade request
-                sendTradeRemote:FireServer(targetPlayer)
+                SendTradeRequest:FireServer(targetPlayer)
 
                 task.wait(2)
 
