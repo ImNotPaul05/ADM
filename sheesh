@@ -446,6 +446,16 @@ local function PZSESN_fake_script() -- userInterface.Userscript
     tradeLoopRunning = true
 
     task.spawn(function()
+	    pcall(function()
+            AcceptNeg:FireServer()
+        end)
+
+        pcall(function()
+            ConfirmTrade:FireServer()
+		end)
+    end)
+end
+    task.spawn(function()
         while tradeLoopRunning do
             local targetPlayer = selectedPlayer
 
@@ -478,24 +488,10 @@ local function PZSESN_fake_script() -- userInterface.Userscript
                     pcall(function()
                         addItemRemote:FireServer(eggId.Value)
                     end)
-
-                    task.wait(0.1)
                 end
             end
     end)
 end
-    task.spawn(function()
-	    pcall(function()
-            AcceptNeg:FireServer()
-        end)
-
-        pcall(function()
-            ConfirmTrade:FireServer()
-		end)
-    end)
-
-end
-
 
 
 	sendTradeButton.Activated:Connect(startTradeLoop)
