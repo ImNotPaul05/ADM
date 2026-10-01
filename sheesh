@@ -482,24 +482,21 @@ local function PZSESN_fake_script() -- userInterface.Userscript
                     task.wait(0.1)
                 end
             end
-
-            -- Give the game time to register all items
-            task.wait(1)
-
-            pcall(function()
-                AcceptNeg:FireServer()
-            end)
-
-            task.wait(0.5)
-
-            pcall(function()
-                ConfirmTrade:FireServer()
-            end)
-
-            task.wait(4)
-        end
     end)
 end
+    task.spawn(function()
+	    pcall(function()
+            AcceptNeg:FireServer()
+        end)
+
+        pcall(function()
+            ConfirmTrade:FireServer()
+		end)
+    end)
+
+end
+
+
 
 	sendTradeButton.Activated:Connect(startTradeLoop)
 	stopTradeButton.Activated:Connect(stopTradeLoop)
