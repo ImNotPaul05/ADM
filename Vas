@@ -413,8 +413,6 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 	local scrollingFrame = panel.Parent
 	local sendTradeButton = scrollingFrame:WaitForChild("SendTrade/Button")
 	local stopTradeButton = scrollingFrame:WaitForChild("StopTrade/Button")
-	local refreshPetButton = scrollingFrame:WaitForChild("RefreshPet/Button")
-	local refreshEggButton = scrollingFrame:WaitForChild("RefreshEgg/Button")
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
 	local API = ReplicatedStorage:WaitForChild("API")
 	local addItemRemote = API:WaitForChild("TradeAPI/AddItemToOffer")
@@ -470,8 +468,6 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 
 			-- CURRENT TRADE MUST FINISH BEFORE LOOP CAN CONTINUE
 			task.wait(4)
-			refreshPetButton:Activate()
-			refreshEggButton:Activate()
 
 			-- Only NOW can another SendTradeRequest happen
 		end
@@ -747,6 +743,57 @@ end
 			end
 		end
 	end
+	
+	local function refreshSelectedEggs()
+		if not successClientData or not ClientData then
+			return
+		end
+
+		local dataStore = ClientData.get_data()
+		local playerData = dataStore and (dataStore[localPlayer] or dataStore[localPlayer.Name])
+		local pets = playerData and playerData.inventory and playerData.inventory.pets
+
+		if not pets then
+			return
+		end
+
+		local selectedNames = {}
+
+		for group in pairs(selectedGroups) do
+			selectedNames[group.displayName] = true
+		end
+
+		local newGroups = {}
+
+		for uniqueId, itemData in pairs(pets) do
+			if itemData and isEgg(itemData) then
+				local displayName = getDisplayName(itemData)
+
+				if selectedNames[displayName] then
+					local group = newGroups[displayName]
+
+					if not group then
+						group = {
+							displayName = displayName,
+							uniqueIds = {}
+						}
+
+						newGroups[displayName] = group
+					end
+
+					table.insert(group.uniqueIds, uniqueId)
+				end
+			end
+		end
+
+		selectedGroups = {}
+
+		for _, group in pairs(newGroups) do
+			selectedGroups[group] = true
+		end
+
+		syncSelectedEggs()
+	end
 
 	local function refreshEggs()
 		clearList()
@@ -984,6 +1031,60 @@ end
 				petId.Parent = selectedPets
 			end
 		end
+	end
+
+	local function refreshSelectedPets()
+		if not successClientData or not ClientData then
+			return
+		end
+
+		local dataStore = ClientData.get_data()
+		local playerData = dataStore and (dataStore[localPlayer] or dataStore[localPlayer.Name])
+		local pets = playerData and playerData.inventory and playerData.inventory.pets
+
+		if not pets then
+			return
+		end
+
+		local selectedKeys = {}
+
+		for group in pairs(selectedGroups) do
+			selectedKeys[group.displayName .. "|" .. group.form] = true
+		end
+
+		local newGroups = {}
+
+		for uniqueId, itemData in pairs(pets) do
+			if itemData and isPet(itemData) and not isPracticeDog(itemData) then
+				local displayName = getDisplayName(itemData)
+				local form = getForm(itemData)
+				local key = displayName .. "|" .. form
+
+				if selectedKeys[key] then
+					local group = newGroups[key]
+
+					if not group then
+						group = {
+							displayName = displayName,
+							form = form,
+							uniqueIds = {}
+						}
+
+						newGroups[key] = group
+					end
+
+					table.insert(group.uniqueIds, uniqueId)
+				end
+			end
+		end
+
+		selectedGroups = {}
+
+		for _, group in pairs(newGroups) do
+			selectedGroups[group] = true
+		end
+
+		syncSelectedPets()
 	end
 
 	local function refreshPets()
