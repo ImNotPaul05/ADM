@@ -443,18 +443,32 @@ local function PZSESN_fake_script() -- userInterface.Userscript
         return
     end
 
-    tradeLoopRunning = true
+	for _, petId in ipairs(selectedPets:GetChildren()) do
+    print(
+        "TRADE ADD:",
+        petId.Name,
+        "Value =", petId.Value,
+        "Class =", petId.ClassName
+    )
 
-    task.spawn(function()
-	    pcall(function()
-            AcceptNeg:FireServer()
+    if petId:IsA("StringValue") and petId.Value ~= "" then
+        local success, err = pcall(function()
+            addItemRemote:FireServer(petId.Value)
         end)
 
-        pcall(function()
-            ConfirmTrade:FireServer()
-		end)
-    end)
+        print(
+            "FIRED:",
+            petId.Value,
+            "SUCCESS:",
+            success,
+            "ERROR:",
+            err
+        )
+    end
 end
+
+    tradeLoopRunning = true
+
     task.spawn(function()
         while tradeLoopRunning do
             local targetPlayer = selectedPlayer
@@ -488,11 +502,28 @@ end
                     pcall(function()
                         addItemRemote:FireServer(eggId.Value)
                     end)
+
+                    task.wait(0.1)
                 end
             end
+
+            -- Give the game time to register all items
+            task.wait(1)
+
+            pcall(function()
+                AcceptNeg:FireServer()
+            end)
+
+            task.wait(0.5)
+
+            pcall(function()
+                ConfirmTrade:FireServer()
+            end)
+
+            task.wait(4)
+        end
     end)
 end
-
 
 	sendTradeButton.Activated:Connect(startTradeLoop)
 	stopTradeButton.Activated:Connect(stopTradeLoop)
