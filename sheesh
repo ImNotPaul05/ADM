@@ -410,6 +410,7 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 	
 	local selectedPlayer
 	local tradeLoopRunning = false
+	local tradeInProgress = false
 	local scrollingFrame = panel.Parent
 	local sendTradeButton = scrollingFrame:WaitForChild("SendTrade/Button")
 	local stopTradeButton = scrollingFrame:WaitForChild("StopTrade/Button")
@@ -424,61 +425,86 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 	local eggInterface = scrollingFrame:WaitForChild("EggInterface")
     local selectedEggs = eggInterface:WaitForChild("SelectedEggs")
 
-	local tradeLoopRunning = false
-    local tradeInProgress = false
+	local function stopTradeLoop()
+		tradeLoopRunning = false
+	end
 
-    local function stopTradeLoop()
-    -- Stop starting NEW trades
-    tradeLoopRunning = false
-    end
+	local function startTradeLoop()
+		if tradeLoopRunning then
+			return
+		end
 
-    local function startTradeLoop()
-        if tradeLoopRunning then
-            return
-        end
+		if not sendTradeRemote or not sendTradeRemote:IsA("RemoteEvent") then
+			warn("TradeAPI/SendTradeRequest was not found")
+			return
+		end
 
-        tradeLoopRunning = true
+		if not selectedPlayer then
+			warn("Select a player before starting the trade loop")
+			return
+		end
 
-        task.spawn(function()
-            while tradeLoopRunning do
-                tradeInProgress = true
+		tradeLoopRunning = true
+		if tradeInProgress then
+			return
+		end
 
-                -- Send trade request
-                SendTradeRequest:FireServer(targetPlayer)
+		task.spawn(function()
+			while tradeLoopRunning do
+				local targetPlayer = selectedPlayer
 
-                task.wait(2)
+				if not targetPlayer or targetPlayer.Parent ~= Players then
+					stopTradeLoop()
+					break
+				end
 
-                -- Add pets / eggs
-                for _, petId in ipairs(selectedPets:GetChildren()) do
-                    if petId:IsA("StringValue") and petId.Value ~= "" then
-                        addItemRemote:FireServer(petId.Value)
-                    end
-                end
+				tradeInProgress = true
 
-                task.wait(1)
+				-- Send trade request
+				pcall(function()
+					sendTradeRemote:FireServer(targetPlayer)
+				end)
 
-                -- Current trade must finish these even if Stop is pressed
-                AcceptNeg:FireServer()
+				-- Add selected pets
+				for _, petId in ipairs(selectedPets:GetChildren()) do
+					if petId:IsA("StringValue") and petId.Value ~= "" then
+						pcall(function()
+							addItemRemote:FireServer(petId.Value)
+						end)
+					end
+				end
 
-                task.wait(0.5)
+				-- Add selected eggs
+				for _, eggId in ipairs(selectedEggs:GetChildren()) do
+					if eggId:IsA("StringValue") and eggId.Value ~= "" then
+						print("Adding egg:", eggId.Value)
 
-                ConfirmTrade:FireServer()
+						pcall(function()
+							addItemRemote:FireServer(eggId.Value)
+						end)
 
-                -- Let the current trade finish
-                task.wait(4)
+						task.wait(0.1)
+					end
+				end
 
-                tradeInProgress = false
+				-- Give the game time to register all items
+				task.wait(1)
 
-                -- Stop was pressed during this trade?
-                -- Don't start another one.
-                if not tradeLoopRunning then
-                    break
-                end
-            end
+				pcall(function()
+					AcceptNeg:FireServer()
+				end)
 
-            tradeInProgress = false
-        end)
-    end
+				task.wait(0.5)
+
+				pcall(function()
+					ConfirmTrade:FireServer()
+				end)
+
+				task.wait(4)
+				tradeInProgress = false
+			end
+		end)
+	end
 
 	sendTradeButton.Activated:Connect(startTradeLoop)
 	stopTradeButton.Activated:Connect(stopTradeLoop)
