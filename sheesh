@@ -474,6 +474,8 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 					end
 				end
 
+				task.wait(2)
+
 				-- Add selected eggs
 				for _, eggId in ipairs(selectedEggs:GetChildren()) do
 					if eggId:IsA("StringValue") and eggId.Value ~= "" then
@@ -500,7 +502,7 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 					ConfirmTrade:FireServer()
 				end)
 
-				task.wait(4)
+				task.wait(5)
 				tradeInProgress = false
 			end
 		end)
