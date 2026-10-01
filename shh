@@ -101,7 +101,6 @@ while true do
                         addItemRemote:FireServer(uniqueId)
                     end)
 
-                    task.wait(0.1)
                 end
 
                 hasAddedItems = true
