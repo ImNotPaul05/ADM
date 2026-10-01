@@ -1,4 +1,4 @@
--- 2:401m
+-- 3:401m
 -- Version: 3.2
 
 -- Instances:
@@ -438,6 +438,12 @@ local function PZSESN_fake_script() -- userInterface.Userscript
 	task.spawn(function()
 		while not stopRequested do
 
+			-- Refresh selected pet/egg IDs from current inventory
+			petInterface:WaitForChild("RefreshSelected"):Fire()
+			eggInterface:WaitForChild("RefreshSelected"):Fire()
+
+			task.wait(0.2)
+
 			-- SendTradeRequest
 			sendTradeRemote:FireServer(selectedPlayer)
 
@@ -639,6 +645,9 @@ local function UHZC_fake_script() -- EggInterface.EggScript
 		return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 	end)
 	local selectedGroups = {}
+	local refreshSelectedEvent = Instance.new("BindableEvent")
+	refreshSelectedEvent.Name = "RefreshSelected"
+	refreshSelectedEvent.Parent = panel
 
 	local function removeEventPrefix(displayName)
 		local text = tostring(displayName)
@@ -743,6 +752,59 @@ end
 			end
 		end
 	end
+	
+	local function refreshSelectedEggs()
+		if not successClientData or not ClientData then
+			return
+		end
+
+		local dataStore = ClientData.get_data()
+		local playerData = dataStore and (dataStore[localPlayer] or dataStore[localPlayer.Name])
+		local pets = playerData and playerData.inventory and playerData.inventory.pets
+
+		if not pets then
+			return
+		end
+
+		local selectedNames = {}
+
+		for group in pairs(selectedGroups) do
+			selectedNames[group.displayName] = true
+		end
+
+		local newGroups = {}
+
+		for uniqueId, itemData in pairs(pets) do
+			if itemData and isEgg(itemData) then
+				local displayName = getDisplayName(itemData)
+
+				if selectedNames[displayName] then
+					local group = newGroups[displayName]
+
+					if not group then
+						group = {
+							displayName = displayName,
+							uniqueIds = {}
+						}
+
+						newGroups[displayName] = group
+					end
+
+					table.insert(group.uniqueIds, uniqueId)
+				end
+			end
+		end
+
+		selectedGroups = {}
+
+		for _, group in pairs(newGroups) do
+			selectedGroups[group] = true
+		end
+
+		syncSelectedEggs()
+	end
+
+	refreshSelectedEvent.Event:Connect(refreshSelectedEggs)
 
 	local function refreshEggs()
 		clearList()
@@ -847,6 +909,9 @@ local function AVPZ_fake_script() -- PetInterface.Petscript
 		return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 	end)
 	local selectedGroups = {}
+	local refreshSelectedEvent = Instance.new("BindableEvent")
+	refreshSelectedEvent.Name = "RefreshSelected"
+	refreshSelectedEvent.Parent = panel
 
 	local function removeEventPrefix(displayName)
 		local cleanedName = tostring(displayName):gsub("^[%a%s_%-]+%d%d%d%d[%s_%-]+", "")
@@ -981,6 +1046,62 @@ end
 			end
 		end
 	end
+
+	local function refreshSelectedPets()
+		if not successClientData or not ClientData then
+			return
+		end
+
+		local dataStore = ClientData.get_data()
+		local playerData = dataStore and (dataStore[localPlayer] or dataStore[localPlayer.Name])
+		local pets = playerData and playerData.inventory and playerData.inventory.pets
+
+		if not pets then
+			return
+		end
+
+		local selectedKeys = {}
+
+		for group in pairs(selectedGroups) do
+			selectedKeys[group.displayName .. "|" .. group.form] = true
+		end
+
+		local newGroups = {}
+
+		for uniqueId, itemData in pairs(pets) do
+			if itemData and isPet(itemData) and not isPracticeDog(itemData) then
+				local displayName = getDisplayName(itemData)
+				local form = getForm(itemData)
+				local key = displayName .. "|" .. form
+
+				if selectedKeys[key] then
+					local group = newGroups[key]
+
+					if not group then
+						group = {
+							displayName = displayName,
+							form = form,
+							uniqueIds = {}
+						}
+
+						newGroups[key] = group
+					end
+
+					table.insert(group.uniqueIds, uniqueId)
+				end
+			end
+		end
+
+		selectedGroups = {}
+
+		for _, group in pairs(newGroups) do
+			selectedGroups[group] = true
+		end
+
+		syncSelectedPets()
+	end
+
+	refreshSelectedEvent.Event:Connect(refreshSelectedPets)
 
 	local function refreshPets()
 		clearList()
