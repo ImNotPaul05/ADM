@@ -448,13 +448,13 @@ UICorner_19.Parent = CosnoleButton
 
 -- Scripts:
 
-local function DAPBKO_fake_script() -- Main.Main 
+local function XNBBSE_fake_script() -- Main.Main 
 	local script = Instance.new('LocalScript', Main)
 
 	
 end
-coroutine.wrap(DAPBKO_fake_script)()
-local function VZPOYP_fake_script() -- Icon.LocalScript 
+coroutine.wrap(XNBBSE_fake_script)()
+local function IHJIUZ_fake_script() -- Icon.LocalScript 
 	local script = Instance.new('LocalScript', Icon)
 
 	local button = script.Parent
@@ -467,8 +467,8 @@ local function VZPOYP_fake_script() -- Icon.LocalScript
 		icon.Visible = false
 	end)
 end
-coroutine.wrap(VZPOYP_fake_script)()
-local function EADTXK_fake_script() -- userInterface.Userscript 
+coroutine.wrap(IHJIUZ_fake_script)()
+local function XMNM_fake_script() -- userInterface.Userscript 
 	local script = Instance.new('LocalScript', userInterface)
 
 	local Players = game:GetService("Players")
@@ -642,8 +642,8 @@ local function EADTXK_fake_script() -- userInterface.Userscript
 	end)
 	end
 end
-coroutine.wrap(EADTXK_fake_script)()
-local function UOPLR_fake_script() -- SwitchButton.SwitchScript 
+coroutine.wrap(XMNM_fake_script)()
+local function CXMP_fake_script() -- SwitchButton.SwitchScript 
 	local script = Instance.new('LocalScript', SwitchButton)
 
 	local button = script.Parent
@@ -714,8 +714,8 @@ local function UOPLR_fake_script() -- SwitchButton.SwitchScript
 	end)
 	end
 end
-coroutine.wrap(UOPLR_fake_script)()
-local function IKBKLLV_fake_script() -- EggInterface.EggScript 
+coroutine.wrap(CXMP_fake_script)()
+local function NMULAS_fake_script() -- EggInterface.EggScript 
 	local script = Instance.new('LocalScript', EggInterface)
 
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -973,8 +973,8 @@ local function IKBKLLV_fake_script() -- EggInterface.EggScript
 	panel:SetAttribute("RefreshSelectedVersion", panel:GetAttribute("RefreshSelectedVersion") or 0)
 	end
 end
-coroutine.wrap(IKBKLLV_fake_script)()
-local function JTGSQY_fake_script() -- PetInterface.Petscript 
+coroutine.wrap(NMULAS_fake_script)()
+local function PDBCSWV_fake_script() -- PetInterface.Petscript 
 	local script = Instance.new('LocalScript', PetInterface)
 
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -1274,14 +1274,14 @@ local function JTGSQY_fake_script() -- PetInterface.Petscript
 	panel:SetAttribute("RefreshSelectedVersion", panel:GetAttribute("RefreshSelectedVersion") or 0)
 	end
 end
-coroutine.wrap(JTGSQY_fake_script)()
-local function GFYE_fake_script() -- StopTradeButton.StopTradeScript 
+coroutine.wrap(PDBCSWV_fake_script)()
+local function NHPV_fake_script() -- StopTradeButton.StopTradeScript 
 	local script = Instance.new('LocalScript', StopTradeButton)
 
 	
 end
-coroutine.wrap(GFYE_fake_script)()
-local function OQMHTZN_fake_script() -- SendTradeButton.SendTradeScript 
+coroutine.wrap(NHPV_fake_script)()
+local function FSWR_fake_script() -- SendTradeButton.SendTradeScript 
 	local script = Instance.new('LocalScript', SendTradeButton)
 
 	local TweenService = game:GetService("TweenService")
@@ -1344,28 +1344,28 @@ local function OQMHTZN_fake_script() -- SendTradeButton.SendTradeScript
 	button.Activated:Connect(playClickFill)
 	end
 end
-coroutine.wrap(OQMHTZN_fake_script)()
-local function MTWA_fake_script() -- RefreshPetButton.RefreshpetScript 
+coroutine.wrap(FSWR_fake_script)()
+local function TWDXBD_fake_script() -- RefreshPetButton.RefreshpetScript 
 	local script = Instance.new('LocalScript', RefreshPetButton)
 
 	print("Hello world!")
 	
 end
-coroutine.wrap(MTWA_fake_script)()
-local function RWMOBPW_fake_script() -- RefreshEggButton.RefresheggScript 
+coroutine.wrap(TWDXBD_fake_script)()
+local function YIMZZF_fake_script() -- RefreshEggButton.RefresheggScript 
 	local script = Instance.new('LocalScript', RefreshEggButton)
 
 	print("Hello world!")
 	
 end
-coroutine.wrap(RWMOBPW_fake_script)()
-local function IGRS_fake_script() -- RefreshPlrButton.RefreshplrScript 
+coroutine.wrap(YIMZZF_fake_script)()
+local function PJXLXUJ_fake_script() -- RefreshPlrButton.RefreshplrScript 
 	local script = Instance.new('LocalScript', RefreshPlrButton)
 
 	
 end
-coroutine.wrap(IGRS_fake_script)()
-local function VDAVUEN_fake_script() -- TradingButton.LocalScript 
+coroutine.wrap(PJXLXUJ_fake_script)()
+local function FDAZSLM_fake_script() -- TradingButton.LocalScript 
 	local script = Instance.new('LocalScript', TradingButton)
 
 	local button = script.Parent
@@ -1382,8 +1382,8 @@ local function VDAVUEN_fake_script() -- TradingButton.LocalScript
 		trading.Visible = true
 	end)
 end
-coroutine.wrap(VDAVUEN_fake_script)()
-local function LHZVE_fake_script() -- ShopButton.LocalScript 
+coroutine.wrap(FDAZSLM_fake_script)()
+local function YVHNKY_fake_script() -- ShopButton.LocalScript 
 	local script = Instance.new('LocalScript', ShopButton)
 
 	local button = script.Parent
@@ -1400,8 +1400,8 @@ local function LHZVE_fake_script() -- ShopButton.LocalScript
 		shop.Visible = false
 	end)
 end
-coroutine.wrap(LHZVE_fake_script)()
-local function MXXMQK_fake_script() -- PotionButton.LocalScript 
+coroutine.wrap(YVHNKY_fake_script)()
+local function JHJWL_fake_script() -- PotionButton.LocalScript 
 	local script = Instance.new('LocalScript', PotionButton)
 
 	local button = script.Parent
@@ -1418,8 +1418,8 @@ local function MXXMQK_fake_script() -- PotionButton.LocalScript
 		trading.Visible = false
 	end)
 end
-coroutine.wrap(MXXMQK_fake_script)()
-local function ROCYMN_fake_script() -- BucksButton.LocalScript 
+coroutine.wrap(JHJWL_fake_script)()
+local function CZMDAU_fake_script() -- BucksButton.LocalScript 
 	local script = Instance.new('LocalScript', BucksButton)
 
 	local button = script.Parent
@@ -1436,8 +1436,8 @@ local function ROCYMN_fake_script() -- BucksButton.LocalScript
 		bucks.Visible = true
 	end)
 end
-coroutine.wrap(ROCYMN_fake_script)()
-local function LNMKLYQ_fake_script() -- ClosedButton.ClosedScript 
+coroutine.wrap(CZMDAU_fake_script)()
+local function ECKD_fake_script() -- ClosedButton.ClosedScript 
 	local script = Instance.new('LocalScript', ClosedButton)
 
 	local button = script.Parent
@@ -1450,8 +1450,8 @@ local function LNMKLYQ_fake_script() -- ClosedButton.ClosedScript
 		icon.Visible = true
 	end)
 end
-coroutine.wrap(LNMKLYQ_fake_script)()
-local function OAIQJD_fake_script() -- CosnoleButton.ConsoleScript 
+coroutine.wrap(ECKD_fake_script)()
+local function BNZSULS_fake_script() -- CosnoleButton.ConsoleScript 
 	local script = Instance.new('LocalScript', CosnoleButton)
 
 	local StarterGui = game:GetService("StarterGui")
@@ -1481,4 +1481,4 @@ local function OAIQJD_fake_script() -- CosnoleButton.ConsoleScript
 	button.Activated:Connect(openDeveloperConsole)
 	
 end
-coroutine.wrap(OAIQJD_fake_script)()
+coroutine.wrap(BNZSULS_fake_script)()
