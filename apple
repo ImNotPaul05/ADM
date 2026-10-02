@@ -419,7 +419,7 @@ UICorner_19.Parent = CosnoleButton
 
 -- Scripts:
 
-local function LLUVCB_fake_script() -- Icon.LocalScript 
+local function PCIMLJY_fake_script() -- Icon.LocalScript 
 	local script = Instance.new('LocalScript', Icon)
 
 	local button = script.Parent
@@ -432,8 +432,8 @@ local function LLUVCB_fake_script() -- Icon.LocalScript
 		icon.Visible = false
 	end)
 end
-coroutine.wrap(LLUVCB_fake_script)()
-local function LBTJ_fake_script() -- userInterface.Userscript 
+coroutine.wrap(PCIMLJY_fake_script)()
+local function HVVTUZ_fake_script() -- userInterface.Userscript 
 	local script = Instance.new('LocalScript', userInterface)
 
 	local Players = game:GetService("Players")
@@ -607,8 +607,8 @@ local function LBTJ_fake_script() -- userInterface.Userscript
 	end)
 	end
 end
-coroutine.wrap(LBTJ_fake_script)()
-local function RJIQWTR_fake_script() -- SwitchButton.SwitchScript 
+coroutine.wrap(HVVTUZ_fake_script)()
+local function XBBTJ_fake_script() -- SwitchButton.SwitchScript 
 	local script = Instance.new('LocalScript', SwitchButton)
 
 	local button = script.Parent
@@ -679,8 +679,8 @@ local function RJIQWTR_fake_script() -- SwitchButton.SwitchScript
 	end)
 	end
 end
-coroutine.wrap(RJIQWTR_fake_script)()
-local function RFFN_fake_script() -- EggInterface.EggScript 
+coroutine.wrap(XBBTJ_fake_script)()
+local function BMQTPQN_fake_script() -- EggInterface.EggScript 
 	local script = Instance.new('LocalScript', EggInterface)
 
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -937,310 +937,9 @@ local function RFFN_fake_script() -- EggInterface.EggScript
 	panel:SetAttribute("RefreshSelectedReady", true)
 	panel:SetAttribute("RefreshSelectedVersion", panel:GetAttribute("RefreshSelectedVersion") or 0)
 	end
-	coroutine.wrap(UHZC_fake_script)()
-	
-	local function AVPZ_fake_script() -- PetInterface.Petscript 
-		local script = Instance.new('LocalScript', PetInterface)
-	
-		local ReplicatedStorage = game:GetService("ReplicatedStorage")
-		local Players = game:GetService("Players")
-		local localPlayer = Players.LocalPlayer
-		local panel = script.Parent
-		local refreshButton = panel.Parent:WaitForChild("RefreshPet/Button")
-		local selectedPets = Instance.new("Folder")
-		selectedPets.Name = "SelectedPets"
-		selectedPets.Parent = panel
-	
-		local list = Instance.new("ScrollingFrame")
-		list.Name = "PetList"
-		list.Parent = panel
-		list.BackgroundTransparency = 1
-		list.BorderSizePixel = 0
-		list.Position = UDim2.fromOffset(8, 8)
-		list.Size = UDim2.new(1, -16, 1, -16)
-		list.AutomaticCanvasSize = Enum.AutomaticSize.Y
-		list.CanvasSize = UDim2.new()
-		list.ScrollBarThickness = 6
-	
-		local layout = Instance.new("UIListLayout")
-		layout.Parent = list
-		layout.Padding = UDim.new(0, 5)
-		layout.SortOrder = Enum.SortOrder.LayoutOrder
-	
-		local successClientData, ClientData = pcall(function()
-			return require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
-		end)
-		local selectedGroups = {}
-		local refreshSelectedEvent = Instance.new("BindableEvent")
-		refreshSelectedEvent.Name = "RefreshSelected"
-		refreshSelectedEvent.Parent = panel
-	
-		local function removeEventPrefix(displayName)
-			local cleanedName = tostring(displayName):gsub("^[%a%s_%-]+%d%d%d%d[%s_%-]+", "")
-			return cleanedName:gsub("^%s+", ""):gsub("%s+$", "")
-		end
-	
-		local KindDB = require(
-			ReplicatedStorage
-				:WaitForChild("ClientDB")
-				:WaitForChild("Inventory")
-				:WaitForChild("KindDB")
-		)
-	
-		local function capitalizeWords(displayName)
-			return displayName:gsub("(%S+)", function(word)
-				return word:sub(1, 1):upper() .. word:sub(2):lower()
-			end)
-		end
-	
-		local function getDisplayName(itemData)
-			local kind = tostring(itemData.kind or "")
-			local kindData = KindDB[kind]
-	
-			-- Use the actual pet name from KindDB
-			if kindData and kindData.name and kindData.name ~= "" then
-				return tostring(kindData.name)
-			end
-	
-			-- Fallback
-			local properties = itemData.properties or {}
-			local displayName = properties.name
-				or properties.custom_name
-				or properties.display_name
-				or itemData.display_name
-				or itemData.displayName
-				or itemData.name
-				or kind
-	
-			if displayName and displayName ~= "" then
-				local cleanedName = removeEventPrefix(displayName)
-	
-				if cleanedName ~= "" then
-					return capitalizeWords(cleanedName)
-				end
-			end
-	
-			return capitalizeWords(
-				removeEventPrefix(kind:gsub("[_%-]", " "))
-			)
-		end
-	
-		local function getForm(itemData)
-			local properties = itemData.properties or {}
-			if properties.mega_neon then
-				return "Mega"
-			elseif properties.neon then
-				return "Neon"
-			end
-			return "Normal"
-		end
-	
-		local formOrder = {
-			Mega = 1,
-			Neon = 2,
-			Normal = 3,
-		}
-	
-		local function isPet(itemData)
-			if not itemData then
-				return false
-			end
-	
-			local kind = tostring(itemData.kind or "")
-			local kindData = KindDB[kind]
-	
-			if kindData then
-				-- KindDB is the main source
-				if kindData.is_egg == true then
-					return false
-				end
-	
-				if string.lower(tostring(kindData.category or "")) == "pets" then
-					return true
-				end
-			end
-	
-			-- Fallback for pet_recycler items / unknown KindDB entries
-			if string.find(string.lower(kind), "egg", 1, true) then
-				return false
-			end
-	
-			return true
-		end
-	
-		local function isPracticeDog(itemData)
-			local properties = itemData.properties or {}
-			local kind = string.lower(tostring(itemData.kind or ""))
-			local displayName = string.lower(tostring(
-				properties.name
-					or properties.custom_name
-					or properties.display_name
-					or itemData.display_name
-					or itemData.displayName
-					or itemData.name
-					or ""
-				))
-			return kind == "practice_dog"
-				or string.find(kind, "practice_dog", 1, true) ~= nil
-				or string.find(displayName, "practice dog", 1, true) ~= nil
-		end
-	
-		local function clearList()
-			for _, child in ipairs(list:GetChildren()) do
-				if child:IsA("TextButton") then
-					child:Destroy()
-				end
-			end
-		end
-	
-		local function syncSelectedPets()
-			selectedPets:ClearAllChildren()
-			local selectedIndex = 0
-			for group in pairs(selectedGroups) do
-				for index = 1, math.min(#group.uniqueIds, 18) do
-					selectedIndex += 1
-					local petId = Instance.new("StringValue")
-					petId.Name = "Pet_" .. selectedIndex
-					petId.Value = tostring(group.uniqueIds[index])
-					petId.Parent = selectedPets
-				end
-			end
-		end
-	
-		local function refreshPets()
-			local selectedKeys = {}
-	
-			for group in pairs(selectedGroups) do
-				selectedKeys[group.displayName .. "|" .. group.form] = true
-			end
-	
-			-- Never destroy the current selection until a valid inventory snapshot is ready.
-			if not successClientData or not ClientData then
-				return false
-			end
-	
-			local dataStore = ClientData.get_data()
-			local playerData = dataStore and (dataStore[localPlayer] or dataStore[localPlayer.Name])
-			local pets = playerData and playerData.inventory and playerData.inventory.pets
-	
-			if not pets then
-				return false
-			end
-	
-			local groupedPets = {}
-	
-			for uniqueId, itemData in pairs(pets) do
-				if itemData and isPet(itemData) and not isPracticeDog(itemData) then
-					local displayName = getDisplayName(itemData)
-					local form = getForm(itemData)
-					local key = displayName .. "|" .. form
-					local group = groupedPets[key]
-	
-					if not group then
-						group = {
-							displayName = displayName,
-							form = form,
-							uniqueIds = {}
-						}
-						groupedPets[key] = group
-					end
-	
-					table.insert(group.uniqueIds, uniqueId)
-				end
-			end
-	
-			local groups = {}
-			for _, group in pairs(groupedPets) do
-				table.insert(groups, group)
-			end
-	
-			table.sort(groups, function(left, right)
-				local leftOrder = formOrder[left.form] or 4
-				local rightOrder = formOrder[right.form] or 4
-	
-				if leftOrder == rightOrder then
-					return left.displayName < right.displayName
-				end
-	
-				return leftOrder < rightOrder
-			end)
-	
-			-- Only replace the UI/selection after the entire snapshot was built successfully.
-			clearList()
-			selectedGroups = {}
-	
-			for groupIndex, group in ipairs(groups) do
-				local button = Instance.new("TextButton")
-				button.Name = group.displayName .. "_" .. group.form
-				button.Parent = list
-				button.LayoutOrder = (formOrder[group.form] or 4) * 100000 + groupIndex
-				button.Size = UDim2.new(1, -6, 0, 32)
-				button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-				button.BorderSizePixel = 0
-				button.Font = Enum.Font.SourceSansBold
-	
-				local formLabel = group.form
-				button.Text = string.format("%s %s ×%d", formLabel, group.displayName, #group.uniqueIds)
-				button.TextColor3 = Color3.new(1, 1, 1)
-				button.TextSize = 16
-				button.TextXAlignment = Enum.TextXAlignment.Center
-				button.AutoButtonColor = true
-				Instance.new("UICorner", button).CornerRadius = UDim.new(0, 6)
-	
-				if selectedKeys[group.displayName .. "|" .. group.form] and #group.uniqueIds > 0 then
-					selectedGroups[group] = true
-					button.BackgroundColor3 = Color3.fromRGB(158, 0, 158)
-				end
-	
-				button.Activated:Connect(function()
-					if selectedGroups[group] then
-						selectedGroups[group] = nil
-						button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-						print("Deselected pet:", button.Text)
-					else
-						selectedGroups[group] = true
-						button.BackgroundColor3 = Color3.fromRGB(158, 0, 158)
-						print("Selected pet:", button.Text)
-					end
-					syncSelectedPets()
-				end)
-			end
-	
-			-- Rebuild the actual IDs only after the fresh inventory snapshot is installed.
-			syncSelectedPets()
-	
-			panel:SetAttribute("RefreshSelectedVersion",
-				(panel:GetAttribute("RefreshSelectedVersion") or 0) + 1
-			)
-	
-			return true
-		end
-	
-		refreshButton.Activated:Connect(function()
-			for _ = 1, 5 do
-				if refreshPets() then
-					return
-				end
-				task.wait(0.1)
-			end
-		end)
-	
-		refreshSelectedEvent.Event:Connect(function()
-			for _ = 1, 8 do
-				if refreshPets() then
-					return
-				end
-				task.wait(0.1)
-			end
-		end)
-	
-		refreshPets()
-		panel:SetAttribute("RefreshSelectedReady", true)
-		panel:SetAttribute("RefreshSelectedVersion", panel:GetAttribute("RefreshSelectedVersion") or 0)
-	end
 end
-coroutine.wrap(RFFN_fake_script)()
-local function JJMYUSS_fake_script() -- PetInterface.Petscript 
+coroutine.wrap(BMQTPQN_fake_script)()
+local function QDXOCX_fake_script() -- PetInterface.Petscript 
 	local script = Instance.new('LocalScript', PetInterface)
 
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -1540,14 +1239,14 @@ local function JJMYUSS_fake_script() -- PetInterface.Petscript
 	panel:SetAttribute("RefreshSelectedVersion", panel:GetAttribute("RefreshSelectedVersion") or 0)
 	end
 end
-coroutine.wrap(JJMYUSS_fake_script)()
-local function LYKWXTW_fake_script() -- StopTradeButton.StopTradeScript 
+coroutine.wrap(QDXOCX_fake_script)()
+local function XTSQGGG_fake_script() -- StopTradeButton.StopTradeScript 
 	local script = Instance.new('LocalScript', StopTradeButton)
 
 	
 end
-coroutine.wrap(LYKWXTW_fake_script)()
-local function WHLHE_fake_script() -- SendTradeButton.SendTradeScript 
+coroutine.wrap(XTSQGGG_fake_script)()
+local function VZHP_fake_script() -- SendTradeButton.SendTradeScript 
 	local script = Instance.new('LocalScript', SendTradeButton)
 
 	local TweenService = game:GetService("TweenService")
@@ -1610,28 +1309,28 @@ local function WHLHE_fake_script() -- SendTradeButton.SendTradeScript
 	button.Activated:Connect(playClickFill)
 	end
 end
-coroutine.wrap(WHLHE_fake_script)()
-local function OMDHQIK_fake_script() -- RefreshPetButton.RefreshpetScript 
+coroutine.wrap(VZHP_fake_script)()
+local function IAJPP_fake_script() -- RefreshPetButton.RefreshpetScript 
 	local script = Instance.new('LocalScript', RefreshPetButton)
 
 	print("Hello world!")
 	
 end
-coroutine.wrap(OMDHQIK_fake_script)()
-local function KJVG_fake_script() -- RefreshEggButton.RefresheggScript 
+coroutine.wrap(IAJPP_fake_script)()
+local function VCPBN_fake_script() -- RefreshEggButton.RefresheggScript 
 	local script = Instance.new('LocalScript', RefreshEggButton)
 
 	print("Hello world!")
 	
 end
-coroutine.wrap(KJVG_fake_script)()
-local function UCQRI_fake_script() -- RefreshPlrButton.RefreshplrScript 
+coroutine.wrap(VCPBN_fake_script)()
+local function OAUKSK_fake_script() -- RefreshPlrButton.RefreshplrScript 
 	local script = Instance.new('LocalScript', RefreshPlrButton)
 
 	
 end
-coroutine.wrap(UCQRI_fake_script)()
-local function TFNFK_fake_script() -- TradingButton.LocalScript 
+coroutine.wrap(OAUKSK_fake_script)()
+local function VRMSY_fake_script() -- TradingButton.LocalScript 
 	local script = Instance.new('LocalScript', TradingButton)
 
 	local button = script.Parent
@@ -1648,8 +1347,8 @@ local function TFNFK_fake_script() -- TradingButton.LocalScript
 		trading.Visible = true
 	end)
 end
-coroutine.wrap(TFNFK_fake_script)()
-local function XRKSCS_fake_script() -- ShopButton.LocalScript 
+coroutine.wrap(VRMSY_fake_script)()
+local function XNMRK_fake_script() -- ShopButton.LocalScript 
 	local script = Instance.new('LocalScript', ShopButton)
 
 	local button = script.Parent
@@ -1666,8 +1365,8 @@ local function XRKSCS_fake_script() -- ShopButton.LocalScript
 		shop.Visible = false
 	end)
 end
-coroutine.wrap(XRKSCS_fake_script)()
-local function ZRCPJP_fake_script() -- PotionButton.LocalScript 
+coroutine.wrap(XNMRK_fake_script)()
+local function YWNSWEF_fake_script() -- PotionButton.LocalScript 
 	local script = Instance.new('LocalScript', PotionButton)
 
 	local button = script.Parent
@@ -1686,8 +1385,8 @@ local function ZRCPJP_fake_script() -- PotionButton.LocalScript
 		
 	end)
 end
-coroutine.wrap(ZRCPJP_fake_script)()
-local function ZQJX_fake_script() -- BucksButton.LocalScript 
+coroutine.wrap(YWNSWEF_fake_script)()
+local function SIYAZG_fake_script() -- BucksButton.LocalScript 
 	local script = Instance.new('LocalScript', BucksButton)
 
 	local button = script.Parent
@@ -1704,8 +1403,8 @@ local function ZQJX_fake_script() -- BucksButton.LocalScript
 		bucks.Visible = true
 	end)
 end
-coroutine.wrap(ZQJX_fake_script)()
-local function VCTYET_fake_script() -- ClosedButton.ClosedScript 
+coroutine.wrap(SIYAZG_fake_script)()
+local function GYKB_fake_script() -- ClosedButton.ClosedScript 
 	local script = Instance.new('LocalScript', ClosedButton)
 
 	local button = script.Parent
@@ -1718,8 +1417,8 @@ local function VCTYET_fake_script() -- ClosedButton.ClosedScript
 		icon.Visible = true
 	end)
 end
-coroutine.wrap(VCTYET_fake_script)()
-local function QJMLND_fake_script() -- CosnoleButton.ConsoleScript 
+coroutine.wrap(GYKB_fake_script)()
+local function BDFEB_fake_script() -- CosnoleButton.ConsoleScript 
 	local script = Instance.new('LocalScript', CosnoleButton)
 
 	local StarterGui = game:GetService("StarterGui")
@@ -1749,4 +1448,4 @@ local function QJMLND_fake_script() -- CosnoleButton.ConsoleScript
 	button.Activated:Connect(openDeveloperConsole)
 	
 end
-coroutine.wrap(QJMLND_fake_script)()
+coroutine.wrap(BDFEB_fake_script)()
