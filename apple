@@ -10,25 +10,26 @@ local Trading = Instance.new("Frame")
 local ScrollingFrame = Instance.new("ScrollingFrame")
 local userInterface = Instance.new("Frame")
 local UICorner_2 = Instance.new("UICorner")
-local AutoAccept = Instance.new("Frame")
 local UICorner_3 = Instance.new("UICorner")
-local SwitchButton = Instance.new("TextButton")
+local AutoAccept = Instance.new("Frame")
 local UICorner_4 = Instance.new("UICorner")
-local Circle = Instance.new("Frame")
+local SwitchButton = Instance.new("TextButton")
 local UICorner_5 = Instance.new("UICorner")
+local Circle = Instance.new("Frame")
+local UICorner_6 = Instance.new("UICorner")
 local TextLabel = Instance.new("TextLabel")
 local EggInterface = Instance.new("Frame")
-local UICorner_6 = Instance.new("UICorner")
-local PetInterface = Instance.new("Frame")
 local UICorner_7 = Instance.new("UICorner")
-local StopTradeButton = Instance.new("TextButton")
+local PetInterface = Instance.new("Frame")
 local UICorner_8 = Instance.new("UICorner")
-local SendTradeButton = Instance.new("TextButton")
+local StopTradeButton = Instance.new("TextButton")
 local UICorner_9 = Instance.new("UICorner")
-local RefreshPetButton = Instance.new("TextButton")
+local SendTradeButton = Instance.new("TextButton")
 local UICorner_10 = Instance.new("UICorner")
-local RefreshEggButton = Instance.new("TextButton")
+local RefreshPetButton = Instance.new("TextButton")
 local UICorner_11 = Instance.new("UICorner")
+local RefreshEggButton = Instance.new("TextButton")
+local UICorner_12 = Instance.new("UICorner")
 local Target1 = Instance.new("TextLabel")
 local UITextSizeConstraint = Instance.new("UITextSizeConstraint")
 local TextLabel_2 = Instance.new("TextLabel")
@@ -36,7 +37,6 @@ local UITextSizeConstraint_2 = Instance.new("UITextSizeConstraint")
 local Mannequin = Instance.new("TextLabel")
 local UITextSizeConstraint_3 = Instance.new("UITextSizeConstraint")
 local RefreshPlrButton = Instance.new("TextButton")
-local UICorner_12 = Instance.new("UICorner")
 local UICorner_13 = Instance.new("UICorner")
 local TextLabel_3 = Instance.new("TextLabel")
 local TextLabel_4 = Instance.new("TextLabel")
@@ -94,7 +94,6 @@ ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 ScrollingFrame.BorderSizePixel = 0
 ScrollingFrame.Position = UDim2.new(0.0173499268, 0, 0.161872461, 0)
 ScrollingFrame.Size = UDim2.new(0.964724481, 0, 0.818428278, 0)
-ScrollingFrame.CanvasPosition = Vector2.new(0, 200)
 
 userInterface.Name = "userInterface"
 userInterface.Parent = ScrollingFrame
@@ -108,6 +107,9 @@ userInterface.Size = UDim2.new(0.880377054, 0, 0.140611932, 0)
 UICorner_2.CornerRadius = UDim.new(0, 10)
 UICorner_2.Parent = userInterface
 
+UICorner_3.CornerRadius = UDim.new(0, 9)
+UICorner_3.Parent = ScrollingFrame
+
 AutoAccept.Name = "AutoAccept"
 AutoAccept.Parent = ScrollingFrame
 AutoAccept.BackgroundColor3 = Color3.fromRGB(132, 0, 132)
@@ -117,8 +119,8 @@ AutoAccept.BorderSizePixel = 0
 AutoAccept.Position = UDim2.new(0.052236747, 0, 0.228437871, 0)
 AutoAccept.Size = UDim2.new(0.885999978, 0, 0.023, 0)
 
-UICorner_3.CornerRadius = UDim.new(0, 10)
-UICorner_3.Parent = AutoAccept
+UICorner_4.CornerRadius = UDim.new(0, 10)
+UICorner_4.Parent = AutoAccept
 
 SwitchButton.Name = "Switch/Button"
 SwitchButton.Parent = AutoAccept
@@ -132,8 +134,8 @@ SwitchButton.Text = ""
 SwitchButton.TextColor3 = Color3.fromRGB(0, 0, 0)
 SwitchButton.TextSize = 14.000
 
-UICorner_4.CornerRadius = UDim.new(0, 100)
-UICorner_4.Parent = SwitchButton
+UICorner_5.CornerRadius = UDim.new(0, 100)
+UICorner_5.Parent = SwitchButton
 
 Circle.Name = "Circle"
 Circle.Parent = SwitchButton
@@ -143,8 +145,8 @@ Circle.BorderSizePixel = 0
 Circle.Position = UDim2.new(0, 0, 0.0122798197, 0)
 Circle.Size = UDim2.new(0.521461368, 0, 0.987720251, 0)
 
-UICorner_5.CornerRadius = UDim.new(0, 100)
-UICorner_5.Parent = Circle
+UICorner_6.CornerRadius = UDim.new(0, 100)
+UICorner_6.Parent = Circle
 
 TextLabel.Parent = AutoAccept
 TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -167,8 +169,8 @@ EggInterface.BorderSizePixel = 0
 EggInterface.Position = UDim2.new(0.0588048734, 0, 0.520651042, 0)
 EggInterface.Size = UDim2.new(0.880377054, 0, 0.138668194, 0)
 
-UICorner_6.CornerRadius = UDim.new(0, 10)
-UICorner_6.Parent = EggInterface
+UICorner_7.CornerRadius = UDim.new(0, 10)
+UICorner_7.Parent = EggInterface
 
 PetInterface.Name = "PetInterface"
 PetInterface.Parent = ScrollingFrame
@@ -179,8 +181,8 @@ PetInterface.BorderSizePixel = 0
 PetInterface.Position = UDim2.new(0.0588048734, 0, 0.313508183, 0)
 PetInterface.Size = UDim2.new(0.880377054, 0, 0.138668194, 0)
 
-UICorner_7.CornerRadius = UDim.new(0, 10)
-UICorner_7.Parent = PetInterface
+UICorner_8.CornerRadius = UDim.new(0, 10)
+UICorner_8.Parent = PetInterface
 
 StopTradeButton.Name = "StopTrade/Button"
 StopTradeButton.Parent = ScrollingFrame
@@ -195,8 +197,8 @@ StopTradeButton.Text = "Stop loop"
 StopTradeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 StopTradeButton.TextSize = 19.000
 
-UICorner_8.CornerRadius = UDim.new(0, 9)
-UICorner_8.Parent = StopTradeButton
+UICorner_9.CornerRadius = UDim.new(0, 9)
+UICorner_9.Parent = StopTradeButton
 
 SendTradeButton.Name = "SendTrade/Button"
 SendTradeButton.Parent = ScrollingFrame
@@ -210,8 +212,8 @@ SendTradeButton.Text = "Start auto-trade"
 SendTradeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 SendTradeButton.TextSize = 18.000
 
-UICorner_9.CornerRadius = UDim.new(0, 9)
-UICorner_9.Parent = SendTradeButton
+UICorner_10.CornerRadius = UDim.new(0, 9)
+UICorner_10.Parent = SendTradeButton
 
 RefreshPetButton.Name = "RefreshPet/Button"
 RefreshPetButton.Parent = ScrollingFrame
@@ -226,8 +228,8 @@ RefreshPetButton.Text = "Refresh pet list"
 RefreshPetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 RefreshPetButton.TextSize = 17.000
 
-UICorner_10.CornerRadius = UDim.new(0, 9)
-UICorner_10.Parent = RefreshPetButton
+UICorner_11.CornerRadius = UDim.new(0, 9)
+UICorner_11.Parent = RefreshPetButton
 
 RefreshEggButton.Name = "RefreshEgg/Button"
 RefreshEggButton.Parent = ScrollingFrame
@@ -242,8 +244,8 @@ RefreshEggButton.Text = "Refresh egg list"
 RefreshEggButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 RefreshEggButton.TextSize = 17.000
 
-UICorner_11.CornerRadius = UDim.new(0, 9)
-UICorner_11.Parent = RefreshEggButton
+UICorner_12.CornerRadius = UDim.new(0, 9)
+UICorner_12.Parent = RefreshEggButton
 
 Target1.Name = "Target1"
 Target1.Parent = ScrollingFrame
@@ -312,11 +314,8 @@ RefreshPlrButton.Text = "Refresh player  list"
 RefreshPlrButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 RefreshPlrButton.TextSize = 17.000
 
-UICorner_12.CornerRadius = UDim.new(0, 9)
-UICorner_12.Parent = RefreshPlrButton
-
 UICorner_13.CornerRadius = UDim.new(0, 9)
-UICorner_13.Parent = ScrollingFrame
+UICorner_13.Parent = RefreshPlrButton
 
 TextLabel_3.Parent = Trading
 TextLabel_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -449,7 +448,13 @@ UICorner_19.Parent = CosnoleButton
 
 -- Scripts:
 
-local function ASAMK_fake_script() -- Icon.LocalScript 
+local function RDXNQ_fake_script() -- Main.Main 
+	local script = Instance.new('LocalScript', Main)
+
+	
+end
+coroutine.wrap(RDXNQ_fake_script)()
+local function DOFSNEV_fake_script() -- Icon.LocalScript 
 	local script = Instance.new('LocalScript', Icon)
 
 	local button = script.Parent
@@ -462,8 +467,8 @@ local function ASAMK_fake_script() -- Icon.LocalScript
 		icon.Visible = false
 	end)
 end
-coroutine.wrap(ASAMK_fake_script)()
-local function MKFXPP_fake_script() -- userInterface.Userscript 
+coroutine.wrap(DOFSNEV_fake_script)()
+local function BOPMQH_fake_script() -- userInterface.Userscript 
 	local script = Instance.new('LocalScript', userInterface)
 
 	local Players = game:GetService("Players")
@@ -637,8 +642,8 @@ local function MKFXPP_fake_script() -- userInterface.Userscript
 	end)
 	end
 end
-coroutine.wrap(MKFXPP_fake_script)()
-local function BYYDD_fake_script() -- SwitchButton.SwitchScript 
+coroutine.wrap(BOPMQH_fake_script)()
+local function VONKCON_fake_script() -- SwitchButton.SwitchScript 
 	local script = Instance.new('LocalScript', SwitchButton)
 
 	local button = script.Parent
@@ -709,8 +714,8 @@ local function BYYDD_fake_script() -- SwitchButton.SwitchScript
 	end)
 	end
 end
-coroutine.wrap(BYYDD_fake_script)()
-local function OCADU_fake_script() -- EggInterface.EggScript 
+coroutine.wrap(VONKCON_fake_script)()
+local function XYFRQJ_fake_script() -- EggInterface.EggScript 
 	local script = Instance.new('LocalScript', EggInterface)
 
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -968,8 +973,8 @@ local function OCADU_fake_script() -- EggInterface.EggScript
 	panel:SetAttribute("RefreshSelectedVersion", panel:GetAttribute("RefreshSelectedVersion") or 0)
 	end
 end
-coroutine.wrap(OCADU_fake_script)()
-local function UTEQBS_fake_script() -- PetInterface.Petscript 
+coroutine.wrap(XYFRQJ_fake_script)()
+local function KLJKWZ_fake_script() -- PetInterface.Petscript 
 	local script = Instance.new('LocalScript', PetInterface)
 
 	local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -1269,14 +1274,14 @@ local function UTEQBS_fake_script() -- PetInterface.Petscript
 	panel:SetAttribute("RefreshSelectedVersion", panel:GetAttribute("RefreshSelectedVersion") or 0)
 	end
 end
-coroutine.wrap(UTEQBS_fake_script)()
-local function LETLGCM_fake_script() -- StopTradeButton.StopTradeScript 
+coroutine.wrap(KLJKWZ_fake_script)()
+local function SEBNF_fake_script() -- StopTradeButton.StopTradeScript 
 	local script = Instance.new('LocalScript', StopTradeButton)
 
 	
 end
-coroutine.wrap(LETLGCM_fake_script)()
-local function AZHUKOT_fake_script() -- SendTradeButton.SendTradeScript 
+coroutine.wrap(SEBNF_fake_script)()
+local function HJZMMRC_fake_script() -- SendTradeButton.SendTradeScript 
 	local script = Instance.new('LocalScript', SendTradeButton)
 
 	local TweenService = game:GetService("TweenService")
@@ -1339,28 +1344,28 @@ local function AZHUKOT_fake_script() -- SendTradeButton.SendTradeScript
 	button.Activated:Connect(playClickFill)
 	end
 end
-coroutine.wrap(AZHUKOT_fake_script)()
-local function NNPB_fake_script() -- RefreshPetButton.RefreshpetScript 
+coroutine.wrap(HJZMMRC_fake_script)()
+local function KCRH_fake_script() -- RefreshPetButton.RefreshpetScript 
 	local script = Instance.new('LocalScript', RefreshPetButton)
 
 	print("Hello world!")
 	
 end
-coroutine.wrap(NNPB_fake_script)()
-local function KRPD_fake_script() -- RefreshEggButton.RefresheggScript 
+coroutine.wrap(KCRH_fake_script)()
+local function ZJZFGUF_fake_script() -- RefreshEggButton.RefresheggScript 
 	local script = Instance.new('LocalScript', RefreshEggButton)
 
 	print("Hello world!")
 	
 end
-coroutine.wrap(KRPD_fake_script)()
-local function KNDJUZM_fake_script() -- RefreshPlrButton.RefreshplrScript 
+coroutine.wrap(ZJZFGUF_fake_script)()
+local function OTJW_fake_script() -- RefreshPlrButton.RefreshplrScript 
 	local script = Instance.new('LocalScript', RefreshPlrButton)
 
 	
 end
-coroutine.wrap(KNDJUZM_fake_script)()
-local function AFXYW_fake_script() -- TradingButton.LocalScript 
+coroutine.wrap(OTJW_fake_script)()
+local function IYKHVO_fake_script() -- TradingButton.LocalScript 
 	local script = Instance.new('LocalScript', TradingButton)
 
 	local button = script.Parent
@@ -1377,8 +1382,8 @@ local function AFXYW_fake_script() -- TradingButton.LocalScript
 		trading.Visible = true
 	end)
 end
-coroutine.wrap(AFXYW_fake_script)()
-local function QXTPB_fake_script() -- ShopButton.LocalScript 
+coroutine.wrap(IYKHVO_fake_script)()
+local function YXMZ_fake_script() -- ShopButton.LocalScript 
 	local script = Instance.new('LocalScript', ShopButton)
 
 	local button = script.Parent
@@ -1395,8 +1400,8 @@ local function QXTPB_fake_script() -- ShopButton.LocalScript
 		shop.Visible = false
 	end)
 end
-coroutine.wrap(QXTPB_fake_script)()
-local function LBWUC_fake_script() -- PotionButton.LocalScript 
+coroutine.wrap(YXMZ_fake_script)()
+local function QAEQKDI_fake_script() -- PotionButton.LocalScript 
 	local script = Instance.new('LocalScript', PotionButton)
 
 	local button = script.Parent
@@ -1413,8 +1418,8 @@ local function LBWUC_fake_script() -- PotionButton.LocalScript
 		trading.Visible = false
 	end)
 end
-coroutine.wrap(LBWUC_fake_script)()
-local function VLKAH_fake_script() -- BucksButton.LocalScript 
+coroutine.wrap(QAEQKDI_fake_script)()
+local function LXGCT_fake_script() -- BucksButton.LocalScript 
 	local script = Instance.new('LocalScript', BucksButton)
 
 	local button = script.Parent
@@ -1431,8 +1436,8 @@ local function VLKAH_fake_script() -- BucksButton.LocalScript
 		bucks.Visible = true
 	end)
 end
-coroutine.wrap(VLKAH_fake_script)()
-local function LAMG_fake_script() -- ClosedButton.ClosedScript 
+coroutine.wrap(LXGCT_fake_script)()
+local function JMGUDV_fake_script() -- ClosedButton.ClosedScript 
 	local script = Instance.new('LocalScript', ClosedButton)
 
 	local button = script.Parent
@@ -1445,8 +1450,8 @@ local function LAMG_fake_script() -- ClosedButton.ClosedScript
 		icon.Visible = true
 	end)
 end
-coroutine.wrap(LAMG_fake_script)()
-local function ZIKQCUJ_fake_script() -- CosnoleButton.ConsoleScript 
+coroutine.wrap(JMGUDV_fake_script)()
+local function MOQYFZV_fake_script() -- CosnoleButton.ConsoleScript 
 	local script = Instance.new('LocalScript', CosnoleButton)
 
 	local StarterGui = game:GetService("StarterGui")
@@ -1476,10 +1481,4 @@ local function ZIKQCUJ_fake_script() -- CosnoleButton.ConsoleScript
 	button.Activated:Connect(openDeveloperConsole)
 	
 end
-coroutine.wrap(ZIKQCUJ_fake_script)()
-local function RJPU_fake_script() -- Main.Main 
-	local script = Instance.new('LocalScript', Main)
-
-	
-end
-coroutine.wrap(RJPU_fake_script)()
+coroutine.wrap(MOQYFZV_fake_script)()
