@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 -- Configuration
+
 local targetFrameNames = {"Dialog"}
 
 -- Remotes / modules
@@ -256,7 +257,7 @@ task.spawn(function()
             getMultipleUniqueIdsByName(
                 TARGET_ITEM_NAME,
                 TARGET_ITEM_FORM,
-                ITEMS_PER_TRADE
+                18
             )
 
         if #uniqueIds == 0 then
@@ -276,7 +277,7 @@ task.spawn(function()
             end)
 
             if success then
-                addedCount += 1
+                addedCount += 18
             else
                 warn(
                     "[TRADE] AddItemToOffer failed:",
