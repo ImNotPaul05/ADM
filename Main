@@ -285,8 +285,6 @@ task.spawn(function()
                     err
                 )
             end
-
-            task.wait(0.1)
         end
 
         -- Give all AddItemToOffer calls time to register.
