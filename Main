@@ -3,9 +3,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- Configuration
 
-local targetFrameNames = {"Dialog"}
+targetFrameNames = {"Dialog"}
 
 -- Remotes / modules
 local API = ReplicatedStorage:WaitForChild("API")
@@ -441,7 +440,9 @@ task.spawn(function()
                 end)
 
                 -- Cooldown prevents remote spam.
-                task.wait(2)
+                task.wait(4)
+            else
+                task.wait(1)
             end
         end
     end)
