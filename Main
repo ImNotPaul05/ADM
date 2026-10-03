@@ -4,7 +4,6 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 -- Configuration
-
 local targetFrameNames = {"Dialog"}
 
 -- Remotes / modules
@@ -257,7 +256,7 @@ task.spawn(function()
             getMultipleUniqueIdsByName(
                 TARGET_ITEM_NAME,
                 TARGET_ITEM_FORM,
-                18
+                ITEMS_PER_TRADE
             )
 
         if #uniqueIds == 0 then
@@ -285,6 +284,8 @@ task.spawn(function()
                     err
                 )
             end
+
+            task.wait(0.1)
         end
 
         -- Give all AddItemToOffer calls time to register.
