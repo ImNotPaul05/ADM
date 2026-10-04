@@ -49,6 +49,8 @@ task.spawn(function()
     -- FUNCTIONS
     --------------------------------------------------
 
+    local offeredItemIds = {}
+
     local function getKindDisplayName(kind)
         local kindData = kind and KindDB[kind]
 
@@ -140,7 +142,7 @@ task.spawn(function()
                     displayLower == targetNameLower
                     or kindLower == targetNameLower
 
-                if nameMatches then
+                if nameMatches and not offeredItemIds[uniqueId] then
                     local properties =
                         itemData.properties or {}
 
@@ -272,23 +274,20 @@ task.spawn(function()
         local addedCount = 0
 
         -- Fire up to 18 pets/eggs for this trade.
-        for index, uniqueId in ipairs(uniqueIds) do
+        for _, uniqueId in ipairs(uniqueIds) do
             local success, err = pcall(function()
                 addItemRemote:FireServer(uniqueId)
             end)
 
             if success then
                 addedCount += 1
+                offeredItemIds[uniqueId] = true
             else
                 warn(
                     "[TRADE] AddItemToOffer failed:",
                     uniqueId,
                     err
                 )
-            end
-
-            if index < #uniqueIds then
-                task.wait(0.05)
             end
         end
 
@@ -384,6 +383,9 @@ task.spawn(function()
         --------------------------------------------------
 
         task.wait(2)
+
+        refreshPetEgg()
+        waitForInventoryReady()
 
         return true
     end
