@@ -1,4 +1,4 @@
--- Services
+-- 2Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -271,7 +271,8 @@ task.spawn(function()
 
         local addedCount = 0
 
-        for _, uniqueId in ipairs(uniqueIds) do
+        -- Fire up to 18 pets/eggs for this trade.
+        for index, uniqueId in ipairs(uniqueIds) do
             local success, err = pcall(function()
                 addItemRemote:FireServer(uniqueId)
             end)
@@ -286,11 +287,13 @@ task.spawn(function()
                 )
             end
 
-            task.wait(0.1)
+            if index < #uniqueIds then
+                task.wait(0.05)
+            end
         end
 
-        -- Give all AddItemToOffer calls time to register.
-        task.wait(1)
+        -- Let the final AddItemToOffer requests register.
+        task.wait(0.35)
 
         return addedCount > 0
     end
@@ -363,18 +366,14 @@ task.spawn(function()
         end
 
         --------------------------------------------------
-        -- 6. Script2-style negotiation timer
+        -- 6. Fast negotiation / confirmation
         --------------------------------------------------
-
-        -- 1 second after AddItemToOffer finishes.
-        task.wait(1)
 
         pcall(function()
             AcceptNeg:FireServer()
         end)
 
-        -- Script2 timing.
-        task.wait(0.5)
+        task.wait(0.15)
 
         pcall(function()
             ConfirmTrade:FireServer()
@@ -384,7 +383,7 @@ task.spawn(function()
         -- 7. Wait for trade completion
         --------------------------------------------------
 
-        task.wait(4)
+        task.wait(2)
 
         return true
     end
@@ -396,6 +395,8 @@ task.spawn(function()
             if MainAccUsername
                 and #MainAccUsername > 0 then
 
+                -- Trade in configured order:
+                -- 1 -> 2 -> 3 -> ... -> last -> 1
                 if currentTargetIndex > #MainAccUsername then
                     currentTargetIndex = 1
                 end
@@ -404,7 +405,16 @@ task.spawn(function()
                     MainAccUsername[currentTargetIndex]
 
                 if playerName and playerName ~= "" then
-                    if Players:FindFirstChild(playerName) then
+                    local targetPlayer =
+                        Players:FindFirstChild(playerName)
+
+                    if targetPlayer then
+                        print(
+                            "[TRADE] Trading with:",
+                            playerName,
+                            "(" .. currentTargetIndex .. "/" ..
+                            #MainAccUsername .. ")"
+                        )
 
                         local completed =
                             runTradeCycle(playerName)
@@ -418,14 +428,15 @@ task.spawn(function()
                 else
                     currentTargetIndex += 1
                 end
+            else
+                task.wait(1)
             end
 
             if ForceReceiver then
                 acceptTradeForAll()
             end
 
-            -- Small gap before starting the next cycle.
-            task.wait(0.5)
+            task.wait(0.25)
         end
     end)
 
