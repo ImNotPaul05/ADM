@@ -7,6 +7,10 @@ local LocalPlayer = Players.LocalPlayer
 local MAX_ITEMS_PER_TRADE = 18
 local TRADE_FINISH_TIMEOUT = 30
 local TRADE_RETRY_WAIT = 3
+local INVENTORY_REFRESH_WAIT = 0.15
+local TRADE_WINDOW_WAIT = 0.6
+local OFFER_REGISTER_WAIT = 0.2
+local TRADE_HANDOFF_WAIT = 0.5
 
 local targetFrameNames = {"Dialog"}
 
@@ -142,7 +146,7 @@ task.spawn(function()
                 end
             end
 
-            task.wait(0.25)
+            task.wait(0.1)
         end
 
         return false
@@ -439,7 +443,7 @@ task.spawn(function()
 
 
         -- Let the final AddItemToOffer requests register.
-        task.wait(0.35)
+        task.wait(OFFER_REGISTER_WAIT)
 
 
         print(
@@ -474,7 +478,7 @@ task.spawn(function()
 
         refreshPetEgg()
 
-        task.wait(0.5)
+        task.wait(INVENTORY_REFRESH_WAIT)
 
 
         if not waitForInventoryReady() then
@@ -521,7 +525,7 @@ task.spawn(function()
         -- 3. Wait for trade window
         --------------------------------------------------
 
-        task.wait(1)
+        task.wait(TRADE_WINDOW_WAIT)
 
 
         --------------------------------------------------
@@ -530,7 +534,7 @@ task.spawn(function()
 
         refreshPetEgg()
 
-        task.wait(0.5)
+        task.wait(INVENTORY_REFRESH_WAIT)
 
 
         if not waitForInventoryReady() then
@@ -594,7 +598,7 @@ task.spawn(function()
             return false
         end
 
-        task.wait(2)
+        task.wait(TRADE_HANDOFF_WAIT)
 
         for _, uniqueId in ipairs(addedIds) do
             offeredItemIds[uniqueId] = true
