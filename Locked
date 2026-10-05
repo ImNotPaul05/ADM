@@ -1,11 +1,3 @@
--- 4Services
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
--- Configuration
-
-
 -- Configuration time
 local MAX_ITEMS_PER_TRADE = 18
 local TRADE_FINISH_TIMEOUT = 2
@@ -15,6 +7,11 @@ local TRADE_WINDOW_WAIT = 0.6
 local OFFER_REGISTER_WAIT = 0.2
 local TRADE_HANDOFF_WAIT = 0.5
 local targetFrameNames = {"Dialog"}
+
+-- 4Services
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
 -- Remotes / modules
 local API = ReplicatedStorage:WaitForChild("API")
@@ -609,6 +606,25 @@ task.spawn(function()
 
         local currentTargetIndex = 1
         local sentPerUser = {}
+        local amountLimit = tonumber(Amount)
+        local unlimitedAmount =
+            Amount == nil
+            or (type(Amount) == "string" and Amount:match("^%s*$") ~= nil)
+
+        if not unlimitedAmount and not amountLimit then
+            warn("[TRADE] Amount must be a number or left empty.")
+            return
+        end
+
+        local function advanceTarget()
+            currentTargetIndex += 1
+
+            if unlimitedAmount
+                and currentTargetIndex > #MainAccUsername then
+
+                currentTargetIndex = 1
+            end
+        end
 
 
         while true do
@@ -624,8 +640,8 @@ task.spawn(function()
                 -- User2 -> Amount
                 -- User3 -> Amount
                 -- ...
-                -- Last  -> Amount
-                -- then wait without trading again
+                -- Last -> next round when Amount is empty;
+                -- otherwise stop after each user's Amount is reached.
                 --------------------------------------------------
 
                 if currentTargetIndex <= #MainAccUsername then
@@ -639,13 +655,15 @@ task.spawn(function()
                         local sentCount =
                             sentPerUser[playerName] or 0
 
-                        if sentCount >= Amount then
-                            currentTargetIndex += 1
+                        if amountLimit and sentCount >= amountLimit then
+                            advanceTarget()
                         elseif targetPlayer then
                             local itemLimit =
                                 math.min(
                                     MAX_ITEMS_PER_TRADE,
-                                    Amount - sentCount
+                                    amountLimit
+                                        and (amountLimit - sentCount)
+                                        or MAX_ITEMS_PER_TRADE
                                 )
 
                             print(
@@ -658,43 +676,55 @@ task.spawn(function()
                                     ")"
                             )
 
-                            print(
-                                "[TRADE] Progress for",
-                                playerName,
-                                sentCount,
-                                "/",
-                                Amount
-                            )
+                            if unlimitedAmount then
+                                print("[TRADE] Amount is unlimited; sending up to", itemLimit, "items.")
+                            else
+                                print(
+                                    "[TRADE] Progress for",
+                                    playerName,
+                                    sentCount,
+                                    "/",
+                                    amountLimit
+                                )
+                            end
 
                             local addedCount =
                                 runTradeCycle(playerName, itemLimit)
 
                             if addedCount then
-                                sentCount += addedCount
-                                sentPerUser[playerName] = sentCount
+                                if unlimitedAmount then
+                                    advanceTarget()
+                                else
+                                    sentCount += addedCount
+                                    sentPerUser[playerName] = sentCount
 
-                                if sentCount >= Amount then
-                                    print(
-                                        "[TRADE] Completed",
-                                        Amount,
-                                        "items for",
-                                        playerName
-                                    )
-                                    currentTargetIndex += 1
+                                    if sentCount >= amountLimit then
+                                        print(
+                                            "[TRADE] Completed",
+                                            amountLimit,
+                                            "items for",
+                                            playerName
+                                        )
+                                        advanceTarget()
+                                    end
                                 end
                             else
                                 warn(
                                     "[TRADE] Trade cycle failed for",
-                                    playerName,
-                                    "- retrying after cooldown."
+                                    playerName
                                 )
-                                task.wait(TRADE_RETRY_WAIT)
+
+                                if unlimitedAmount then
+                                    advanceTarget()
+                                else
+                                    task.wait(TRADE_RETRY_WAIT)
+                                end
                             end
                         else
-                            currentTargetIndex += 1
+                            advanceTarget()
                         end
                     else
-                        currentTargetIndex += 1
+                        advanceTarget()
                     end
                 else
                     task.wait(1)
