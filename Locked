@@ -4,6 +4,9 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 -- Configuration
+
+
+-- Configuration time
 local MAX_ITEMS_PER_TRADE = 18
 local TRADE_FINISH_TIMEOUT = 2
 local TRADE_RETRY_WAIT = 0
@@ -11,7 +14,6 @@ local INVENTORY_REFRESH_WAIT = 0.15
 local TRADE_WINDOW_WAIT = 0.6
 local OFFER_REGISTER_WAIT = 0.2
 local TRADE_HANDOFF_WAIT = 0.5
-
 local targetFrameNames = {"Dialog"}
 
 -- Remotes / modules
@@ -160,7 +162,7 @@ task.spawn(function()
     -- "normal" = normal pet
     -- "neon"   = neon pet
     -- "mega"   = mega neon pet
-    -- ""       = egg
+    -- ""       = egg or normal (non-neon) pet
     --
     -- limit = maximum items for one trade
     --------------------------------------------------
@@ -225,22 +227,10 @@ task.spawn(function()
 
 
                     --------------------------------------------------
-                    -- EMPTY FORM = EGG
+                    -- EMPTY / NORMAL FORM = egg or normal pet
                     --------------------------------------------------
 
-                    if formLower == "" then
-
-                        -- Eggs are not neon or mega pets.
-                        matchesForm =
-                            not isNeon
-                            and not isMegaNeon
-
-
-                    --------------------------------------------------
-                    -- NORMAL PET
-                    --------------------------------------------------
-
-                    elseif formLower == "normal" then
+                    if formLower == "" or formLower == "normal" then
 
                         matchesForm =
                             not isNeon
@@ -635,7 +625,7 @@ task.spawn(function()
                 -- User3 -> Amount
                 -- ...
                 -- Last  -> Amount
-                -- then wait after all users are complete
+                -- then wait without trading again
                 --------------------------------------------------
 
                 if currentTargetIndex <= #MainAccUsername then
