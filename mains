@@ -4,7 +4,6 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 -- Configuration
-
 local MAX_ITEMS_PER_TRADE = 18
 
 local targetFrameNames = {"Dialog"}
@@ -584,50 +583,38 @@ task.spawn(function()
                 -- User3 -> Amount
                 -- ...
                 -- Last  -> Amount
-                -- then back to User1
+                -- then wait after all users are complete
                 --------------------------------------------------
 
-                if currentTargetIndex > #MainAccUsername then
-                    currentTargetIndex = 1
-                end
+                if currentTargetIndex <= #MainAccUsername then
+                    local playerName =
+                        MainAccUsername[currentTargetIndex]
 
-
-                local playerName =
-                    MainAccUsername[currentTargetIndex]
-
-
-                if playerName
-                    and playerName ~= "" then
-
-
-                    local targetPlayer =
-                        Players:FindFirstChild(playerName)
-
-
-                    if targetPlayer then
-
-                        print(
-                            "[TRADE] Trading with:",
-                            playerName,
-                            "(" ..
-                                currentTargetIndex ..
-                                "/" ..
-                                #MainAccUsername ..
-                                ")"
-                        )
-
+                    if playerName and playerName ~= "" then
+                        local targetPlayer =
+                            Players:FindFirstChild(playerName)
 
                         local sentCount =
                             sentPerUser[playerName] or 0
 
                         if sentCount >= Amount then
                             currentTargetIndex += 1
-                        else
+                        elseif targetPlayer then
                             local itemLimit =
                                 math.min(
                                     MAX_ITEMS_PER_TRADE,
                                     Amount - sentCount
                                 )
+
+                            print(
+                                "[TRADE] Trading with:",
+                                playerName,
+                                "(" ..
+                                    currentTargetIndex ..
+                                    "/" ..
+                                    #MainAccUsername ..
+                                    ")"
+                            )
 
                             print(
                                 "[TRADE] Progress for",
@@ -654,20 +641,16 @@ task.spawn(function()
                                     currentTargetIndex += 1
                                 end
                             end
+                        else
+                            currentTargetIndex += 1
                         end
-
                     else
-
                         currentTargetIndex += 1
                     end
-
                 else
-
-                    currentTargetIndex += 1
+                    task.wait(1)
                 end
-
             else
-
                 task.wait(1)
             end
 
