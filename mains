@@ -5,6 +5,8 @@ local LocalPlayer = Players.LocalPlayer
 
 -- Configuration
 
+local MAX_ITEMS_PER_TRADE = 18
+
 local targetFrameNames = {"Dialog"}
 
 -- Remotes / modules
@@ -120,7 +122,7 @@ task.spawn(function()
     -- "mega"   = mega neon pet
     -- ""       = egg
     --
-    -- limit = Amount
+    -- limit = maximum items for one trade
     --------------------------------------------------
 
     local function getMultipleUniqueIdsByName(itemName, itemForm, limit)
@@ -234,8 +236,7 @@ task.spawn(function()
                             uniqueId
                         )
 
-                        -- IMPORTANT:
-                        -- Amount is the limit PER TRADE / PER USER.
+                        -- Never exceed the current trade's item limit.
                         if #uniqueIds >= limit then
                             break
                         end
@@ -346,18 +347,17 @@ task.spawn(function()
     -- ADD SELECTED ITEMS
     --------------------------------------------------
 
-    local function addSelectedItems()
+    local function addSelectedItems(itemLimit)
 
         --------------------------------------------------
-        -- Amount controls the maximum number of items
-        -- for THIS user's trade.
+        -- Amount is the per-user total; itemLimit caps this trade.
         --------------------------------------------------
 
         local uniqueIds =
             getMultipleUniqueIdsByName(
                 TARGET_ITEM_NAME,
                 TARGET_ITEM_FORM,
-                Amount
+                itemLimit
             )
 
 
@@ -377,7 +377,7 @@ task.spawn(function()
 
 
         --------------------------------------------------
-        -- Add up to Amount pets/eggs.
+        -- Add up to itemLimit pets/eggs.
         --------------------------------------------------
 
         for _, uniqueId in ipairs(uniqueIds) do
@@ -411,14 +411,12 @@ task.spawn(function()
         print(
             "[TRADE] Added",
             addedCount,
-            "of",
-            Amount,
-            "items for",
+            "items in this trade for",
             TARGET_ITEM_NAME
         )
 
 
-        return addedCount > 0
+        return addedCount
     end
 
 
@@ -426,7 +424,7 @@ task.spawn(function()
     -- RUN ONE TRADE CYCLE
     --------------------------------------------------
 
-    local function runTradeCycle(playerName)
+    local function runTradeCycle(playerName, itemLimit)
 
         local targetPlayer =
             Players:FindFirstChild(playerName)
@@ -514,10 +512,12 @@ task.spawn(function()
         --------------------------------------------------
         -- 5. Add pets / eggs
         --
-        -- Amount applies ONLY to this user's trade.
+        -- Add only this trade's share of the per-user total.
         --------------------------------------------------
 
-        if not addSelectedItems() then
+        local addedCount = addSelectedItems(itemLimit)
+
+        if not addedCount or addedCount <= 0 then
 
             warn(
                 "[TRADE] Nothing was added to the trade."
@@ -556,7 +556,7 @@ task.spawn(function()
         waitForInventoryReady()
 
 
-        return true
+        return addedCount
     end
 
 
@@ -567,6 +567,7 @@ task.spawn(function()
     task.spawn(function()
 
         local currentTargetIndex = 1
+        local sentPerUser = {}
 
 
         while true do
@@ -616,24 +617,43 @@ task.spawn(function()
                         )
 
 
-                        print(
-                            "[TRADE] Item limit for this user:",
-                            Amount
-                        )
+                        local sentCount =
+                            sentPerUser[playerName] or 0
 
-
-                        local completed =
-                            runTradeCycle(playerName)
-
-
-                        if completed then
-
-                            --------------------------------------------------
-                            -- This trade used up to Amount for this user.
-                            -- Move to the next user.
-                            --------------------------------------------------
-
+                        if sentCount >= Amount then
                             currentTargetIndex += 1
+                        else
+                            local itemLimit =
+                                math.min(
+                                    MAX_ITEMS_PER_TRADE,
+                                    Amount - sentCount
+                                )
+
+                            print(
+                                "[TRADE] Progress for",
+                                playerName,
+                                sentCount,
+                                "/",
+                                Amount
+                            )
+
+                            local addedCount =
+                                runTradeCycle(playerName, itemLimit)
+
+                            if addedCount then
+                                sentCount += addedCount
+                                sentPerUser[playerName] = sentCount
+
+                                if sentCount >= Amount then
+                                    print(
+                                        "[TRADE] Completed",
+                                        Amount,
+                                        "items for",
+                                        playerName
+                                    )
+                                    currentTargetIndex += 1
+                                end
+                            end
                         end
 
                     else
