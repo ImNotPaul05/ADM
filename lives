@@ -620,12 +620,11 @@ task.spawn(function()
         end
 
         local function advanceTarget()
-            currentTargetIndex += 1
-
-            if unlimitedAmount
-                and currentTargetIndex > #MainAccUsername then
-
-                currentTargetIndex = 1
+            if unlimitedAmount then
+                currentTargetIndex =
+                    (currentTargetIndex % #MainAccUsername) + 1
+            else
+                currentTargetIndex += 1
             end
         end
 
