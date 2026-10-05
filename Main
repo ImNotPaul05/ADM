@@ -341,7 +341,7 @@ task.spawn(function()
         -- 3. Wait for trade window
         --------------------------------------------------
 
-        task.wait(2)
+        task.wait(1)
 
         --------------------------------------------------
         -- 4. Refresh again after the trade opens
