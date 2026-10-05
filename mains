@@ -5,6 +5,8 @@ local LocalPlayer = Players.LocalPlayer
 
 -- Configuration
 local MAX_ITEMS_PER_TRADE = 18
+local TRADE_FINISH_TIMEOUT = 30
+local TRADE_RETRY_WAIT = 3
 
 local targetFrameNames = {"Dialog"}
 
@@ -106,6 +108,41 @@ task.spawn(function()
             end
 
             task.wait(0.1)
+        end
+
+        return false
+    end
+
+
+    local function waitForItemsRemoved(uniqueIds, timeout)
+        local deadline = os.clock() + timeout
+
+        while os.clock() < deadline do
+            local dataStore = ClientData.get_data()
+            local playerData =
+                dataStore
+                and (dataStore[LocalPlayer] or dataStore[LocalPlayer.Name])
+            local pets =
+                playerData
+                and playerData.inventory
+                and playerData.inventory.pets
+
+            if pets then
+                local allRemoved = true
+
+                for _, uniqueId in ipairs(uniqueIds) do
+                    if pets[uniqueId] ~= nil then
+                        allRemoved = false
+                        break
+                    end
+                end
+
+                if allRemoved then
+                    return true
+                end
+            end
+
+            task.wait(0.25)
         end
 
         return false
@@ -372,7 +409,7 @@ task.spawn(function()
         end
 
 
-        local addedCount = 0
+        local addedIds = {}
 
 
         --------------------------------------------------
@@ -388,9 +425,7 @@ task.spawn(function()
 
             if success then
 
-                addedCount += 1
-
-                offeredItemIds[uniqueId] = true
+                table.insert(addedIds, uniqueId)
 
             else
 
@@ -409,13 +444,13 @@ task.spawn(function()
 
         print(
             "[TRADE] Added",
-            addedCount,
+            #addedIds,
             "items in this trade for",
             TARGET_ITEM_NAME
         )
 
 
-        return addedCount
+        return addedIds
     end
 
 
@@ -514,9 +549,9 @@ task.spawn(function()
         -- Add only this trade's share of the per-user total.
         --------------------------------------------------
 
-        local addedCount = addSelectedItems(itemLimit)
+        local addedIds = addSelectedItems(itemLimit)
 
-        if not addedCount or addedCount <= 0 then
+        if not addedIds or #addedIds == 0 then
 
             warn(
                 "[TRADE] Nothing was added to the trade."
@@ -542,20 +577,33 @@ task.spawn(function()
             ConfirmTrade:FireServer()
         end)
 
+        refreshPetEgg()
 
         --------------------------------------------------
         -- 7. Wait for trade completion
         --------------------------------------------------
 
+        local tradeCompleted =
+            waitForItemsRemoved(addedIds, TRADE_FINISH_TIMEOUT)
+
+        if not tradeCompleted then
+            warn(
+                "[TRADE] Timed out waiting for inventory update for",
+                playerName
+            )
+            return false
+        end
+
         task.wait(2)
 
+        for _, uniqueId in ipairs(addedIds) do
+            offeredItemIds[uniqueId] = true
+        end
 
         refreshPetEgg()
-
         waitForInventoryReady()
 
-
-        return addedCount
+        return #addedIds
     end
 
 
@@ -640,6 +688,13 @@ task.spawn(function()
                                     )
                                     currentTargetIndex += 1
                                 end
+                            else
+                                warn(
+                                    "[TRADE] Trade cycle failed for",
+                                    playerName,
+                                    "- retrying after cooldown."
+                                )
+                                task.wait(TRADE_RETRY_WAIT)
                             end
                         else
                             currentTargetIndex += 1
