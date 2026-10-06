@@ -5,11 +5,10 @@ local LocalPlayer = Players.LocalPlayer
 
 -- Configuration
 
-
 -- Configuration time
 local MAX_ITEMS_PER_TRADE = 18
-local TRADE_FINISH_TIMEOUT = 4
-local TRADE_RETRY_WAIT = 1
+local TRADE_FINISH_TIMEOUT = 2
+local TRADE_RETRY_WAIT = 0
 local INVENTORY_REFRESH_WAIT = 0.15
 local TRADE_WINDOW_WAIT = 0.6
 local OFFER_REGISTER_WAIT = 0.2
@@ -70,6 +69,40 @@ task.spawn(function()
         return kindData
             and tostring(kindData.name or "")
             or ""
+    end
+
+
+    local function matchesItemForm(itemData, itemName, itemForm)
+        if not itemData or not itemData.kind then
+            return false
+        end
+
+        local targetNameLower =
+            string.lower(tostring(itemName or ""))
+        local displayLower =
+            string.lower(getKindDisplayName(itemData.kind))
+        local kindLower =
+            string.lower(tostring(itemData.kind))
+
+        if displayLower ~= targetNameLower
+            and kindLower ~= targetNameLower then
+            return false
+        end
+
+        local properties = itemData.properties or {}
+        local isNeon = properties.neon == true
+        local isMegaNeon = properties.mega_neon == true
+        local formLower = string.lower(tostring(itemForm or ""))
+
+        if formLower == "" or formLower == "normal" then
+            return not isNeon and not isMegaNeon
+        elseif formLower == "neon" then
+            return isNeon and not isMegaNeon
+        elseif formLower == "mega" then
+            return isMegaNeon
+        end
+
+        return false
     end
 
 
@@ -184,99 +217,167 @@ task.spawn(function()
 
         local uniqueIds = {}
 
-        local formLower =
-            string.lower(tostring(itemForm or ""))
-
-        local targetNameLower =
-            string.lower(tostring(itemName or ""))
-
-
         for uniqueId, itemData in pairs(playerData.inventory.pets) do
 
-            if itemData and itemData.kind then
+            if matchesItemForm(itemData, itemName, itemForm)
+                and not offeredItemIds[uniqueId] then
 
-                local displayName =
-                    getKindDisplayName(itemData.kind)
+                table.insert(
+                    uniqueIds,
+                    uniqueId
+                )
 
-                local displayLower =
-                    string.lower(displayName)
-
-                local kindLower =
-                    string.lower(tostring(itemData.kind))
-
-
-                local nameMatches =
-                    displayLower == targetNameLower
-                    or kindLower == targetNameLower
-
-
-                if nameMatches
-                    and not offeredItemIds[uniqueId] then
-
-                    local properties =
-                        itemData.properties or {}
-
-                    local isNeon =
-                        properties.neon == true
-
-                    local isMegaNeon =
-                        properties.mega_neon == true
-
-
-                    local matchesForm = false
-
-
-                    --------------------------------------------------
-                    -- EMPTY / NORMAL FORM = egg or normal pet
-                    --------------------------------------------------
-
-                    if formLower == "" or formLower == "normal" then
-
-                        matchesForm =
-                            not isNeon
-                            and not isMegaNeon
-
-
-                    --------------------------------------------------
-                    -- NEON PET
-                    --------------------------------------------------
-
-                    elseif formLower == "neon" then
-
-                        matchesForm =
-                            isNeon
-                            and not isMegaNeon
-
-
-                    --------------------------------------------------
-                    -- MEGA PET
-                    --------------------------------------------------
-
-                    elseif formLower == "mega" then
-
-                        matchesForm =
-                            isMegaNeon
-                    end
-
-
-                    if matchesForm then
-
-                        table.insert(
-                            uniqueIds,
-                            uniqueId
-                        )
-
-                        -- Never exceed the current trade's item limit.
-                        if #uniqueIds >= limit then
-                            break
-                        end
-                    end
+                -- Never exceed the current trade's item limit.
+                if #uniqueIds >= limit then
+                    break
                 end
             end
         end
 
         return uniqueIds
     end
+
+
+    --------------------------------------------------
+    -- RECEIVER AMOUNT TRIGGER
+    --------------------------------------------------
+
+    local function countMatchingItems()
+        local dataStore = ClientData.get_data()
+        local playerData =
+            dataStore
+            and (dataStore[LocalPlayer] or dataStore[LocalPlayer.Name])
+        local pets =
+            playerData
+            and playerData.inventory
+            and playerData.inventory.pets
+
+        if not pets then
+            return nil
+        end
+
+        local count = 0
+        for _, itemData in pairs(pets) do
+            if matchesItemForm(
+                itemData,
+                TARGET_ITEM_NAME,
+                TARGET_ITEM_FORM
+            ) then
+                count += 1
+            end
+        end
+
+        return count
+    end
+
+
+    local function startReceiverAmountTrigger()
+        if not FarmSyncConfig.AutoChange or not ForceReceiver then
+            print(
+                "[RECEIVER] Amount trigger disabled; AutoChange and ForceReceiver must both be true."
+            )
+            return
+        end
+
+        local amountLimit = tonumber(Amount)
+        local amountIsUnset =
+            Amount == nil
+            or (type(Amount) == "string" and Amount:match("^%s*$") ~= nil)
+
+        if amountIsUnset then
+            return
+        end
+
+        if not amountLimit
+            or amountLimit <= 0
+            or amountLimit % 1 ~= 0 then
+            warn("[RECEIVER] Amount trigger requires a positive whole-number Amount.")
+            return
+        end
+
+        if not waitForInventoryReady() then
+            warn("[RECEIVER] Inventory was not ready; amount trigger was not started.")
+            return
+        end
+
+        local triggerEvent =
+            LocalPlayer:FindFirstChild("FarmSyncReceiverAmountReached")
+
+        if triggerEvent and not triggerEvent:IsA("BindableEvent") then
+            warn("[RECEIVER] FarmSyncReceiverAmountReached exists but is not a BindableEvent.")
+            return
+        end
+
+        if not triggerEvent then
+            triggerEvent = Instance.new("BindableEvent")
+            triggerEvent.Name = "FarmSyncReceiverAmountReached"
+            triggerEvent.Parent = LocalPlayer
+        end
+
+        local baselineCount = countMatchingItems()
+        if baselineCount == nil then
+            warn("[RECEIVER] Could not read inventory baseline; amount trigger was not started.")
+            return
+        end
+
+        print(
+            "[RECEIVER] Watching for",
+            amountLimit,
+            TARGET_ITEM_NAME,
+            "items; current matching count:",
+            baselineCount
+        )
+
+        local overshootWarned = false
+
+        task.spawn(function()
+            while true do
+                task.wait(0.25)
+
+                local currentCount = countMatchingItems()
+                local receivedCount =
+                    currentCount
+                    and (currentCount - baselineCount)
+
+                if receivedCount == amountLimit then
+
+                    local result = {
+                        playerName = LocalPlayer.Name,
+                        itemName = TARGET_ITEM_NAME,
+                        itemForm = TARGET_ITEM_FORM,
+                        amount = amountLimit,
+                        baselineCount = baselineCount,
+                        currentCount = currentCount,
+                        receivedCount = receivedCount,
+                        autoChange = FarmSyncConfig.AutoChange,
+                        startFolderId = FarmSyncConfig.StartFolderId,
+                        endFolderId = FarmSyncConfig.EndFolderId,
+                    }
+
+                    print(
+                        "[RECEIVER] Amount trigger reached:",
+                        result.receivedCount,
+                        TARGET_ITEM_NAME
+                    )
+                    triggerEvent:Fire(result)
+                    return
+                elseif receivedCount
+                    and receivedCount > amountLimit
+                    and not overshootWarned then
+                    overshootWarned = true
+                    warn(
+                        "[RECEIVER] Matching item count exceeded Amount before the exact-count trigger could fire:",
+                        receivedCount,
+                        ">",
+                        amountLimit
+                    )
+                end
+            end
+        end)
+    end
+
+
+    startReceiverAmountTrigger()
 
 
     --------------------------------------------------
