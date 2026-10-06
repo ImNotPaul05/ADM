@@ -8,7 +8,7 @@ local LocalPlayer = Players.LocalPlayer
 
 -- Configuration time
 local MAX_ITEMS_PER_TRADE = 18
-local TRADE_RETRY_WAIT = 3
+local TRADE_RETRY_WAIT = 0
 local INVENTORY_REFRESH_WAIT = 0.4
 local TRADE_WINDOW_WAIT = 1.5
 local OFFER_REGISTER_WAIT = 0.5
