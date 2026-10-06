@@ -8,11 +8,12 @@ local LocalPlayer = Players.LocalPlayer
 
 -- Configuration time
 local MAX_ITEMS_PER_TRADE = 18
-local TRADE_RETRY_WAIT = 0
-local INVENTORY_REFRESH_WAIT = 0.4
-local TRADE_WINDOW_WAIT = 1.5
-local OFFER_REGISTER_WAIT = 0.5
-local TRADE_HANDOFF_WAIT = 2
+local TRADE_FINISH_TIMEOUT = 2
+local TRADE_RETRY_WAIT = 1
+local INVENTORY_REFRESH_WAIT = 0.15
+local TRADE_WINDOW_WAIT = 0.6
+local OFFER_REGISTER_WAIT = 0.2
+local TRADE_HANDOFF_WAIT = 0.5
 local targetFrameNames = {"Dialog"}
 
 -- Remotes / modules
@@ -110,6 +111,41 @@ task.spawn(function()
                 and playerData.inventory.pets then
 
                 return true
+            end
+
+            task.wait(0.1)
+        end
+
+        return false
+    end
+
+
+    local function waitForItemsRemoved(uniqueIds, timeout)
+        local deadline = os.clock() + timeout
+
+        while os.clock() < deadline do
+            local dataStore = ClientData.get_data()
+            local playerData =
+                dataStore
+                and (dataStore[LocalPlayer] or dataStore[LocalPlayer.Name])
+            local pets =
+                playerData
+                and playerData.inventory
+                and playerData.inventory.pets
+
+            if pets then
+                local allRemoved = true
+
+                for _, uniqueId in ipairs(uniqueIds) do
+                    if pets[uniqueId] ~= nil then
+                        allRemoved = false
+                        break
+                    end
+                end
+
+                if allRemoved then
+                    return true
+                end
             end
 
             task.wait(0.1)
@@ -523,28 +559,34 @@ task.spawn(function()
         -- 6. Fast negotiation / confirmation
         --------------------------------------------------
 
-        local acceptSuccess, acceptError = pcall(function()
+        pcall(function()
             AcceptNeg:FireServer()
         end)
 
-        if not acceptSuccess then
-            warn("[TRADE] AcceptNegotiation call failed:", acceptError)
-            return false
-        end
 
-        task.wait(0.5)
+        task.wait(0.15)
 
 
-        local confirmSuccess, confirmError = pcall(function()
+        pcall(function()
             ConfirmTrade:FireServer()
         end)
 
-        if not confirmSuccess then
-            warn("[TRADE] ConfirmTrade call failed:", confirmError)
+        refreshPetEgg()
+
+        --------------------------------------------------
+        -- 7. Wait for trade completion
+        --------------------------------------------------
+
+        local tradeCompleted =
+            waitForItemsRemoved(addedIds, TRADE_FINISH_TIMEOUT)
+
+        if not tradeCompleted then
+            warn(
+                "[TRADE] Timed out waiting for inventory update for",
+                playerName
+            )
             return false
         end
-
-        refreshPetEgg()
 
         task.wait(TRADE_HANDOFF_WAIT)
 
@@ -671,11 +713,14 @@ task.spawn(function()
                             else
                                 warn(
                                     "[TRADE] Trade cycle failed for",
-                                    playerName,
-                                    "- retrying this username."
+                                    playerName
                                 )
 
-                                task.wait(TRADE_RETRY_WAIT)
+                                if unlimitedAmount then
+                                    advanceTarget()
+                                else
+                                    task.wait(TRADE_RETRY_WAIT)
+                                end
                             end
                         else
                             advanceTarget()
