@@ -272,7 +272,17 @@ task.spawn(function()
 
 
     local function startReceiverAmountTrigger()
-        if not FarmSyncConfig.AutoChange or not ForceReceiver then
+        local farmSyncConfig =
+            type(AccountFeatures) == "table"
+            and type(AccountFeatures.FarmSync) == "table"
+            and AccountFeatures.FarmSync
+
+        if not farmSyncConfig then
+            warn("[RECEIVER] FarmSync configuration is missing or invalid.")
+            return
+        end
+
+        if farmSyncConfig.AutoChange ~= true or ForceReceiver ~= true then
             print(
                 "[RECEIVER] Amount trigger disabled; AutoChange and ForceReceiver must both be true."
             )
@@ -349,9 +359,9 @@ task.spawn(function()
                         baselineCount = baselineCount,
                         currentCount = currentCount,
                         receivedCount = receivedCount,
-                        autoChange = FarmSyncConfig.AutoChange,
-                        startFolderId = FarmSyncConfig.StartFolderId,
-                        endFolderId = FarmSyncConfig.EndFolderId,
+                        autoChange = farmSyncConfig.AutoChange,
+                        startFolderId = farmSyncConfig.StartFolderId,
+                        endFolderId = farmSyncConfig.EndFolderId,
                     }
 
                     print(
