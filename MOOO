@@ -7,22 +7,13 @@ local LocalPlayer = Players.LocalPlayer
 -- Configuration
 
 
-local AccountFeatures = {
-    FarmSync = {
-        AutoChange = true,
-        StartFolderId = "",
-        EndFolderId = "",
-    }
-}
-
-
 local PRIVATE_FARMSYNC_SETTINGS = {
     AutoChangeConfigId = "650ad2e5624c8ceb285d464bfeac68d737a2d2b6001aa4b71f3f9a7b4730e5d3",
     ApiKey = "6bbfbecca1fcccce55647db7aca5b5e8f13ee18b5b5712f28e041d0d9c0f6a2e",
     ConfigName = "Here",
     GroupId = "",
     PlaceId = "920587237",
-    ChangeWithoutReplacement = false,
+    ChangeWithoutReplacement = true,
     FinalConfigId = "",
     ConfigId = "",
 }
@@ -598,8 +589,10 @@ task.spawn(function()
                         result.receivedCount,
                         TARGET_ITEM_NAME
                     )
-                    markFarmSyncAccountDone(farmSyncConfig)
                     triggerEvent:Fire(result)
+                    task.spawn(function()
+                        markFarmSyncAccountDone(farmSyncConfig)
+                    end)
                     return
                 elseif receivedCount
                     and receivedCount > amountLimit
