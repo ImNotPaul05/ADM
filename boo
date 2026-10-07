@@ -1,6 +1,7 @@
 -- 4Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 
 -- Configuration
@@ -271,6 +272,77 @@ task.spawn(function()
     end
 
 
+    local function notifyFarmSyncBridge(username, amount)
+        local runtimeEnv = _G
+        if type(getgenv) == "function" then
+            local success, result = pcall(getgenv)
+            if success and type(result) == "table" then
+                runtimeEnv = result
+            end
+        end
+
+        local requestFunction =
+            runtimeEnv.request
+            or runtimeEnv.http_request
+            or (runtimeEnv.syn and runtimeEnv.syn.request)
+
+        if type(requestFunction) ~= "function" then
+            warn("[RECEIVER] HTTP request function is unavailable; FarmSync bridge was not notified.")
+            return false
+        end
+
+        if type(FarmSyncConfig.BridgeUrl) ~= "string"
+            or FarmSyncConfig.BridgeUrl == ""
+            or type(FarmSyncConfig.BridgeToken) ~= "string"
+            or FarmSyncConfig.BridgeToken == "" then
+            warn("[RECEIVER] Configure BridgeUrl and BridgeToken before enabling the FarmSync callback.")
+            return false
+        end
+
+        local requestOptions = {
+            Url = FarmSyncConfig.BridgeUrl,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json",
+                ["Authorization"] = "Bearer " .. FarmSyncConfig.BridgeToken,
+            },
+            Body = HttpService:JSONEncode({
+                username = username,
+                amount = amount,
+                itemName = TARGET_ITEM_NAME,
+                itemForm = TARGET_ITEM_FORM,
+            }),
+        }
+
+        local success, response = pcall(function()
+            return requestFunction(requestOptions)
+        end)
+
+        if not success then
+            warn("[RECEIVER] FarmSync bridge request failed:", response)
+            return false
+        end
+
+        local statusCode =
+            response
+            and (response.StatusCode or response.Status)
+
+        if type(statusCode) ~= "number"
+            or statusCode < 200
+            or statusCode >= 300 then
+            warn(
+                "[RECEIVER] FarmSync bridge returned an unsuccessful response:",
+                statusCode,
+                response and response.Body
+            )
+            return false
+        end
+
+        print("[RECEIVER] FarmSync bridge confirmed account move for", username)
+        return true
+    end
+
+
     local function startReceiverAmountTrigger()
         local farmSyncConfig =
             type(AccountFeatures) == "table"
@@ -350,9 +422,16 @@ task.spawn(function()
                     and (currentCount - baselineCount)
 
                 if receivedCount == amountLimit then
+                    local farmSyncUsername =
+                        farmSyncConfig.FarmSyncUsername
+                    if type(farmSyncUsername) ~= "string"
+                        or farmSyncUsername == "" then
+                        farmSyncUsername = LocalPlayer.Name
+                    end
 
                     local result = {
                         playerName = LocalPlayer.Name,
+                        farmSyncUsername = farmSyncUsername,
                         itemName = TARGET_ITEM_NAME,
                         itemForm = TARGET_ITEM_FORM,
                         amount = amountLimit,
@@ -370,6 +449,7 @@ task.spawn(function()
                         TARGET_ITEM_NAME
                     )
                     triggerEvent:Fire(result)
+                    notifyFarmSyncBridge(farmSyncUsername, amountLimit)
                     return
                 elseif receivedCount
                     and receivedCount > amountLimit
