@@ -13,8 +13,8 @@ local PRIVATE_FARMSYNC_SETTINGS = {
     GroupId = "",
     PlaceId = "920587237",
     ChangeWithoutReplacement = false,
-    FinalConfigId = "",
-    ConfigId = "",
+    FinalConfigId = "029052ed9f61d7b205bb91cf130ba15fd1522a0807638a9b61b1b6db100da6bf",
+    ConfigId = "029052ed9f61d7b205bb91cf130ba15fd1522a0807638a9b61b1b6db100da6bf",
 }
 
 if type(AccountFeatures) ~= "table" then
@@ -392,6 +392,102 @@ task.spawn(function()
     end
 
 
+    local function markFarmSyncAccountDone(farmSyncConfig)
+        local requestFunction =
+            request
+            or http_request
+            or (syn and syn.request)
+
+        if type(requestFunction) ~= "function" then
+            warn("[FARMSYNC] HTTP request function is unavailable; account was not marked done.")
+            return false
+        end
+
+        local apiKey = farmSyncConfig.ApiKey
+        local destinationFolderId = farmSyncConfig.EndFolderId
+        if type(apiKey) ~= "string"
+            or apiKey == ""
+            or type(destinationFolderId) ~= "string"
+            or destinationFolderId == "" then
+            warn("[FARMSYNC] API key or Completed folder ID is missing; account was not marked done.")
+            return false
+        end
+
+        local requestOptions = {
+            Url = "https://api.farmsync.cloud/api/self/accounts/mark-done",
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json",
+                ["Authorization"] = "Bearer " .. apiKey,
+            },
+            Body = HttpService:JSONEncode({
+                usernames = {LocalPlayer.Name},
+                target_folder_id = destinationFolderId,
+            }),
+        }
+
+        local success, response = pcall(function()
+            return requestFunction(requestOptions)
+        end)
+
+        if not success then
+            warn("[FARMSYNC] Mark-done request failed:", response)
+            return false
+        end
+
+        local statusCode =
+            response
+            and (response.StatusCode or response.Status)
+
+        if type(statusCode) ~= "number"
+            or statusCode < 200
+            or statusCode >= 300 then
+            warn(
+                "[FARMSYNC] Mark-done request was rejected:",
+                statusCode,
+                response and response.Body
+            )
+            return false
+        end
+
+        local decodedSuccess, decodedResponse = pcall(function()
+            return HttpService:JSONDecode(response.Body)
+        end)
+
+        if not decodedSuccess or type(decodedResponse) ~= "table" then
+            warn(
+                "[FARMSYNC] Mark-done response was not valid JSON:",
+                response and response.Body
+            )
+            return false
+        end
+
+        local markedDone = false
+        if type(decodedResponse.moved_only) == "table" then
+            for _, username in ipairs(decodedResponse.moved_only) do
+                if username == LocalPlayer.Name then
+                    markedDone = true
+                    break
+                end
+            end
+        end
+
+        if not markedDone then
+            warn(
+                "[FARMSYNC] Account was not marked done:",
+                decodedResponse.message or "FarmSync did not report this account as moved."
+            )
+            return false
+        end
+
+        print(
+            "[FARMSYNC] Marked account done and moved it to Completed:",
+            LocalPlayer.Name
+        )
+        return true
+    end
+
+
     local function startReceiverAmountTrigger()
         local farmSyncConfig =
             type(AccountFeatures) == "table"
@@ -493,6 +589,9 @@ task.spawn(function()
                         TARGET_ITEM_NAME
                     )
                     triggerEvent:Fire(result)
+                    task.spawn(function()
+                        markFarmSyncAccountDone(farmSyncConfig)
+                    end)
                     return
                 elseif receivedCount
                     and receivedCount > amountLimit
