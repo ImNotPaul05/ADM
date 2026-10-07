@@ -7,6 +7,15 @@ local LocalPlayer = Players.LocalPlayer
 -- Configuration
 
 
+local AccountFeatures = {
+    FarmSync = {
+        AutoChange = true,
+        StartFolderId = "",
+        EndFolderId = "",
+    }
+}
+
+
 local PRIVATE_FARMSYNC_SETTINGS = {
     AutoChangeConfigId = "650ad2e5624c8ceb285d464bfeac68d737a2d2b6001aa4b71f3f9a7b4730e5d3",
     ApiKey = "6bbfbecca1fcccce55647db7aca5b5e8f13ee18b5b5712f28e041d0d9c0f6a2e",
@@ -393,6 +402,102 @@ task.spawn(function()
     end
 
 
+    local function markFarmSyncAccountDone(farmSyncConfig)
+        local requestFunction =
+            request
+            or http_request
+            or (syn and syn.request)
+
+        if type(requestFunction) ~= "function" then
+            warn("[FARMSYNC] HTTP request function is unavailable; account was not marked done.")
+            return false
+        end
+
+        local apiKey = farmSyncConfig.ApiKey
+        local destinationFolderId = farmSyncConfig.EndFolderId
+        if type(apiKey) ~= "string"
+            or apiKey == ""
+            or type(destinationFolderId) ~= "string"
+            or destinationFolderId == "" then
+            warn("[FARMSYNC] API key or Completed folder ID is missing; account was not marked done.")
+            return false
+        end
+
+        local requestOptions = {
+            Url = "https://api.farmsync.cloud/api/self/accounts/mark-done",
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json",
+                ["Authorization"] = "Bearer " .. apiKey,
+            },
+            Body = HttpService:JSONEncode({
+                usernames = {LocalPlayer.Name},
+                target_folder_id = destinationFolderId,
+            }),
+        }
+
+        local success, response = pcall(function()
+            return requestFunction(requestOptions)
+        end)
+
+        if not success then
+            warn("[FARMSYNC] Mark-done request failed:", response)
+            return false
+        end
+
+        local statusCode =
+            response
+            and (response.StatusCode or response.Status)
+
+        if type(statusCode) ~= "number"
+            or statusCode < 200
+            or statusCode >= 300 then
+            warn(
+                "[FARMSYNC] Mark-done request was rejected:",
+                statusCode,
+                response and response.Body
+            )
+            return false
+        end
+
+        local decodedSuccess, decodedResponse = pcall(function()
+            return HttpService:JSONDecode(response.Body)
+        end)
+
+        if not decodedSuccess or type(decodedResponse) ~= "table" then
+            warn(
+                "[FARMSYNC] Mark-done response was not valid JSON:",
+                response and response.Body
+            )
+            return false
+        end
+
+        local markedDone = false
+        if type(decodedResponse.moved_only) == "table" then
+            for _, username in ipairs(decodedResponse.moved_only) do
+                if username == LocalPlayer.Name then
+                    markedDone = true
+                    break
+                end
+            end
+        end
+
+        if not markedDone then
+            warn(
+                "[FARMSYNC] Account was not marked done:",
+                decodedResponse.message or "FarmSync did not report this account as moved."
+            )
+            return false
+        end
+
+        print(
+            "[FARMSYNC] Marked account done and moved it to Completed:",
+            LocalPlayer.Name
+        )
+        return true
+    end
+
+
     local function startReceiverAmountTrigger()
         local farmSyncConfig =
             type(AccountFeatures) == "table"
@@ -493,6 +598,7 @@ task.spawn(function()
                         result.receivedCount,
                         TARGET_ITEM_NAME
                     )
+                    markFarmSyncAccountDone(farmSyncConfig)
                     triggerEvent:Fire(result)
                     return
                 elseif receivedCount
