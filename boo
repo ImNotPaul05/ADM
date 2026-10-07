@@ -4,20 +4,7 @@ local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 
-local ConfigEnvironment = _G
-if type(getgenv) == "function" then
-    local success, environment = pcall(getgenv)
-    if success and type(environment) == "table" then
-        ConfigEnvironment = environment
-    end
-end
-
 -- Configuration
-local MainAccUsername = ConfigEnvironment.MainAccUsername or {""}
-local TARGET_ITEM_NAME = ConfigEnvironment.TARGET_ITEM_NAME or ""
-local Amount = ConfigEnvironment.Amount or "" -- Empty means unlimited; trade through usernames in order.
-local TARGET_ITEM_FORM = ConfigEnvironment.TARGET_ITEM_FORM or ""
-local ForceReceiver = ConfigEnvironment.ForceReceiver == false
 
 local PRIVATE_FARMSYNC_SETTINGS = {
     AutoChangeConfigId = "650ad2e5624c8ceb285d464bfeac68d737a2d2b6001aa4b71f3f9a7b4730e5d3",
@@ -30,7 +17,6 @@ local PRIVATE_FARMSYNC_SETTINGS = {
     ConfigId = "",
 }
 
-local AccountFeatures = ConfigEnvironment.AccountFeatures
 if type(AccountFeatures) ~= "table" then
     AccountFeatures = {}
 end
@@ -315,18 +301,10 @@ task.spawn(function()
 
 
     local function updateFarmSyncAutoChangeConfig(farmSyncConfig, amount)
-        local runtimeEnv = ConfigEnvironment
-        if type(getgenv) == "function" then
-            local success, result = pcall(getgenv)
-            if success and type(result) == "table" then
-                runtimeEnv = result
-            end
-        end
-
         local requestFunction =
-            runtimeEnv.request
-            or runtimeEnv.http_request
-            or (runtimeEnv.syn and runtimeEnv.syn.request)
+            request
+            or http_request
+            or (syn and syn.request)
 
         if type(requestFunction) ~= "function" then
             warn("[FARMSYNC] HTTP request function is unavailable; AutoChange config was not updated.")
