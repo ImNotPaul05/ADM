@@ -393,77 +393,6 @@ task.spawn(function()
     end
 
 
-    local function moveFarmSyncAccountToCompletedFolder(farmSyncConfig)
-        local requestFunction =
-            request
-            or http_request
-            or (syn and syn.request)
-
-        if type(requestFunction) ~= "function" then
-            warn("[FARMSYNC] HTTP request function is unavailable; account was not moved.")
-            return false
-        end
-
-        local apiKey = farmSyncConfig.ApiKey
-        local destinationFolderId = farmSyncConfig.EndFolderId
-        if type(apiKey) ~= "string"
-            or apiKey == ""
-            or type(destinationFolderId) ~= "string"
-            or destinationFolderId == "" then
-            warn("[FARMSYNC] API key or Completed folder ID is missing; account was not moved.")
-            return false
-        end
-
-        local requestOptions = {
-            Url = "https://api.farmsync.cloud/api/self/bulk/accounts",
-            Method = "PUT",
-            Headers = {
-                ["Content-Type"] = "application/json",
-                ["Authorization"] = "Bearer " .. apiKey,
-            },
-            Body = HttpService:JSONEncode({
-                accounts = {
-                    {
-                        username = LocalPlayer.Name,
-                        folder_id = destinationFolderId,
-                        enabled = true,
-                    },
-                },
-            }),
-        }
-
-        local success, response = pcall(function()
-            return requestFunction(requestOptions)
-        end)
-
-        if not success then
-            warn("[FARMSYNC] Account move request failed:", response)
-            return false
-        end
-
-        local statusCode =
-            response
-            and (response.StatusCode or response.Status)
-
-        if type(statusCode) ~= "number"
-            or statusCode < 200
-            or statusCode >= 300 then
-            warn(
-                "[FARMSYNC] Account move was rejected:",
-                statusCode,
-                response and response.Body
-            )
-            return false
-        end
-
-        print(
-            "[FARMSYNC] Moved account to Completed folder:",
-            LocalPlayer.Name
-        )
-        return true
-    end
-
-
     local function startReceiverAmountTrigger()
         local farmSyncConfig =
             type(AccountFeatures) == "table"
@@ -564,7 +493,6 @@ task.spawn(function()
                         result.receivedCount,
                         TARGET_ITEM_NAME
                     )
-                    moveFarmSyncAccountToCompletedFolder(farmSyncConfig)
                     triggerEvent:Fire(result)
                     return
                 elseif receivedCount
