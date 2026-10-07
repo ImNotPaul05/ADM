@@ -4,7 +4,49 @@ local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 
+local ConfigEnvironment = _G
+if type(getgenv) == "function" then
+    local success, environment = pcall(getgenv)
+    if success and type(environment) == "table" then
+        ConfigEnvironment = environment
+    end
+end
+
 -- Configuration
+local MainAccUsername = ConfigEnvironment.MainAccUsername or {"Her0eXBuildera31"}
+local TARGET_ITEM_NAME = ConfigEnvironment.TARGET_ITEM_NAME or "Retired Egg"
+local Amount = ConfigEnvironment.Amount or "" -- Empty means unlimited; trade through usernames in order.
+local TARGET_ITEM_FORM = ConfigEnvironment.TARGET_ITEM_FORM or ""
+local ForceReceiver = ConfigEnvironment.ForceReceiver == true
+
+local PRIVATE_FARMSYNC_SETTINGS = {
+    AutoChangeConfigId = "650ad2e5624c8ceb285d464bfeac68d737a2d2b6001aa4b71f3f9a7b4730e5d3",
+    ApiKey = "6bbfbecca1fcccce55647db7aca5b5e8f13ee18b5b5712f28e041d0d9c0f6a2e",
+    ConfigName = "Here",
+    GroupId = "",
+    PlaceId = "920587237",
+    ChangeWithoutReplacement = true,
+    FinalConfigId = "",
+    ConfigId = "",
+}
+
+local AccountFeatures = ConfigEnvironment.AccountFeatures
+if type(AccountFeatures) ~= "table" then
+    AccountFeatures = {}
+end
+
+local FarmSyncConfig = AccountFeatures.FarmSync
+if type(FarmSyncConfig) ~= "table" then
+    FarmSyncConfig = {}
+end
+
+for key, value in pairs(PRIVATE_FARMSYNC_SETTINGS) do
+    if FarmSyncConfig[key] == nil then
+        FarmSyncConfig[key] = value
+    end
+end
+
+AccountFeatures.FarmSync = FarmSyncConfig
 
 -- Configuration time
 local MAX_ITEMS_PER_TRADE = 18
@@ -272,8 +314,8 @@ task.spawn(function()
     end
 
 
-    local function notifyFarmSyncBridge(username, amount)
-        local runtimeEnv = _G
+    local function updateFarmSyncAutoChangeConfig(farmSyncConfig, amount)
+        local runtimeEnv = ConfigEnvironment
         if type(getgenv) == "function" then
             local success, result = pcall(getgenv)
             if success and type(result) == "table" then
@@ -287,31 +329,56 @@ task.spawn(function()
             or (runtimeEnv.syn and runtimeEnv.syn.request)
 
         if type(requestFunction) ~= "function" then
-            warn("[RECEIVER] HTTP request function is unavailable; FarmSync bridge was not notified.")
+            warn("[FARMSYNC] HTTP request function is unavailable; AutoChange config was not updated.")
             return false
         end
 
-        if type(FarmSyncConfig.BridgeUrl) ~= "string"
-            or FarmSyncConfig.BridgeUrl == ""
-            or type(FarmSyncConfig.BridgeToken) ~= "string"
-            or FarmSyncConfig.BridgeToken == "" then
-            warn("[RECEIVER] Configure BridgeUrl and BridgeToken before enabling the FarmSync callback.")
+        local configId = farmSyncConfig.AutoChangeConfigId
+        local apiKey = farmSyncConfig.ApiKey
+        if type(configId) ~= "string"
+            or configId == ""
+            or type(apiKey) ~= "string"
+            or apiKey == "" then
+            warn("[FARMSYNC] Set AutoChangeConfigId and ApiKey in the FarmSync settings.")
             return false
         end
+
+        if type(farmSyncConfig.StartFolderId) ~= "string"
+            or farmSyncConfig.StartFolderId == ""
+            or type(farmSyncConfig.EndFolderId) ~= "string"
+            or farmSyncConfig.EndFolderId == "" then
+            warn("[FARMSYNC] Set both StartFolderId and EndFolderId.")
+            return false
+        end
+
+        local changeData = HttpService:JSONEncode({
+            pets = {
+                [TARGET_ITEM_NAME] = amount,
+            },
+        })
+
+        local requestBody = HttpService:JSONEncode({
+            name = farmSyncConfig.ConfigName or "Receiver item threshold",
+            group_id = farmSyncConfig.GroupId or "",
+            from_child_folder_id = farmSyncConfig.StartFolderId,
+            to_child_folder_id = farmSyncConfig.EndFolderId,
+            change_data = changeData,
+            auto_change_config_place_id = tostring(farmSyncConfig.PlaceId or "920587237"),
+            change_without_replacement = farmSyncConfig.ChangeWithoutReplacement == true,
+            final_config_id = farmSyncConfig.FinalConfigId or "",
+            is_auto_change_config = true,
+            config_id = farmSyncConfig.ConfigId or "",
+        })
 
         local requestOptions = {
-            Url = FarmSyncConfig.BridgeUrl,
-            Method = "POST",
+            Url = "https://api.farmsync.cloud/api/self/autochangeconfigs/"
+                .. HttpService:UrlEncode(configId),
+            Method = "PUT",
             Headers = {
                 ["Content-Type"] = "application/json",
-                ["Authorization"] = "Bearer " .. FarmSyncConfig.BridgeToken,
+                ["Authorization"] = "Bearer " .. apiKey,
             },
-            Body = HttpService:JSONEncode({
-                username = username,
-                amount = amount,
-                itemName = TARGET_ITEM_NAME,
-                itemForm = TARGET_ITEM_FORM,
-            }),
+            Body = requestBody,
         }
 
         local success, response = pcall(function()
@@ -319,7 +386,7 @@ task.spawn(function()
         end)
 
         if not success then
-            warn("[RECEIVER] FarmSync bridge request failed:", response)
+            warn("[FARMSYNC] AutoChange config update request failed:", response)
             return false
         end
 
@@ -331,14 +398,18 @@ task.spawn(function()
             or statusCode < 200
             or statusCode >= 300 then
             warn(
-                "[RECEIVER] FarmSync bridge returned an unsuccessful response:",
+                "[FARMSYNC] AutoChange config update was rejected:",
                 statusCode,
                 response and response.Body
             )
             return false
         end
 
-        print("[RECEIVER] FarmSync bridge confirmed account move for", username)
+        print(
+            "[FARMSYNC] AutoChange condition updated:",
+            TARGET_ITEM_NAME,
+            amount
+        )
         return true
     end
 
@@ -374,6 +445,11 @@ task.spawn(function()
             or amountLimit <= 0
             or amountLimit % 1 ~= 0 then
             warn("[RECEIVER] Amount trigger requires a positive whole-number Amount.")
+            return
+        end
+
+        if not updateFarmSyncAutoChangeConfig(farmSyncConfig, amountLimit) then
+            warn("[RECEIVER] FarmSync AutoChange config update failed; receiver watcher not started.")
             return
         end
 
@@ -422,16 +498,8 @@ task.spawn(function()
                     and (currentCount - baselineCount)
 
                 if receivedCount == amountLimit then
-                    local farmSyncUsername =
-                        farmSyncConfig.FarmSyncUsername
-                    if type(farmSyncUsername) ~= "string"
-                        or farmSyncUsername == "" then
-                        farmSyncUsername = LocalPlayer.Name
-                    end
-
                     local result = {
                         playerName = LocalPlayer.Name,
-                        farmSyncUsername = farmSyncUsername,
                         itemName = TARGET_ITEM_NAME,
                         itemForm = TARGET_ITEM_FORM,
                         amount = amountLimit,
@@ -439,8 +507,6 @@ task.spawn(function()
                         currentCount = currentCount,
                         receivedCount = receivedCount,
                         autoChange = farmSyncConfig.AutoChange,
-                        startFolderId = farmSyncConfig.StartFolderId,
-                        endFolderId = farmSyncConfig.EndFolderId,
                     }
 
                     print(
@@ -449,7 +515,6 @@ task.spawn(function()
                         TARGET_ITEM_NAME
                     )
                     triggerEvent:Fire(result)
-                    notifyFarmSyncBridge(farmSyncUsername, amountLimit)
                     return
                 elseif receivedCount
                     and receivedCount > amountLimit
