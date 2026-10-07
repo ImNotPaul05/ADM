@@ -22,7 +22,7 @@ local PRIVATE_FARMSYNC_SETTINGS = {
     ConfigName = "Here",
     GroupId = "",
     PlaceId = "920587237",
-    ChangeWithoutReplacement = true,
+    ChangeWithoutReplacement = false,
     FinalConfigId = "",
     ConfigId = "",
 }
