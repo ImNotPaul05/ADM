@@ -17,7 +17,7 @@ local MainAccUsername = ConfigEnvironment.MainAccUsername or {""}
 local TARGET_ITEM_NAME = ConfigEnvironment.TARGET_ITEM_NAME or ""
 local Amount = ConfigEnvironment.Amount or "" -- Empty means unlimited; trade through usernames in order.
 local TARGET_ITEM_FORM = ConfigEnvironment.TARGET_ITEM_FORM or ""
-local ForceReceiver = ConfigEnvironment.ForceReceiver == true
+local ForceReceiver = ConfigEnvironment.ForceReceiver == false
 
 local PRIVATE_FARMSYNC_SETTINGS = {
     AutoChangeConfigId = "650ad2e5624c8ceb285d464bfeac68d737a2d2b6001aa4b71f3f9a7b4730e5d3",
