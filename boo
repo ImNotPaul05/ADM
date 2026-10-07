@@ -13,8 +13,8 @@ if type(getgenv) == "function" then
 end
 
 -- Configuration
-local MainAccUsername = ConfigEnvironment.MainAccUsername or {"Her0eXBuildera31"}
-local TARGET_ITEM_NAME = ConfigEnvironment.TARGET_ITEM_NAME or "Retired Egg"
+local MainAccUsername = ConfigEnvironment.MainAccUsername or {""}
+local TARGET_ITEM_NAME = ConfigEnvironment.TARGET_ITEM_NAME or ""
 local Amount = ConfigEnvironment.Amount or "" -- Empty means unlimited; trade through usernames in order.
 local TARGET_ITEM_FORM = ConfigEnvironment.TARGET_ITEM_FORM or ""
 local ForceReceiver = ConfigEnvironment.ForceReceiver == true
