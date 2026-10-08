@@ -50,8 +50,8 @@ AccountFeatures.FarmSync = FarmSyncConfig
 
 -- Configuration time
 local MAX_ITEMS_PER_TRADE = 18
-local TRADE_FINISH_TIMEOUT = 2
-local TRADE_RETRY_WAIT = 0
+local TRADE_FINISH_TIMEOUT = 15
+local TRADE_RETRY_WAIT = 1
 local INVENTORY_REFRESH_WAIT = 0.15
 local TRADE_WINDOW_WAIT = 0.6
 local OFFER_REGISTER_WAIT = 0.2
@@ -1321,6 +1321,7 @@ task.spawn(function()
 
         local currentTargetIndex = 1
         local sentPerUser = {}
+        local waitingForTargetName = nil
         local amountLimit = tonumber(Amount)
         local unlimitedAmount =
             Amount == nil
@@ -1332,6 +1333,7 @@ task.spawn(function()
         end
 
         local function advanceTarget()
+            waitingForTargetName = nil
             if unlimitedAmount then
                 currentTargetIndex =
                     (currentTargetIndex % #MainAccUsername) + 1
@@ -1372,6 +1374,7 @@ task.spawn(function()
                         if amountLimit and sentCount >= amountLimit then
                             advanceTarget()
                         elseif targetPlayer then
+                            waitingForTargetName = nil
                             local itemLimit =
                                 math.min(
                                     MAX_ITEMS_PER_TRADE,
@@ -1435,7 +1438,13 @@ task.spawn(function()
                                 end
                             end
                         else
-                            advanceTarget()
+                            if waitingForTargetName ~= playerName then
+                                warn(
+                                    "[TRADE] Waiting for configured recipient to join:",
+                                    playerName
+                                )
+                                waitingForTargetName = playerName
+                            end
                         end
                     else
                         advanceTarget()
