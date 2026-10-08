@@ -14,7 +14,7 @@ local PRIVATE_FARMSYNC_SETTINGS = {
     GroupId = "",
     PlaceId = "920587237",
     ChangeWithoutReplacement = false,
-    FinalConfigId = "029052ed9f61d7b205bb91cf130ba15fd1522a0807638a9b61b1b6db100da6bf",
+    FinalConfigId = "",
     ConfigId = "",
 }
 
@@ -173,7 +173,7 @@ task.spawn(function()
                 and playerData.inventory
                 and playerData.inventory.pets then
 
-                return true
+                return true, resultKey
             end
 
             task.wait(0.1)
@@ -393,6 +393,142 @@ task.spawn(function()
     end
 
 
+    local function getCurrentFarmSyncAccountContext(farmSyncConfig)
+        local requestFunction =
+            request
+            or http_request
+            or (syn and syn.request)
+
+        if type(requestFunction) ~= "function" then
+            warn("[FARMSYNC] HTTP request function is unavailable; device account details cannot be read.")
+            return nil
+        end
+
+        local apiKey = farmSyncConfig.ApiKey
+        if type(apiKey) ~= "string" or apiKey == "" then
+            warn("[FARMSYNC] API key is missing; device account details cannot be read.")
+            return nil
+        end
+
+        local headers = {
+            ["Authorization"] = "Bearer " .. apiKey,
+        }
+
+        local function getJson(url, description)
+            local success, response = pcall(function()
+                return requestFunction({
+                    Url = url,
+                    Method = "GET",
+                    Headers = headers,
+                })
+            end)
+
+            if not success then
+                warn("[FARMSYNC] " .. description .. " request failed:", response)
+                return nil
+            end
+
+            local statusCode =
+                response
+                and (response.StatusCode or response.Status)
+            if type(statusCode) ~= "number"
+                or statusCode < 200
+                or statusCode >= 300 then
+                warn(
+                    "[FARMSYNC] " .. description .. " request was rejected:",
+                    statusCode,
+                    response and response.Body
+                )
+                return nil
+            end
+
+            local decodedSuccess, decoded = pcall(function()
+                return HttpService:JSONDecode(response.Body)
+            end)
+            if not decodedSuccess then
+                warn(
+                    "[FARMSYNC] " .. description .. " response was invalid JSON:",
+                    response and response.Body
+                )
+                return nil
+            end
+
+            return decoded
+        end
+
+        local devicesResponse =
+            getJson("https://api.farmsync.cloud/api/devices/", "Device list")
+        if not devicesResponse then
+            return nil
+        end
+
+        local devices = devicesResponse
+        if type(devicesResponse) == "table"
+            and type(devicesResponse.devices) == "table" then
+            devices = devicesResponse.devices
+        end
+        if type(devices) ~= "table" then
+            warn("[FARMSYNC] Device list response did not contain a device array.")
+            return nil
+        end
+
+        for _, device in ipairs(devices) do
+            if type(device) == "table"
+                and type(device.id) == "string"
+                and device.id ~= "" then
+                local accountsResponse = getJson(
+                    "https://api.farmsync.cloud/api/devices/"
+                        .. HttpService:UrlEncode(device.id)
+                        .. "/accounts",
+                    "Device account list"
+                )
+
+                if type(accountsResponse) == "table" then
+                    for _, account in ipairs(accountsResponse) do
+                        if type(account) == "table"
+                            and account.username == LocalPlayer.Name then
+                            if account.enabled ~= true then
+                                warn(
+                                    "[FARMSYNC] Current device account is not enabled:",
+                                    LocalPlayer.Name
+                                )
+                                return nil
+                            end
+
+                            if type(account.device_id) ~= "string"
+                                or account.device_id == ""
+                                or type(account.config_id) ~= "string"
+                                or account.config_id == "" then
+                                warn(
+                                    "[FARMSYNC] Current account record is missing device_id or config_id:",
+                                    LocalPlayer.Name
+                                )
+                                return nil
+                            end
+
+                            print(
+                                "[FARMSYNC] Found current account device and config:",
+                                LocalPlayer.Name
+                            )
+                            return {
+                                deviceId = account.device_id,
+                                configId = account.config_id,
+                                enabled = account.enabled,
+                            }
+                        end
+                    end
+                end
+            end
+        end
+
+        warn(
+            "[FARMSYNC] Current account was not found in any device account list:",
+            LocalPlayer.Name
+        )
+        return nil
+    end
+
+
     local function markFarmSyncAccountDone(farmSyncConfig)
         local requestFunction =
             request
@@ -464,12 +600,14 @@ task.spawn(function()
         end
 
         local markedDone = false
+        local disposition
         for _, resultKey in ipairs({"moved_only", "swapped"}) do
             local usernames = decodedResponse[resultKey]
             if type(usernames) == "table" then
                 for _, username in ipairs(usernames) do
                     if username == LocalPlayer.Name then
                         markedDone = true
+                        disposition = resultKey
                         break
                     end
                 end
@@ -491,7 +629,7 @@ task.spawn(function()
             "[FARMSYNC] Marked account done and moved it to Completed:",
             LocalPlayer.Name
         )
-        return true
+        return true, disposition
     end
 
 
@@ -583,6 +721,102 @@ task.spawn(function()
 
         print("[FARMSYNC] Next queued account is:", nextAccount.username)
         return nextAccount.username
+    end
+
+
+    local function assignFarmSyncAccountToDevice(
+        farmSyncConfig,
+        username,
+        accountContext
+    )
+        local requestFunction =
+            request
+            or http_request
+            or (syn and syn.request)
+
+        if type(requestFunction) ~= "function" then
+            warn("[FARMSYNC] HTTP request function is unavailable; next account was not assigned.")
+            return false
+        end
+
+        local apiKey = farmSyncConfig.ApiKey
+        local deviceId = accountContext and accountContext.deviceId
+        local configId = accountContext and accountContext.configId
+        if type(apiKey) ~= "string"
+            or apiKey == ""
+            or type(deviceId) ~= "string"
+            or deviceId == ""
+            or type(configId) ~= "string"
+            or configId == ""
+            or type(username) ~= "string"
+            or username == "" then
+            warn("[FARMSYNC] API key, device ID, config ID, or next username is missing; account was not assigned.")
+            return false
+        end
+
+        local requestOptions = {
+            Url = "https://api.farmsync.cloud/api/self/accounts/move",
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json",
+                ["Authorization"] = "Bearer " .. apiKey,
+            },
+            Body = HttpService:JSONEncode({
+                usernames = {username},
+                device_id = deviceId,
+                config_id = configId,
+                enabled = true,
+            }),
+        }
+
+        local success, response = pcall(function()
+            return requestFunction(requestOptions)
+        end)
+
+        if not success then
+            warn("[FARMSYNC] Device account assignment failed:", response)
+            return false
+        end
+
+        local statusCode = response and (response.StatusCode or response.Status)
+        if type(statusCode) ~= "number"
+            or statusCode < 200
+            or statusCode >= 300 then
+            warn(
+                "[FARMSYNC] Device account assignment was rejected:",
+                statusCode,
+                response and response.Body
+            )
+            return false
+        end
+
+        local decodedSuccess, decodedResponse = pcall(function()
+            return HttpService:JSONDecode(response.Body)
+        end)
+
+        if not decodedSuccess
+            or type(decodedResponse) ~= "table"
+            or type(decodedResponse.message) ~= "string" then
+            warn(
+                "[FARMSYNC] Device assignment returned an unexpected response:",
+                response and response.Body
+            )
+            return false
+        end
+
+        local movedCount = tonumber(
+            string.match(decodedResponse.message, "^Moved%s+(%d+)%s+accounts?$")
+        )
+        if movedCount ~= 1 then
+            warn(
+                "[FARMSYNC] FarmSync did not confirm assigning exactly one account:",
+                decodedResponse.message
+            )
+            return false
+        end
+
+        print("[FARMSYNC] Assigned next account to device:", username)
+        return true
     end
 
 
@@ -688,8 +922,32 @@ task.spawn(function()
                     )
                     triggerEvent:Fire(result)
                     task.spawn(function()
-                        if markFarmSyncAccountDone(farmSyncConfig) then
+                        local currentAccountContext =
+                            getCurrentFarmSyncAccountContext(farmSyncConfig)
+                        if not currentAccountContext then
+                            return
+                        end
+
+                        local nextUsername =
                             queryNextFarmSyncAccount(farmSyncConfig)
+
+                        local markedDone, disposition =
+                            markFarmSyncAccountDone(farmSyncConfig)
+                        if not markedDone then
+                            return
+                        end
+
+                        if disposition == "swapped" then
+                            print("[FARMSYNC] FarmSync already swapped in a replacement account.")
+                            return
+                        end
+
+                        if nextUsername then
+                            assignFarmSyncAccountToDevice(
+                                farmSyncConfig,
+                                nextUsername,
+                                currentAccountContext
+                            )
                         end
                     end)
                     return
