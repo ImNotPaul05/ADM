@@ -5,6 +5,19 @@ local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 
 -- Configuration
+local MainAccUsername = MainAccUsername or {""}
+local TARGET_ITEM_NAME = TARGET_ITEM_NAME or ""
+local Amount = Amount or "" -- Empty means unlimited; trade through usernames in order.
+local TARGET_ITEM_FORM = TARGET_ITEM_FORM or ""
+local ForceReceiver = ForceReceiver == true
+
+local AccountFeatures = AccountFeatures or {
+    FarmSync = {
+        AutoChange = false,
+        StartFolderId = "",
+        EndFolderId = "",
+    },
+}
 
 
 local PRIVATE_FARMSYNC_SETTINGS = {
@@ -669,6 +682,7 @@ task.spawn(function()
             Body = HttpService:JSONEncode({
                 filter = {
                     folder_id = sourceFolderId,
+                    enabled = false,
                 },
                 sort = {
                     field = "username",
