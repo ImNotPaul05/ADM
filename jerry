@@ -673,24 +673,11 @@ task.spawn(function()
         end
 
         local requestOptions = {
-            Url = "https://api.farmsync.cloud/api/self/query_accounts",
-            Method = "POST",
+            Url = "https://api.farmsync.cloud/api/self/accounts",
+            Method = "GET",
             Headers = {
-                ["Content-Type"] = "application/json",
                 ["Authorization"] = "Bearer " .. apiKey,
             },
-            Body = HttpService:JSONEncode({
-                filter = {
-                    folder_id = sourceFolderId,
-                    enabled = false,
-                },
-                sort = {
-                    field = "username",
-                    order = "asc",
-                },
-                page = 1,
-                limit = 1,
-            }),
         }
 
         local success, response = pcall(function()
@@ -718,26 +705,47 @@ task.spawn(function()
             return HttpService:JSONDecode(response.Body)
         end)
 
-        if not decodedSuccess
-            or type(decodedResponse) ~= "table"
-            or type(decodedResponse.accounts) ~= "table" then
+        if not decodedSuccess or type(decodedResponse) ~= "table" then
             warn(
-                "[FARMSYNC] Next-account query returned an invalid response:",
+                "[FARMSYNC] Account list returned an invalid response:",
                 response and response.Body
             )
             return nil
         end
 
-        local nextAccount = decodedResponse.accounts[1]
-        if type(nextAccount) ~= "table"
-            or type(nextAccount.username) ~= "string"
-            or nextAccount.username == "" then
-            print("[FARMSYNC] Original folder query returned no accounts.")
+        local accounts = decodedResponse
+        if type(decodedResponse.accounts) == "table" then
+            accounts = decodedResponse.accounts
+        end
+        if type(accounts) ~= "table" then
+            warn("[FARMSYNC] Account list response did not contain an account array.")
             return nil
         end
 
-        print("[FARMSYNC] Next queued account is:", nextAccount.username)
-        return nextAccount.username
+        local queuedAccounts = {}
+        for _, account in ipairs(accounts) do
+            if type(account) == "table"
+                and account.folder_id == sourceFolderId
+                and account.enabled == false
+                and type(account.username) == "string"
+                and account.username ~= ""
+                and account.username ~= LocalPlayer.Name then
+                table.insert(queuedAccounts, account.username)
+            end
+        end
+
+        table.sort(queuedAccounts)
+        local nextUsername = queuedAccounts[1]
+        if not nextUsername then
+            print(
+                "[FARMSYNC] Account list loaded, but no disabled account matched Original folder:",
+                sourceFolderId
+            )
+            return nil
+        end
+
+        print("[FARMSYNC] Next queued account is:", nextUsername)
+        return nextUsername
     end
 
 
