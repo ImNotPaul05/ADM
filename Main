@@ -10,7 +10,7 @@ local LocalPlayer = Players.LocalPlayer
 local PRIVATE_FARMSYNC_SETTINGS = {
     AutoChangeConfigId = "650ad2e5624c8ceb285d464bfeac68d737a2d2b6001aa4b71f3f9a7b4730e5d3",
     ApiKey = "6bbfbecca1fcccce55647db7aca5b5e8f13ee18b5b5712f28e041d0d9c0f6a2e",
-    ConfigName = "",
+    ConfigName = "Here",
     GroupId = "",
     PlaceId = "920587237",
     ChangeWithoutReplacement = false,
@@ -464,12 +464,18 @@ task.spawn(function()
         end
 
         local markedDone = false
-        if type(decodedResponse.moved_only) == "table" then
-            for _, username in ipairs(decodedResponse.moved_only) do
-                if username == LocalPlayer.Name then
-                    markedDone = true
-                    break
+        for _, resultKey in ipairs({"moved_only", "swapped"}) do
+            local usernames = decodedResponse[resultKey]
+            if type(usernames) == "table" then
+                for _, username in ipairs(usernames) do
+                    if username == LocalPlayer.Name then
+                        markedDone = true
+                        break
+                    end
                 end
+            end
+            if markedDone then
+                break
             end
         end
 
@@ -486,6 +492,97 @@ task.spawn(function()
             LocalPlayer.Name
         )
         return true
+    end
+
+
+    local function queryNextFarmSyncAccount(farmSyncConfig)
+        local requestFunction =
+            request
+            or http_request
+            or (syn and syn.request)
+
+        if type(requestFunction) ~= "function" then
+            warn("[FARMSYNC] HTTP request function is unavailable; next account was not queried.")
+            return nil
+        end
+
+        local apiKey = farmSyncConfig.ApiKey
+        local sourceFolderId = farmSyncConfig.StartFolderId
+        if type(apiKey) ~= "string"
+            or apiKey == ""
+            or type(sourceFolderId) ~= "string"
+            or sourceFolderId == "" then
+            warn("[FARMSYNC] API key or Original folder ID is missing; next account was not queried.")
+            return nil
+        end
+
+        local requestOptions = {
+            Url = "https://api.farmsync.cloud/api/self/query_accounts",
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json",
+                ["Authorization"] = "Bearer " .. apiKey,
+            },
+            Body = HttpService:JSONEncode({
+                filter = {
+                    folder_id = sourceFolderId,
+                    enabled = true,
+                    status = "idle",
+                },
+                sort = {
+                    field = "username",
+                    order = "asc",
+                },
+                page = 1,
+                limit = 1,
+            }),
+        }
+
+        local success, response = pcall(function()
+            return requestFunction(requestOptions)
+        end)
+
+        if not success then
+            warn("[FARMSYNC] Next-account query failed:", response)
+            return nil
+        end
+
+        local statusCode = response and (response.StatusCode or response.Status)
+        if type(statusCode) ~= "number"
+            or statusCode < 200
+            or statusCode >= 300 then
+            warn(
+                "[FARMSYNC] Next-account query was rejected:",
+                statusCode,
+                response and response.Body
+            )
+            return nil
+        end
+
+        local decodedSuccess, decodedResponse = pcall(function()
+            return HttpService:JSONDecode(response.Body)
+        end)
+
+        if not decodedSuccess
+            or type(decodedResponse) ~= "table"
+            or type(decodedResponse.accounts) ~= "table" then
+            warn(
+                "[FARMSYNC] Next-account query returned an invalid response:",
+                response and response.Body
+            )
+            return nil
+        end
+
+        local nextAccount = decodedResponse.accounts[1]
+        if type(nextAccount) ~= "table"
+            or type(nextAccount.username) ~= "string"
+            or nextAccount.username == "" then
+            print("[FARMSYNC] Original folder has no enabled idle accounts remaining.")
+            return nil
+        end
+
+        print("[FARMSYNC] Next queued account is:", nextAccount.username)
+        return nextAccount.username
     end
 
 
@@ -591,7 +688,9 @@ task.spawn(function()
                     )
                     triggerEvent:Fire(result)
                     task.spawn(function()
-                        markFarmSyncAccountDone(farmSyncConfig)
+                        if markFarmSyncAccountDone(farmSyncConfig) then
+                            queryNextFarmSyncAccount(farmSyncConfig)
+                        end
                     end)
                     return
                 elseif receivedCount
