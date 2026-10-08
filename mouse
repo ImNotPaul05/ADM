@@ -929,9 +929,6 @@ task.spawn(function()
                     task.spawn(function()
                         local currentAccountContext =
                             getCurrentFarmSyncAccountContext(farmSyncConfig)
-                        local nextUsername =
-                            queryNextFarmSyncAccount(farmSyncConfig)
-
                         local markedDone, disposition =
                             markFarmSyncAccountDone(farmSyncConfig)
                         if not markedDone then
@@ -942,6 +939,9 @@ task.spawn(function()
                             print("[FARMSYNC] FarmSync already swapped in a replacement account.")
                             return
                         end
+
+                        local nextUsername =
+                            queryNextFarmSyncAccount(farmSyncConfig)
 
                         if nextUsername then
                             if not currentAccountContext then
