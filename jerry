@@ -516,9 +516,10 @@ task.spawn(function()
                             if type(account.device_id) ~= "string"
                                 or account.device_id == ""
                                 or type(account.config_id) ~= "string"
-                                or account.config_id == "" then
+                                or account.config_id == ""
+                                or type(account.login_at) ~= "number" then
                                 warn(
-                                    "[FARMSYNC] Current account record is missing device_id or config_id:",
+                                    "[FARMSYNC] Current account record is missing device_id, config_id, or numeric login_at:",
                                     LocalPlayer.Name
                                 )
                                 return nil
@@ -532,6 +533,7 @@ task.spawn(function()
                                 deviceId = account.device_id,
                                 configId = account.config_id,
                                 enabled = account.enabled,
+                                loginAt = account.login_at,
                             }
                         end
                     end
@@ -767,15 +769,17 @@ task.spawn(function()
         local apiKey = farmSyncConfig.ApiKey
         local deviceId = accountContext and accountContext.deviceId
         local configId = accountContext and accountContext.configId
+        local loginAt = accountContext and accountContext.loginAt
         if type(apiKey) ~= "string"
             or apiKey == ""
             or type(deviceId) ~= "string"
             or deviceId == ""
             or type(configId) ~= "string"
             or configId == ""
+            or type(loginAt) ~= "number"
             or type(username) ~= "string"
             or username == "" then
-            warn("[FARMSYNC] API key, device ID, config ID, or next username is missing; account was not assigned.")
+            warn("[FARMSYNC] API key, device ID, config ID, numeric login_at, or next username is missing; account was not assigned.")
             return false
         end
 
@@ -791,6 +795,7 @@ task.spawn(function()
                 device_id = deviceId,
                 config_id = configId,
                 enabled = true,
+                login_at = loginAt,
             }),
         }
 
