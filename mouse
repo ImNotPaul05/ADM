@@ -669,7 +669,6 @@ task.spawn(function()
             Body = HttpService:JSONEncode({
                 filter = {
                     folder_id = sourceFolderId,
-                    enabled = true,
                     status = "idle",
                 },
                 sort = {
