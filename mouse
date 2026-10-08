@@ -896,8 +896,6 @@ task.spawn(function()
             baselineCount
         )
 
-        local overshootWarned = false
-
         task.spawn(function()
             while true do
                 task.wait(0.25)
@@ -907,7 +905,7 @@ task.spawn(function()
                     currentCount
                     and (currentCount - baselineCount)
 
-                if receivedCount == amountLimit then
+                if receivedCount and receivedCount >= amountLimit then
                     local result = {
                         playerName = LocalPlayer.Name,
                         itemName = TARGET_ITEM_NAME,
@@ -920,7 +918,7 @@ task.spawn(function()
                     }
 
                     print(
-                        "[RECEIVER] Amount trigger reached:",
+                        "[RECEIVER] Amount trigger reached or passed:",
                         result.receivedCount,
                         TARGET_ITEM_NAME
                     )
@@ -958,16 +956,6 @@ task.spawn(function()
                         end
                     end)
                     return
-                elseif receivedCount
-                    and receivedCount > amountLimit
-                    and not overshootWarned then
-                    overshootWarned = true
-                    warn(
-                        "[RECEIVER] Matching item count exceeded Amount before the exact-count trigger could fire:",
-                        receivedCount,
-                        ">",
-                        amountLimit
-                    )
                 end
             end
         end)
