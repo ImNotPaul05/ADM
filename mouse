@@ -669,7 +669,6 @@ task.spawn(function()
             Body = HttpService:JSONEncode({
                 filter = {
                     folder_id = sourceFolderId,
-                    status = "idle",
                 },
                 sort = {
                     field = "username",
@@ -719,7 +718,7 @@ task.spawn(function()
         if type(nextAccount) ~= "table"
             or type(nextAccount.username) ~= "string"
             or nextAccount.username == "" then
-            print("[FARMSYNC] Original folder has no enabled idle accounts remaining.")
+            print("[FARMSYNC] Original folder query returned no accounts.")
             return nil
         end
 
