@@ -5,20 +5,6 @@ local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 
 -- Configuration
-local MainAccUsername = MainAccUsername or {""}
-local TARGET_ITEM_NAME = TARGET_ITEM_NAME or ""
-local Amount = Amount or "" -- Empty means unlimited; trade through usernames in order.
-local TARGET_ITEM_FORM = TARGET_ITEM_FORM or ""
-local ForceReceiver = ForceReceiver == true
-
-local AccountFeatures = AccountFeatures or {
-    FarmSync = {
-        AutoChange = false,
-        StartFolderId = "",
-        EndFolderId = "",
-    },
-}
-
 
 local PRIVATE_FARMSYNC_SETTINGS = {
     AutoChangeConfigId = "650ad2e5624c8ceb285d464bfeac68d737a2d2b6001aa4b71f3f9a7b4730e5d3",
@@ -64,11 +50,25 @@ local API = ReplicatedStorage:WaitForChild("API")
 local addItemRemote =
     API:WaitForChild("TradeAPI/AddItemToOffer")
 
-local sendTradeRemote =
-    ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
-
 local tradeFunction =
     API:WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
+
+local function findSendTradeRemote()
+    local remote =
+        ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
+    if remote and remote:IsA("RemoteEvent") then
+        return remote
+    end
+
+    for _, descendant in ipairs(ReplicatedStorage:GetDescendants()) do
+        if descendant.Name == "SendTradeRequest"
+            and descendant:IsA("RemoteEvent") then
+            return descendant
+        end
+    end
+
+    return nil
+end
 
 
 -- Everything that actually runs
@@ -1016,8 +1016,8 @@ task.spawn(function()
         end
 
 
-        if sendTradeRemote
-            and sendTradeRemote:IsA("RemoteEvent") then
+        local sendTradeRemote = findSendTradeRemote()
+        if sendTradeRemote then
 
             local success = pcall(function()
                 sendTradeRemote:FireServer(targetPlayer)
@@ -1197,8 +1197,8 @@ task.spawn(function()
         -- 2. Send trade request
         --------------------------------------------------
 
-        if not sendTradeRemote
-            or not sendTradeRemote:IsA("RemoteEvent") then
+        local sendTradeRemote = findSendTradeRemote()
+        if not sendTradeRemote then
 
             warn(
                 "[TRADE] SendTradeRequest remote not found."
