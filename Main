@@ -6,15 +6,16 @@ local LocalPlayer = Players.LocalPlayer
 
 -- Configuration
 
+
 local PRIVATE_FARMSYNC_SETTINGS = {
     AutoChangeConfigId = "650ad2e5624c8ceb285d464bfeac68d737a2d2b6001aa4b71f3f9a7b4730e5d3",
     ApiKey = "6bbfbecca1fcccce55647db7aca5b5e8f13ee18b5b5712f28e041d0d9c0f6a2e",
-    ConfigName = "Here",
+    ConfigName = "",
     GroupId = "",
     PlaceId = "920587237",
     ChangeWithoutReplacement = false,
     FinalConfigId = "029052ed9f61d7b205bb91cf130ba15fd1522a0807638a9b61b1b6db100da6bf",
-    ConfigId = "029052ed9f61d7b205bb91cf130ba15fd1522a0807638a9b61b1b6db100da6bf",
+    ConfigId = "",
 }
 
 if type(AccountFeatures) ~= "table" then
