@@ -682,7 +682,6 @@ task.spawn(function()
             Body = HttpService:JSONEncode({
                 filter = {
                     folder_id = sourceFolderId,
-                    enabled = false,
                 },
                 sort = {
                     field = "username",
