@@ -50,8 +50,8 @@ AccountFeatures.FarmSync = FarmSyncConfig
 
 -- Configuration time
 local MAX_ITEMS_PER_TRADE = 18
-local TRADE_FINISH_TIMEOUT = 15
-local TRADE_RETRY_WAIT = 1
+local TRADE_FINISH_TIMEOUT = 2
+local TRADE_RETRY_WAIT = 0
 local INVENTORY_REFRESH_WAIT = 0.15
 local TRADE_WINDOW_WAIT = 0.6
 local OFFER_REGISTER_WAIT = 0.2
@@ -64,26 +64,11 @@ local API = ReplicatedStorage:WaitForChild("API")
 local addItemRemote =
     API:WaitForChild("TradeAPI/AddItemToOffer")
 
+local sendTradeRemote =
+    ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
+
 local tradeFunction =
     API:WaitForChild("TradeAPI/AcceptOrDeclineTradeRequest")
-
-local function findSendTradeRemote()
-    local remote =
-        ReplicatedStorage:FindFirstChild("TradeAPI/SendTradeRequest", true)
-    if remote and remote:IsA("RemoteEvent") then
-        return remote
-    end
-
-    for _, descendant in ipairs(ReplicatedStorage:GetDescendants()) do
-        if descendant.Name == "SendTradeRequest"
-            and descendant:IsA("RemoteEvent") then
-            return descendant
-        end
-    end
-
-    return nil
-end
-
 
 -- Everything that actually runs
 task.spawn(function()
@@ -1030,8 +1015,8 @@ task.spawn(function()
         end
 
 
-        local sendTradeRemote = findSendTradeRemote()
-        if sendTradeRemote then
+        if sendTradeRemote
+            and sendTradeRemote:IsA("RemoteEvent") then
 
             local success = pcall(function()
                 sendTradeRemote:FireServer(targetPlayer)
@@ -1211,7 +1196,6 @@ task.spawn(function()
         -- 2. Send trade request
         --------------------------------------------------
 
-        local sendTradeRemote = findSendTradeRemote()
         if not sendTradeRemote then
 
             warn(
@@ -1335,7 +1319,6 @@ task.spawn(function()
 
         local currentTargetIndex = 1
         local sentPerUser = {}
-        local waitingForTargetName = nil
         local amountLimit = tonumber(Amount)
         local unlimitedAmount =
             Amount == nil
@@ -1347,7 +1330,6 @@ task.spawn(function()
         end
 
         local function advanceTarget()
-            waitingForTargetName = nil
             if unlimitedAmount then
                 currentTargetIndex =
                     (currentTargetIndex % #MainAccUsername) + 1
@@ -1388,7 +1370,6 @@ task.spawn(function()
                         if amountLimit and sentCount >= amountLimit then
                             advanceTarget()
                         elseif targetPlayer then
-                            waitingForTargetName = nil
                             local itemLimit =
                                 math.min(
                                     MAX_ITEMS_PER_TRADE,
@@ -1452,13 +1433,7 @@ task.spawn(function()
                                 end
                             end
                         else
-                            if waitingForTargetName ~= playerName then
-                                warn(
-                                    "[TRADE] Waiting for configured recipient to join:",
-                                    playerName
-                                )
-                                waitingForTargetName = playerName
-                            end
+                            advanceTarget()
                         end
                     else
                         advanceTarget()
