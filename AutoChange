@@ -311,6 +311,43 @@ local function rotateAccount(current, nextAccount)
 	return true, "Moved " .. tostring(nextAccount.username) .. " onto the device."
 end
 
+local function waitForQueuedAccount(currentAccount)
+	print("[AutoChange] Original folder is empty; watching for the next queued account.")
+	while true do
+		task.wait(pollIntervalSeconds)
+
+		local refreshedCurrent, refreshError = getCurrentAccount()
+		if not refreshedCurrent then
+			warn("[AutoChange] " .. tostring(refreshError))
+			return
+		end
+
+		if string.lower(refreshedCurrent.username) ~= string.lower(currentAccount.username)
+			or refreshedCurrent.deviceId ~= currentAccount.deviceId then
+			warn("[AutoChange] The active account changed while waiting; stopping the queue watcher.")
+			return
+		end
+
+		local nextAccount, nextError = getNextQueuedAccount()
+		if nextAccount then
+			local success, result = rotateAccount(refreshedCurrent, nextAccount)
+			if not success then
+				warn("[AutoChange] " .. tostring(result))
+				return
+			end
+
+			print("[AutoChange] " .. tostring(result))
+			return
+		end
+
+		if nextError then
+			warn("[AutoChange] While waiting for a queued account, lookup failed: " .. tostring(nextError))
+		else
+			print("[AutoChange] Original folder still empty; continuing to check every " .. tostring(pollIntervalSeconds) .. " second(s).")
+		end
+	end
+end
+
 local currentAccount, currentError = getCurrentAccount()
 if not currentAccount then
 	warn("[AutoChange] " .. tostring(currentError))
@@ -367,7 +404,8 @@ if not nextAccount then
 		warn("[AutoChange] Could not find the next queued account: " .. tostring(nextError))
 	else
 		print("[AutoChange] Final empty-queue check: no remaining disabled account found in Original folder.")
-		warn("[AutoChange] No disabled account is available in the Original folder; leaving the current account in place.")
+		print("[AutoChange] Starting endless watch for the next queued account.")
+		waitForQueuedAccount(refreshedCurrent)
 	end
 	return
 end
