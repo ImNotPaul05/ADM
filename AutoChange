@@ -1,6 +1,6 @@
-local rotateAfterMinutes = ROTATE_AFTER_MINUTES
-if rotateAfterMinutes == nil then
-	rotateAfterMinutes = 1
+local rotateAfterHours = ROTATE_AFTER_HOURS
+if rotateAfterHours == nil then
+	rotateAfterHours = 1
 end
 
 local pollIntervalSeconds = POLL_INTERVAL_SECONDS
@@ -47,8 +47,8 @@ if type(StartFolderId) ~= "string" or StartFolderId == ""
 	return
 end
 
-if type(rotateAfterMinutes) ~= "number" or rotateAfterMinutes <= 0 then
-	failAndLeave("ROTATE_AFTER_MINUTES must be a positive number.")
+if type(rotateAfterHours) ~= "number" or rotateAfterHours <= 0 then
+	failAndLeave("ROTATE_AFTER_HOURS must be a positive number.")
 	return
 end
 if type(pollIntervalSeconds) ~= "number" or pollIntervalSeconds <= 0 then
@@ -355,7 +355,7 @@ if not currentAccount then
 end
 
 print("[AutoChange] Monitoring", currentAccount.username,
-	"for", rotateAfterMinutes, "minute(s).")
+	"for", rotateAfterHours, "hour(s).")
 
 if not currentAccount.loginAt or currentAccount.loginAt <= 0 then
 	print("[AutoChange] Current account has no valid login_at timestamp; starting the timer from now.")
@@ -367,15 +367,15 @@ if type(currentAccount.deviceId) ~= "string" or currentAccount.deviceId == ""
 	return
 end
 
-local rotationDurationMs = rotateAfterMinutes * 60 * 1000
+local rotationDurationMs = rotateAfterHours * 60 * 60 * 1000
 local elapsedMs = DateTime.now().UnixTimestampMillis - currentAccount.loginAt
 if elapsedMs < 0 then
 	warn("[AutoChange] Current account login_at is in the future; refusing to rotate.")
 	return
 end
 
-print(string.format("[AutoChange] Timer state: %.1f minute(s) elapsed; %.1f minute(s) remaining.",
-	elapsedMs / 60000, math.max(0, rotationDurationMs - elapsedMs) / 60000))
+print(string.format("[AutoChange] Timer state: %.2f hour(s) elapsed; %.2f hour(s) remaining.",
+	elapsedMs / 3600000, math.max(0, rotationDurationMs - elapsedMs) / 3600000))
 while elapsedMs < rotationDurationMs do
 	local remainingSeconds = (rotationDurationMs - elapsedMs) / 1000
 	task.wait(math.min(pollIntervalSeconds, remainingSeconds))
