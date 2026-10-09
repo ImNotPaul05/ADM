@@ -160,15 +160,21 @@ local function getCurrentAccount()
 					if accounts then
 						for _, account in ipairs(accounts) do
 							if type(account) == "table"
-								and account.username == currentUsername
-								and account.enabled == true then
+							and account.username == currentUsername
+							and account.enabled == true then
+								local loginAt = tonumber(account.login_at)
+								if not loginAt or loginAt <= 0 then
+									loginAt = DateTime.now().UnixTimestampMillis
+									print("[AutoChange] FarmSync returned a missing/zero login_at for",
+										account.username, "; starting the timer from now.")
+								end
 								print("[AutoChange] Active account found:", account.username,
-									"login_at:", tostring(account.login_at))
+									"login_at:", tostring(loginAt))
 								return {
 									username = account.username,
 									deviceId = account.device_id,
 									configId = account.config_id or account.configId,
-									loginAt = tonumber(account.login_at),
+									loginAt = loginAt,
 								}
 							end
 						end
@@ -303,8 +309,8 @@ print("[AutoChange] Monitoring", currentAccount.username,
 	"for", rotateAfterMinutes, "minute(s).")
 
 if not currentAccount.loginAt or currentAccount.loginAt <= 0 then
-	warn("[AutoChange] Current account has no valid login_at timestamp; cannot measure its age.")
-	return
+	print("[AutoChange] Current account has no valid login_at timestamp; starting the timer from now.")
+	currentAccount.loginAt = DateTime.now().UnixTimestampMillis
 end
 if type(currentAccount.deviceId) ~= "string" or currentAccount.deviceId == ""
 	or type(currentAccount.configId) ~= "string" or currentAccount.configId == "" then
