@@ -12,9 +12,19 @@ local PRIVATE_FARMSYNC_SETTINGS = {
 	ApiKey = "a39e5c73a81bed26e97671961215c6044cc76d4b2449a3e4bf254fa4fa8f9f1b",
 }
 
+local function failAndLeave(message)
+	warn("[AutoChange] Fatal error: " .. tostring(message))
+	local player = game:GetService("Players").LocalPlayer
+	if player then
+		task.defer(function()
+			player:Kick("[AutoChange] Failed to initialize. Leaving server.")
+		end)
+	end
+end
+
 local FarmSync = AccountFeatures and AccountFeatures.FarmSync
 if not FarmSync or not FarmSync.AutoChange then
-	warn("[AutoChange] FarmSync AutoChange is disabled or not configured.")
+	failAndLeave("FarmSync AutoChange is disabled or not configured.")
 	return
 end
 
@@ -25,7 +35,7 @@ if (type(apiKey) ~= "string" or apiKey == "")
 end
 
 if type(apiKey) ~= "string" or apiKey == "" then
-	warn("[AutoChange] Add a valid FarmSync API key to PRIVATE_FARMSYNC_SETTINGS.ApiKey.")
+	failAndLeave("Add a valid FarmSync API key to PRIVATE_FARMSYNC_SETTINGS.ApiKey.")
 	return
 end
 
@@ -33,16 +43,16 @@ local StartFolderId = FarmSync.StartFolderId
 local EndFolderId = FarmSync.EndFolderId
 if type(StartFolderId) ~= "string" or StartFolderId == ""
 	or type(EndFolderId) ~= "string" or EndFolderId == "" then
-	warn("[AutoChange] Configure the Original and Completed folder IDs in AccountFeatures.FarmSync.")
+	failAndLeave("Configure the Original and Completed folder IDs in AccountFeatures.FarmSync.")
 	return
 end
 
 if type(rotateAfterMinutes) ~= "number" or rotateAfterMinutes <= 0 then
-	warn("[AutoChange] ROTATE_AFTER_MINUTES must be a positive number.")
+	failAndLeave("ROTATE_AFTER_MINUTES must be a positive number.")
 	return
 end
 if type(pollIntervalSeconds) ~= "number" or pollIntervalSeconds <= 0 then
-	warn("[AutoChange] POLL_INTERVAL_SECONDS must be a positive number.")
+	failAndLeave("POLL_INTERVAL_SECONDS must be a positive number.")
 	return
 end
 
@@ -52,7 +62,7 @@ if not HttpRequest and syn then
 	HttpRequest = syn.request
 end
 if type(HttpRequest) ~= "function" then
-	warn("[AutoChange] No supported HTTP request function is available.")
+	failAndLeave("No supported HTTP request function is available.")
 	return
 end
 
@@ -225,7 +235,9 @@ local function getNextQueuedAccount()
 	if queuedAccounts[1] then
 		print("[AutoChange] Next queued account selected:", queuedAccounts[1].username)
 	else
-		print("[AutoChange] No disabled account matched the configured Original folder.")
+		print("[AutoChange] No disabled account left in the configured Original folder.")
+		print("[AutoChange] Last account condition: original queue is empty for folder_id " .. tostring(StartFolderId) .. ".")
+		warn("[AutoChange] No disabled account is available in the Original folder; leaving the current account in place.")
 	end
 
 	return queuedAccounts[1]
@@ -354,6 +366,7 @@ if not nextAccount then
 	if nextError then
 		warn("[AutoChange] Could not find the next queued account: " .. tostring(nextError))
 	else
+		print("[AutoChange] Final empty-queue check: no remaining disabled account found in Original folder.")
 		warn("[AutoChange] No disabled account is available in the Original folder; leaving the current account in place.")
 	end
 	return
