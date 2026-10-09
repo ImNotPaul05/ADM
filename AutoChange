@@ -1,4 +1,6 @@
-
+local ROTATE_AFTER_MINUTES = 1
+local POLL_INTERVAL_SECONDS = 10
+    
 local PRIVATE_FARMSYNC_SETTINGS = {
 	ApiKey = "a39e5c73a81bed26e97671961215c6044cc76d4b2449a3e4bf254fa4fa8f9f1b",
 }
@@ -44,6 +46,7 @@ if type(HttpRequest) ~= "function" then
 end
 
 local function requestJson(method, path, body)
+	print("[AutoChange] FarmSync request:", method, path)
 	local headers = {
 		["Content-Type"] = "application/json",
 		["Authorization"] = "Bearer " .. apiKey,
@@ -60,17 +63,22 @@ local function requestJson(method, path, body)
 
 	local ok, response = pcall(HttpRequest, requestOptions)
 	if not ok then
+		warn("[AutoChange] Request failed before receiving a response:", tostring(response))
 		return nil, "HTTP request failed: " .. tostring(response)
 	end
 
 	if type(response) ~= "table" then
+		warn("[AutoChange] Request returned no response object:", method, path)
 		return nil, "HTTP request returned no response object."
 	end
 
 	local statusCode = tonumber(response.StatusCode or response.Status)
 	if not statusCode or statusCode < 200 or statusCode >= 300 then
+		local responseBody = tostring(response.Body or "")
+		warn("[AutoChange] FarmSync request rejected:", statusCode or "unknown", path,
+			string.sub(responseBody, 1, 300))
 		return nil, "FarmSync returned HTTP " .. tostring(statusCode or "unknown")
-			.. ": " .. tostring(response.Body or "")
+			.. ": " .. responseBody
 	end
 
 	if not response.Body or response.Body == "" then
@@ -83,6 +91,7 @@ local function requestJson(method, path, body)
 		response.Body
 	)
 	if not decodedOk then
+		warn("[AutoChange] FarmSync returned invalid JSON for", path, tostring(decoded))
 		return nil, "FarmSync returned invalid JSON: " .. tostring(decoded)
 	end
 
@@ -112,6 +121,7 @@ end
 
 local function getCurrentAccount()
 	local currentUsername = game:GetService("Players").LocalPlayer.Name
+	print("[AutoChange] Looking up active FarmSync account for", currentUsername)
 	local devicesResponse, devicesError = requestJson("GET", "/devices/")
 	if not devicesResponse then
 		return nil, devicesError
@@ -119,8 +129,10 @@ local function getCurrentAccount()
 
 	local devices = extractRecords(devicesResponse, "devices")
 	if not devices then
+		warn("[AutoChange] Device response did not include a recognized device list.")
 		return nil, "FarmSync device response did not contain a device list."
 	end
+	print("[AutoChange] Checking", #devices, "FarmSync device(s).")
 
 	for _, device in ipairs(devices) do
 		if type(device) == "table" then
@@ -139,6 +151,8 @@ local function getCurrentAccount()
 							if type(account) == "table"
 								and account.username == currentUsername
 								and account.enabled == true then
+								print("[AutoChange] Active account found:", account.username,
+									"login_at:", tostring(account.login_at))
 								return {
 									username = account.username,
 									deviceId = account.device_id,
@@ -160,6 +174,7 @@ local function getCurrentAccount()
 end
 
 local function getNextQueuedAccount()
+	print("[AutoChange] Searching Original folder for a disabled queued account.")
 	local response, requestError = requestJson("GET", "/self/accounts")
 	if not response then
 		return nil, requestError
@@ -167,8 +182,10 @@ local function getNextQueuedAccount()
 
 	local accounts = extractRecords(response, "accounts")
 	if not accounts then
+		warn("[AutoChange] Account list response did not include a recognized account list.")
 		return nil, "FarmSync account response did not contain an account list."
 	end
+	print("[AutoChange] FarmSync returned", #accounts, "account record(s).")
 
 	local queuedAccounts = {}
 	for _, account in ipairs(accounts) do
@@ -188,10 +205,17 @@ local function getNextQueuedAccount()
 		return string.lower(left.username) < string.lower(right.username)
 	end)
 
+	if queuedAccounts[1] then
+		print("[AutoChange] Next queued account selected:", queuedAccounts[1].username)
+	else
+		print("[AutoChange] No disabled account matched the configured Original folder.")
+	end
+
 	return queuedAccounts[1]
 end
 
 local function rotateAccount(current, nextAccount)
+	print("[AutoChange] Target reached. Marking", current.username, "as done.")
 	local markDoneResponse, markDoneError = requestJson(
 		"POST",
 		"/self/accounts/mark-done",
@@ -221,13 +245,16 @@ local function rotateAccount(current, nextAccount)
 	end
 
 	if not disposition then
+		warn("[AutoChange] Mark-done response did not list the current account in moved_only or swapped.")
 		return false, "FarmSync did not confirm that the current account was marked done."
 	end
 
 	if disposition == "swapped" then
+		print("[AutoChange] FarmSync reports that it already swapped in a replacement account.")
 		return true, "FarmSync already swapped in a replacement account."
 	end
 
+	print("[AutoChange] Assigning", nextAccount.username, "to device", current.deviceId)
 	local moveResponse, moveError = requestJson(
 		"POST",
 		"/self/accounts/move",
@@ -248,6 +275,7 @@ local function rotateAccount(current, nextAccount)
 		and tonumber(string.match(moveResponse.message, "^Moved%s+(%d+)%s+accounts?$"))
 		or nil
 	if movedCount ~= 1 then
+		warn("[AutoChange] Move response did not confirm exactly one account:", tostring(moveResponse.message))
 		return false, "Current account was marked done, but FarmSync did not confirm moving exactly one queued account."
 	end
 
@@ -259,6 +287,9 @@ if not currentAccount then
 	warn("[AutoChange] " .. tostring(currentError))
 	return
 end
+
+print("[AutoChange] Monitoring", currentAccount.username,
+	"for", ROTATE_AFTER_MINUTES, "minute(s).")
 
 if not currentAccount.loginAt or currentAccount.loginAt <= 0 then
 	warn("[AutoChange] Current account has no valid login_at timestamp; cannot measure its age.")
@@ -277,12 +308,18 @@ if elapsedMs < 0 then
 	return
 end
 
+print(string.format("[AutoChange] Timer state: %.1f minute(s) elapsed; %.1f minute(s) remaining.",
+	elapsedMs / 60000, math.max(0, rotationDurationMs - elapsedMs) / 60000))
 while elapsedMs < rotationDurationMs do
 	local remainingSeconds = (rotationDurationMs - elapsedMs) / 1000
 	task.wait(math.min(POLL_INTERVAL_SECONDS, remainingSeconds))
 	elapsedMs = DateTime.now().UnixTimestampMillis - currentAccount.loginAt
+	local remainingMs = math.max(0, rotationDurationMs - elapsedMs)
+	print(string.format("[AutoChange] Countdown: %.0f second(s) remaining.",
+		remainingMs / 1000))
 end
 
+print("[AutoChange] Time threshold reached; checking current account and queue.")
 local refreshedCurrent, refreshError = getCurrentAccount()
 if not refreshedCurrent then
 	warn("[AutoChange] " .. tostring(refreshError))
