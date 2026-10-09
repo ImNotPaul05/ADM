@@ -1319,6 +1319,7 @@ task.spawn(function()
 
         local currentTargetIndex = 1
         local sentPerUser = {}
+        local waitingForTargetName = nil
         local amountLimit = tonumber(Amount)
         local unlimitedAmount =
             Amount == nil
@@ -1330,6 +1331,7 @@ task.spawn(function()
         end
 
         local function advanceTarget()
+            waitingForTargetName = nil
             if unlimitedAmount then
                 currentTargetIndex =
                     (currentTargetIndex % #MainAccUsername) + 1
@@ -1357,19 +1359,35 @@ task.spawn(function()
                 --------------------------------------------------
 
                 if currentTargetIndex <= #MainAccUsername then
-                    local playerName =
+                    local configuredName =
                         MainAccUsername[currentTargetIndex]
 
-                    if playerName and playerName ~= "" then
-                        local targetPlayer =
-                            Players:FindFirstChild(playerName)
+                    if type(configuredName) == "string"
+                        and configuredName:match("%S") then
+                        local playerName =
+                            configuredName:match("^%s*(.-)%s*$")
+                        local targetPlayer = Players:FindFirstChild(playerName)
 
+                        if not targetPlayer then
+                            local normalizedName = string.lower(playerName)
+                            for _, player in ipairs(Players:GetPlayers()) do
+                                if string.lower(player.Name) == normalizedName then
+                                    targetPlayer = player
+                                    break
+                                end
+                            end
+                        end
+
+                        local progressName =
+                            targetPlayer and targetPlayer.Name or playerName
                         local sentCount =
-                            sentPerUser[playerName] or 0
+                            sentPerUser[progressName] or 0
 
                         if amountLimit and sentCount >= amountLimit then
                             advanceTarget()
                         elseif targetPlayer then
+                            waitingForTargetName = nil
+                            playerName = targetPlayer.Name
                             local itemLimit =
                                 math.min(
                                     MAX_ITEMS_PER_TRADE,
@@ -1433,7 +1451,13 @@ task.spawn(function()
                                 end
                             end
                         else
-                            advanceTarget()
+                            if waitingForTargetName ~= playerName then
+                                print(
+                                    "[TRADE] Waiting for configured recipient to join:",
+                                    playerName
+                                )
+                                waitingForTargetName = playerName
+                            end
                         end
                     else
                         advanceTarget()
