@@ -521,7 +521,7 @@ if not nextAccount then
 		print("[AutoChange] Starting endless watch for the next queued account.")
 		waitForQueuedAccount(refreshedCurrent)
 	end
-	returnz
+	return
 end
 
 local success, result = rotateAccount(refreshedCurrent, nextAccount)
