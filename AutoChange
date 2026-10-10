@@ -146,9 +146,19 @@ local function getTimerStatePath(account)
 	return "AutoChangeTimer_" .. deviceId .. "_" .. username .. ".json"
 end
 
+local timerStorageWarningShown = false
+local function warnTimerStorageUnavailable(message)
+	if timerStorageWarningShown then
+		return
+	end
+
+	timerStorageWarningShown = true
+	warn("[AutoChange] " .. message)
+end
+
 local function readTimerState(account)
 	if type(readfile) ~= "function" then
-		warn("[AutoChange] Persistent timer storage is unavailable; the timer may reset after a restart.")
+		warnTimerStorageUnavailable("Persistent timer storage is unavailable; remaining time cannot be preserved across restarts.")
 		return nil
 	end
 
@@ -164,7 +174,6 @@ local function readTimerState(account)
 		contents
 	)
 	if not decodedOk or type(state) ~= "table"
-		or state.active ~= true
 		or string.lower(tostring(state.username)) ~= string.lower(account.username)
 		or tostring(state.deviceId) ~= account.deviceId
 		or tostring(state.configId) ~= account.configId then
@@ -172,27 +181,37 @@ local function readTimerState(account)
 		return nil
 	end
 
-	local startedAt = tonumber(state.startedAt)
-	if not startedAt or startedAt <= 0 then
-		warn("[AutoChange] Ignoring saved timer state with an invalid start time.")
+	if state.version ~= 2 then
+		warn("[AutoChange] The saved timer uses the old wall-clock format; starting a fresh timer so closed time is not counted.")
+		return nil, true
+	end
+
+	if state.active ~= true then
 		return nil
 	end
 
-	return startedAt
+	local remainingMs = tonumber(state.remainingMs)
+	if not remainingMs or remainingMs < 0 then
+		warn("[AutoChange] Ignoring saved timer state with an invalid remaining time.")
+		return nil
+	end
+
+	return remainingMs
 end
 
-local function writeTimerState(account, startedAt, active)
+local function writeTimerState(account, remainingMs, active)
 	if type(writefile) ~= "function" then
-		warn("[AutoChange] Persistent timer storage is unavailable; the timer may reset after a restart.")
+		warnTimerStorageUnavailable("Persistent timer storage is unavailable; remaining time cannot be preserved across restarts.")
 		return false
 	end
 
 	local state = {
+		version = 2,
 		active = active,
 		username = account.username,
 		deviceId = account.deviceId,
 		configId = account.configId,
-		startedAt = startedAt,
+		remainingMs = remainingMs,
 	}
 	local encodeOk, contents = pcall(
 		game:GetService("HttpService").JSONEncode,
@@ -353,7 +372,7 @@ local function rotateAccount(current, nextAccount)
 
 	if disposition == "swapped" then
 		print("[AutoChange] FarmSync reports that it already swapped in a replacement account.")
-		writeTimerState(current, current.loginAt, false)
+		writeTimerState(current, 0, false)
 		return true, "FarmSync already swapped in a replacement account."
 	end
 
@@ -382,7 +401,7 @@ local function rotateAccount(current, nextAccount)
 		return false, "Current account was marked done, but FarmSync did not confirm moving exactly one queued account."
 	end
 
-	writeTimerState(current, current.loginAt, false)
+	writeTimerState(current, 0, false)
 	return true, "Moved " .. tostring(nextAccount.username) .. " onto the device."
 end
 
@@ -442,28 +461,42 @@ if type(currentAccount.deviceId) ~= "string" or currentAccount.deviceId == ""
 	return
 end
 
-local savedLoginAt = readTimerState(currentAccount)
-if savedLoginAt then
-	currentAccount.loginAt = math.min(currentAccount.loginAt, savedLoginAt)
-end
-writeTimerState(currentAccount, currentAccount.loginAt, true)
-
 local rotationDurationMs = rotateAfterHours * 60 * 60 * 1000
-local elapsedMs = DateTime.now().UnixTimestampMillis - currentAccount.loginAt
-if elapsedMs < 0 then
-	warn("[AutoChange] Current account login_at is in the future; refusing to rotate.")
-	return
+local remainingMs, isLegacyTimer = readTimerState(currentAccount)
+if type(readfile) ~= "function" or type(writefile) ~= "function" then
+	remainingMs = rotationDurationMs
+elseif remainingMs == nil then
+	if isLegacyTimer then
+		remainingMs = rotationDurationMs
+	else
+		local elapsedMs = DateTime.now().UnixTimestampMillis - currentAccount.loginAt
+		if elapsedMs < 0 then
+			warn("[AutoChange] Current account login_at is in the future; starting the timer from now.")
+			elapsedMs = 0
+		end
+		remainingMs = math.max(0, rotationDurationMs - elapsedMs)
+	end
 end
 
-print(string.format("[AutoChange] Timer state: %.2f hour(s) elapsed; %.2f hour(s) remaining.",
-	elapsedMs / 3600000, math.max(0, rotationDurationMs - elapsedMs) / 3600000))
-while elapsedMs < rotationDurationMs do
-	local remainingSeconds = (rotationDurationMs - elapsedMs) / 1000
-	task.wait(math.min(pollIntervalSeconds, remainingSeconds))
-	elapsedMs = DateTime.now().UnixTimestampMillis - currentAccount.loginAt
-	local remainingMs = math.max(0, rotationDurationMs - elapsedMs)
-	print(string.format("[AutoChange] Countdown: %.0f second(s) remaining.",
-		remainingMs / 1000))
+remainingMs = math.min(remainingMs, rotationDurationMs)
+writeTimerState(currentAccount, remainingMs, true)
+
+print(string.format("[AutoChange] Timer state: %.0f second(s) remaining.", remainingMs / 1000))
+local secondsUntilLog = 0
+while remainingMs > 0 do
+	local waitSeconds = math.min(1, remainingMs / 1000)
+	local startedAt = time()
+	task.wait(waitSeconds)
+	local elapsedThisSessionMs = math.max(0, (time() - startedAt) * 1000)
+	remainingMs = math.max(0, remainingMs - elapsedThisSessionMs)
+	writeTimerState(currentAccount, remainingMs, true)
+
+	secondsUntilLog = secondsUntilLog + elapsedThisSessionMs / 1000
+	if secondsUntilLog >= pollIntervalSeconds or remainingMs <= 0 then
+		print(string.format("[AutoChange] Countdown: %.0f second(s) remaining.",
+			remainingMs / 1000))
+		secondsUntilLog = 0
+	end
 end
 
 print("[AutoChange] Time threshold reached; checking current account and queue.")
@@ -488,7 +521,7 @@ if not nextAccount then
 		print("[AutoChange] Starting endless watch for the next queued account.")
 		waitForQueuedAccount(refreshedCurrent)
 	end
-	return
+	returnz
 end
 
 local success, result = rotateAccount(refreshedCurrent, nextAccount)
