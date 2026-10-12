@@ -22,8 +22,8 @@ local AccountFeatures = AccountFeatures or {
 
 local PRIVATE_FARMSYNC_SETTINGS = {
     AutoChangeConfigId = "650ad2e5624c8ceb285d464bfeac68d737a2d2b6001aa4b71f3f9a7b4730e5d3",
-    ApiKey = "dbfd80f322f708c127e6fb9a0a4ac469d53bcf03a9b9189edb484f4dcb26383d",
-    ConfigName = "",
+    ApiKey = "18ba9886ab1f44747eef519d15e32825f036277ccda8ae7c03514319a0392c89",
+    ConfigName = "Here",
     GroupId = "",
     PlaceId = "920587237",
     ChangeWithoutReplacement = false,
