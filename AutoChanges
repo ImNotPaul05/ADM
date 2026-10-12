@@ -9,7 +9,7 @@ if pollIntervalSeconds == nil then
 end
     
 local PRIVATE_FARMSYNC_SETTINGS = {
-	ApiKey = "a39e5c73a81bed26e97671961215c6044cc76d4b2449a3e4bf254fa4fa8f9f1b",
+	ApiKey = "b74020231c155fbd373105ce0d2bd21cd435f797b299d0d73cdb3ef604ae31b5",
 }
 
 local function failAndLeave(message)
