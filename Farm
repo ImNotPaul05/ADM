@@ -1,6 +1,7 @@
 -- 4Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local API = ReplicatedStorage:WaitForChild("API")
+local startupApisFired = false
 
 local args = {
     "spawn_dialog",
@@ -8,6 +9,7 @@ local args = {
 }
 API:WaitForChild("TradingServerAPI/ButtonPressed"):FireServer(unpack(args))
 API:WaitForChild("MainMenuAPI/AcceptTermsOfServiceAndPrivacyPolicy"):FireServer()
+startupApisFired = true
 
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
@@ -1855,31 +1857,35 @@ task.spawn(function()
     -- HIDE DIALOG
     --------------------------------------------------
 
-    local PlayerGui =
-        LocalPlayer:WaitForChild("PlayerGui")
+    if startupApisFired then
+        local PlayerGui =
+            LocalPlayer:WaitForChild("PlayerGui")
 
 
-    local framesToHide = {}
+        local framesToHide = {}
 
 
-    for _, name in ipairs(targetFrameNames) do
-        framesToHide[name] = true
-    end
-
-
-    while true do
-
-        for _, gui in ipairs(PlayerGui:GetDescendants()) do
-
-            if gui:IsA("Frame")
-                and framesToHide[gui.Name]
-                and gui.Visible then
-
-                gui.Visible = false
-            end
+        for _, name in ipairs(targetFrameNames) do
+            framesToHide[name] = true
         end
 
 
-        task.wait(3)
+        while true do
+
+            for _, gui in ipairs(PlayerGui:GetDescendants()) do
+
+                if gui:IsA("Frame")
+                    and framesToHide[gui.Name]
+                    and gui.Visible then
+
+                    gui.Visible = false
+                end
+            end
+
+
+            task.wait(3)
+        end
+    else
+        warn("[UI] Dialog hiding skipped because startup API calls did not complete.")
     end
 end)
