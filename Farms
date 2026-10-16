@@ -556,8 +556,8 @@ task.spawn(function()
                     until os.clock() >= deadline
 
                     if not updatedAge or updatedAge <= age then
-                        warn("[AGING] Pet age did not increase; stopping to avoid using more potions:", petUniqueId)
-                        return false
+                        warn("[AGING] Pet age did not increase; skipping this pet to avoid wasting more potions:", petUniqueId, "lastAge:", age)
+                        return true
                     end
 
                     age = updatedAge
