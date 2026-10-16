@@ -1,19 +1,32 @@
 -- 4Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local API = ReplicatedStorage:WaitForChild("API")
-local startupApisFired = false
-
-API:WaitForChild("MainMenuAPI/AcceptTermsOfServiceAndPrivacyPolicy"):FireServer()
-local args = {
-    "spawn_dialog",
-    "Home",
-}
-API:WaitForChild("TradingServerAPI/ButtonPressed"):FireServer(unpack(args))
-startupApisFired = true
-
 local Players = game:GetService("Players")
-local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
+local API = ReplicatedStorage:WaitForChild("API")
+
+if not LocalPlayer.Character then
+    print("[STARTUP] Waiting for you to enter the game from the title screen.")
+    LocalPlayer.CharacterAdded:Wait()
+end
+
+local teamSelectionCompleted = false
+local teamArgs = {
+    "Parents",
+    {
+        source_for_logging = "intro_sequence",
+        dont_enter_location = true,
+    },
+}
+local teamCallSucceeded, teamCallError = pcall(function()
+    API:WaitForChild("TeamAPI/ChooseTeam"):InvokeServer(unpack(teamArgs))
+end)
+if teamCallSucceeded then
+    teamSelectionCompleted = true
+else
+    warn("[STARTUP] ChooseTeam request failed; dialog hiding will remain disabled:", teamCallError)
+end
+
+local HttpService = game:GetService("HttpService")
 
 -- Configuration
 local MainAccUsername = MainAccUsername or {""}
@@ -1857,7 +1870,7 @@ task.spawn(function()
     -- HIDE DIALOG
     --------------------------------------------------
 
-    if startupApisFired then
+    if teamSelectionCompleted then
         local PlayerGui =
             LocalPlayer:WaitForChild("PlayerGui")
 
@@ -1886,6 +1899,6 @@ task.spawn(function()
             task.wait(3)
         end
     else
-        warn("[UI] Dialog hiding skipped because startup API calls did not complete.")
+        warn("[UI] Dialog hiding skipped because the ChooseTeam request did not complete.")
     end
 end)
