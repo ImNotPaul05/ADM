@@ -12,8 +12,8 @@ local teamArgs = {
         dont_enter_location = true,
     },
 }
-local teamCallSucceeded, teamCallError = pcall(function()teamArgs
-    API:WaitForChild("TeamAPI/ChooseTeam"):InvokeServer(unpack())
+local teamCallSucceeded, teamCallError = pcall(function()
+    API:WaitForChild("TeamAPI/ChooseTeam"):InvokeServer(table.unpack(teamArgs))
 end)
 if teamCallSucceeded then
     teamSelectionCompleted = true
