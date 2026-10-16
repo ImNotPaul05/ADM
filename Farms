@@ -21,7 +21,7 @@ else
     warn("[STARTUP] ChooseTeam request failed; dialog hiding will remain disabled:", teamCallError)
 end
 
-task.wait(7)
+task.wait(12)
 
 local HttpService = game:GetService("HttpService")
 
