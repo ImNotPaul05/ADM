@@ -1,0 +1,660 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local LocalPlayer = Players.LocalPlayer
+
+--==================================================
+-- CONFIG
+--==================================================
+
+local Config = {
+    Pet = "Storm Condor",
+
+    -- "normal" or "neon"
+    PetForm = "normal",
+
+    -- Maximum potions sent in one batch
+    MaxPotionBatch = 10,
+
+    FeedDelay = 0.5,
+}
+-- kindb
+
+local KindDB = require(
+    ReplicatedStorage
+        :WaitForChild("ClientDB")
+        :WaitForChild("Inventory")
+        :WaitForChild("KindDB")
+)
+
+--==================================================
+-- CLIENT DATA
+--==================================================
+
+local successClientData, ClientData = pcall(function()
+    return require(
+        ReplicatedStorage
+            :WaitForChild("ClientModules")
+            :WaitForChild("Core")
+            :WaitForChild("ClientData")
+    )
+end)
+
+if not successClientData or not ClientData then
+    error("Failed to load ClientData")
+end
+
+--==================================================
+-- GET PLAYER DATA
+--==================================================
+
+local function GetPlayerData()
+    local dataStore = ClientData.get_data()
+
+    if not dataStore then
+        return nil
+    end
+
+    return dataStore[LocalPlayer]
+        or dataStore[LocalPlayer.Name]
+end
+
+--==================================================
+-- GET PET AGE FROM CLIENT DATA
+--==================================================
+
+local function GetPetAge(petData)
+    if not petData then
+        return nil
+    end
+
+    local properties = petData.properties
+
+    if not properties then
+        return nil
+    end
+
+    return tonumber(properties.age)
+end
+
+--==================================================
+-- CHECK PET FORM
+--==================================================
+
+local function IsCorrectPetForm(petData)
+    if not petData then
+        return false
+    end
+
+    local properties = petData.properties or {}
+
+    local isNeon = properties.neon == true
+    local isMegaNeon = properties.mega_neon == true
+
+    if Config.PetForm == "neon" then
+        return isNeon and not isMegaNeon
+    end
+
+    -- Normal
+    return not isNeon and not isMegaNeon
+end
+
+--==================================================
+-- GET MATCHING PETS
+--==================================================
+
+local function GetMatchingPets()
+    local playerData = GetPlayerData()
+
+    if not playerData
+        or not playerData.inventory
+        or not playerData.inventory.pets then
+        return {}
+    end
+
+    local matchingPets = {}
+    local targetName = string.lower(Config.Pet)
+
+    for uniqueId, petData in pairs(playerData.inventory.pets) do
+
+        if petData and petData.kind then
+
+            local kindData = KindDB[petData.kind]
+
+            if kindData then
+
+                local displayName = tostring(kindData.name or "")
+
+                if string.lower(displayName) == targetName
+                    and IsCorrectPetForm(petData) then
+
+                    local age = GetPetAge(petData)
+
+                    if age then
+
+                        if age < 6 then
+                            table.insert(matchingPets, {
+                                uniqueId = uniqueId,
+                                age = age
+                            })
+
+                            print(
+                                "[SELECTED]",
+                                displayName,
+                                "| ID:",
+                                uniqueId,
+                                "| Age:",
+                                age
+                            )
+                        else
+                            print(
+                                "[SKIPPED MAX AGE]",
+                                displayName,
+                                "| ID:",
+                                uniqueId,
+                                "| Age:",
+                                age
+                            )
+                        end
+
+                    else
+                        warn(
+                            "[NO AGE DATA]",
+                            displayName,
+                            "| ID:",
+                            uniqueId
+                        )
+                    end
+                end
+            end
+        end
+    end
+
+    return matchingPets
+end
+
+--==================================================
+-- EQUIP ITEM
+--==================================================
+
+local function EquipItem(uniqueId)
+
+    local args = {
+        uniqueId,
+        {
+            use_sound_delay = false,
+            equip_as_last = false
+        }
+    }
+
+    local success, result = pcall(function()
+        return ReplicatedStorage
+            :WaitForChild("API")
+            :WaitForChild("ToolAPI/Equip")
+            :InvokeServer(unpack(args))
+    end)
+
+    if not success then
+        warn(
+            "[EQUIP FAILED]",
+            uniqueId,
+            result
+        )
+
+        return false
+    end
+
+    return true
+end
+
+--==================================================
+-- GET AGE-UP POTIONS
+--==================================================
+
+local function GetAgeUpPotions(maxAmount)
+
+    local playerData = GetPlayerData()
+
+    if not playerData
+        or not playerData.inventory
+        or not playerData.inventory.food then
+        return {}
+    end
+
+    local potionIds = {}
+
+    for uniqueId, itemData in pairs(playerData.inventory.food) do
+
+        if itemData
+            and itemData.kind == "pet_age_potion" then
+
+            table.insert(
+                potionIds,
+                uniqueId
+            )
+
+            if #potionIds >= maxAmount then
+                break
+            end
+        end
+    end
+
+    return potionIds
+end
+
+--==================================================
+-- USE AGE-UP POTIONS
+--==================================================
+
+local function UseAgeUpPotions(petUniqueId)
+
+    local potionIds =
+        GetAgeUpPotions(
+            Config.MaxPotionBatch
+        )
+
+    if #potionIds == 0 then
+        warn(
+            "[NO POTIONS]"
+        )
+
+        return false
+    end
+
+    print("--------------------------------")
+    print(
+        "Using",
+        #potionIds,
+        "Age-Up Potion(s)"
+    )
+
+    local firstPotionId =
+        potionIds[1]
+
+    local additionalPotions = {}
+
+    for i = 2, #potionIds do
+        table.insert(
+            additionalPotions,
+            potionIds[i]
+        )
+    end
+
+    --==================================================
+    -- START AGE-UP POTION
+    --==================================================
+
+    local startSuccess, startResult =
+        pcall(function()
+
+            return ReplicatedStorage
+                :WaitForChild("API")
+                :WaitForChild("ToolAPI/ServerUseTool")
+                :InvokeServer(
+                    firstPotionId,
+                    "START"
+                )
+        end)
+
+    if not startSuccess then
+
+        warn(
+            "[START FAILED]",
+            startResult
+        )
+
+        return false
+    end
+
+    task.wait(0.2)
+
+    --==================================================
+    -- CREATE PET OBJECT
+    --==================================================
+
+    local createSuccess, createResult =
+        pcall(function()
+
+            local args = {
+                "__Enum_PetObjectCreatorType_2",
+
+                {
+                    additional_consume_uniques =
+                        additionalPotions,
+
+                    pet_unique =
+                        petUniqueId,
+
+                    unique_id =
+                        firstPotionId
+                }
+            }
+
+            return ReplicatedStorage
+                :WaitForChild("API")
+                :WaitForChild("PetObjectAPI/CreatePetObject")
+                :InvokeServer(
+                    unpack(args)
+                )
+        end)
+
+    if not createSuccess then
+
+        warn(
+            "[CREATE PET OBJECT FAILED]",
+            createResult
+        )
+
+        return false
+    end
+
+    return true
+end
+
+--==================================================
+-- GET UPDATED PET AGE
+--==================================================
+
+local function GetCurrentPetData(petUniqueId)
+
+    local playerData = GetPlayerData()
+
+    if not playerData
+        or not playerData.inventory
+        or not playerData.inventory.pets then
+        return nil
+    end
+
+    return playerData.inventory.pets[petUniqueId]
+end
+
+--==================================================
+-- WAIT FOR PET AGE UPDATE
+--==================================================
+
+local function WaitForPetAgeUpdate(
+    petUniqueId,
+    oldAge,
+    timeout
+)
+
+    timeout = timeout or 5
+
+    local startTime = tick()
+
+    while tick() - startTime < timeout do
+
+        local petData =
+            GetCurrentPetData(
+                petUniqueId
+            )
+
+        local age =
+            GetPetAge(
+                petData
+            )
+
+        if age
+            and age ~= oldAge then
+
+            return age
+        end
+
+        task.wait(0.15)
+    end
+
+    -- Return current age even if it didn't change
+    local petData =
+        GetCurrentPetData(
+            petUniqueId
+        )
+
+    return GetPetAge(
+        petData
+    )
+end
+
+--==================================================
+-- AGE ONE PET
+--==================================================
+
+local function AgePet(petInfo)
+
+    local petUniqueId =
+        petInfo.uniqueId
+
+    local age =
+        petInfo.age
+
+    print("")
+    print("================================")
+    print(
+        "PROCESSING PET:",
+        petUniqueId
+    )
+    print(
+        "START AGE:",
+        age
+    )
+    print("================================")
+
+    --==================================================
+    -- SAFETY CHECK
+    --==================================================
+
+    if age >= 6 then
+
+        print(
+            "[SKIP] Already age 6:",
+            petUniqueId
+        )
+
+        return true
+    end
+
+    --==================================================
+    -- EQUIP PET
+    --==================================================
+
+    if not EquipItem(
+        petUniqueId
+    ) then
+
+        warn(
+            "Failed to equip:",
+            petUniqueId
+        )
+
+        return false
+    end
+
+    task.wait(0.75)
+
+    --==================================================
+    -- AGE LOOP
+    --==================================================
+
+    while age < 6 do
+
+        print("--------------------------------")
+        print(
+            "Pet:",
+            petUniqueId
+        )
+        print(
+            "Current age:",
+            age
+        )
+        print(
+            "Potion batch:",
+            Config.MaxPotionBatch
+        )
+
+        --==================================================
+        -- USE UP TO 15 POTIONS
+        --==================================================
+
+        local success =
+            UseAgeUpPotions(
+                petUniqueId
+            )
+
+        if not success then
+
+            warn(
+                "Failed to use Age-Up Potions."
+            )
+
+            return false
+        end
+
+        --==================================================
+        -- WAIT FOR SERVER DATA
+        --==================================================
+
+        task.wait(0.75)
+
+        --==================================================
+        -- READ AGE DIRECTLY FROM CLIENT DATA
+        --==================================================
+
+        local newAge =
+            WaitForPetAgeUpdate(
+                petUniqueId,
+                age,
+                5
+            )
+
+        if not newAge then
+
+            warn(
+                "Could not determine new age."
+            )
+
+            return false
+        end
+
+        age = newAge
+
+        print(
+            "[UPDATED AGE]",
+            age
+        )
+
+        --==================================================
+        -- AGE 6 = MAX
+        --==================================================
+
+        if age >= 6 then
+
+            print("--------------------------------")
+            print(
+                "[MAX AGE REACHED]",
+                petUniqueId
+            )
+            print(
+                "Final age:",
+                age
+            )
+            print("--------------------------------")
+
+            break
+        end
+
+        task.wait(
+            Config.FeedDelay
+        )
+    end
+
+    return true
+end
+
+--==================================================
+-- MAIN
+--==================================================
+
+print("")
+print("================================")
+print("AUTO PET AGING")
+print("================================")
+print(
+    "Pet:",
+    Config.Pet
+)
+print(
+    "Form:",
+    Config.PetForm
+)
+print(
+    "Max Potion Batch:",
+    Config.MaxPotionBatch
+)
+print("================================")
+
+--==================================================
+-- FIND ONLY UNMAXED PETS
+--==================================================
+
+local pets =
+    GetMatchingPets()
+
+print("")
+print(
+    "Unmaxed matching pets:",
+    #pets
+)
+
+--==================================================
+-- NO PETS
+--==================================================
+
+if #pets == 0 then
+
+    print(
+        "No unmaxed matching pets found."
+    )
+
+    return
+end
+
+--==================================================
+-- PROCESS PETS
+--==================================================
+
+for index, petInfo in ipairs(pets) do
+
+    print("")
+    print("================================")
+    print(
+        "PET",
+        index,
+        "OF",
+        #pets
+    )
+    print("================================")
+
+    local success =
+        AgePet(
+            petInfo
+        )
+
+    if not success then
+
+        warn(
+            "Stopped because feeding failed."
+        )
+
+        break
+    end
+
+    task.wait(0.5)
+end
+
+--==================================================
+-- FINISHED
+--==================================================
+
+print("")
+print("================================")
+print("AUTO PET AGING FINISHED")
+print("================================")
