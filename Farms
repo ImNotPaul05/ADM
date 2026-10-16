@@ -9,11 +9,11 @@ local teamArgs = {
     "Parents",
     {
         source_for_logging = "intro_sequence",
-        dont_enter_location = true,
+        dont_enter_location = false,
     },
 }
-local teamCallSucceeded, teamCallError = pcall(function()
-    API:WaitForChild("TeamAPI/ChooseTeam"):InvokeServer(unpack(teamArgs))
+local teamCallSucceeded, teamCallError = pcall(function()teamArgs
+    API:WaitForChild("TeamAPI/ChooseTeam"):InvokeServer(unpack())
 end)
 if teamCallSucceeded then
     teamSelectionCompleted = true
@@ -162,7 +162,9 @@ task.spawn(function()
         local isMegaNeon = properties.mega_neon == true
         local formLower = string.lower(tostring(itemForm or ""))
 
-        if formLower == "" or formLower == "normal" then
+        if formLower == "all" then
+            return true
+        elseif formLower == "" or formLower == "normal" then
             return not isNeon and not isMegaNeon
         elseif formLower == "neon" then
             return isNeon and not isMegaNeon
@@ -263,6 +265,7 @@ task.spawn(function()
     -- "normal" = normal pet
     -- "neon"   = neon pet
     -- "mega"   = mega neon pet
+    -- "ALL"    = normal, neon, and mega neon pets
     -- ""       = egg or normal (non-neon) pet
     --
     -- limit = maximum items for one trade
