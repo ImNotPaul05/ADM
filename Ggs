@@ -82,7 +82,7 @@ local INVENTORY_REFRESH_WAIT = 0.15
 local TRADE_WINDOW_WAIT = 0.6
 local OFFER_REGISTER_WAIT = 0.2
 local TRADE_HANDOFF_WAIT = 0.5
-local targetFrameNames = {"Dialog"}
+local targetFrameNames = {"Dialog", "EnclosingFrame"}
 
 -- Remotes / modules
 local addItemRemote =
