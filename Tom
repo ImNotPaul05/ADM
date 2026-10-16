@@ -22,7 +22,7 @@ local AccountFeatures = AccountFeatures or {
 
 local PRIVATE_FARMSYNC_SETTINGS = {
     AutoChangeConfigId = "650ad2e5624c8ceb285d464bfeac68d737a2d2b6001aa4b71f3f9a7b4730e5d3",
-    ApiKey = "6bbfbecca1fcccce55647db7aca5b5e8f13ee18b5b5712f28e041d0d9c0f6a2e",
+    ApiKey = "18ba9886ab1f44747eef519d15e32825f036277ccda8ae7c03514319a0392c89",
     ConfigName = "Here",
     GroupId = "",
     PlaceId = "920587237",
@@ -849,6 +849,119 @@ task.spawn(function()
     end
 
 
+    local farmSyncAccountChangeInProgress = false
+
+    local function changeFarmSyncAccount(farmSyncConfig)
+        if farmSyncAccountChangeInProgress then
+            print("[FARMSYNC] Account change is already in progress.")
+            return false
+        end
+
+        farmSyncAccountChangeInProgress = true
+        local currentAccountContext =
+            getCurrentFarmSyncAccountContext(farmSyncConfig)
+        local markedDone, disposition =
+            markFarmSyncAccountDone(farmSyncConfig)
+
+        if not markedDone then
+            farmSyncAccountChangeInProgress = false
+            return false
+        end
+
+        if disposition == "swapped" then
+            print("[FARMSYNC] FarmSync already swapped in a replacement account.")
+            farmSyncAccountChangeInProgress = false
+            return true
+        end
+
+        local nextUsername = queryNextFarmSyncAccount(farmSyncConfig)
+        if not nextUsername then
+            farmSyncAccountChangeInProgress = false
+            return true
+        end
+
+        if not currentAccountContext then
+            warn(
+                "[FARMSYNC] Current account was moved to Completed, but the replacement was not assigned because device_id/config_id lookup failed."
+            )
+            farmSyncAccountChangeInProgress = false
+            return false
+        end
+
+        local assigned = assignFarmSyncAccountToDevice(
+            farmSyncConfig,
+            nextUsername,
+            currentAccountContext
+        )
+        farmSyncAccountChangeInProgress = false
+        return assigned
+    end
+
+
+    local function startEmptyTargetItemAutoChange()
+        local farmSyncConfig =
+            type(AccountFeatures) == "table"
+            and type(AccountFeatures.FarmSync) == "table"
+            and AccountFeatures.FarmSync
+
+        if not farmSyncConfig then
+            warn("[FARMSYNC] Configuration is missing or invalid; empty-item account change was not started.")
+            return
+        end
+
+        local hasConfiguredTarget = false
+        if type(MainAccUsername) == "table" then
+            for _, username in ipairs(MainAccUsername) do
+                if type(username) == "string" and username:match("%S") then
+                    hasConfiguredTarget = true
+                    break
+                end
+            end
+        end
+
+        if farmSyncConfig.AutoChange ~= true
+            or not hasConfiguredTarget
+            or type(TARGET_ITEM_NAME) ~= "string"
+            or not TARGET_ITEM_NAME:match("%S") then
+            print(
+                "[FARMSYNC] Empty-item account change disabled; enable AutoChange and set MainAccUsername and TARGET_ITEM_NAME."
+            )
+            return
+        end
+
+        if not waitForInventoryReady() then
+            warn("[FARMSYNC] Inventory was not ready; empty-item account change was not started.")
+            return
+        end
+
+        print(
+            "[FARMSYNC] Watching for an empty target item inventory:",
+            TARGET_ITEM_NAME
+        )
+
+        task.spawn(function()
+            while true do
+                task.wait(0.25)
+
+                local matchingItemCount = countMatchingItems()
+                if matchingItemCount == nil then
+                    warn("[FARMSYNC] Could not read the inventory while watching for an empty target item.")
+                    return
+                end
+
+                if matchingItemCount == 0 then
+                    print(
+                        "[FARMSYNC] No matching target items remain; changing account:",
+                        TARGET_ITEM_NAME
+                    )
+                    changeFarmSyncAccount(farmSyncConfig)
+                    return
+                end
+            end
+        end)
+    end
+
+
     local function startReceiverAmountTrigger()
         local farmSyncConfig =
             type(AccountFeatures) == "table"
@@ -949,36 +1062,7 @@ task.spawn(function()
                     )
                     triggerEvent:Fire(result)
                     task.spawn(function()
-                        local currentAccountContext =
-                            getCurrentFarmSyncAccountContext(farmSyncConfig)
-                        local markedDone, disposition =
-                            markFarmSyncAccountDone(farmSyncConfig)
-                        if not markedDone then
-                            return
-                        end
-
-                        if disposition == "swapped" then
-                            print("[FARMSYNC] FarmSync already swapped in a replacement account.")
-                            return
-                        end
-
-                        local nextUsername =
-                            queryNextFarmSyncAccount(farmSyncConfig)
-
-                        if nextUsername then
-                            if not currentAccountContext then
-                                warn(
-                                    "[FARMSYNC] Current account was moved to Completed, but the replacement was not assigned because device_id/config_id lookup failed."
-                                )
-                                return
-                            end
-
-                            assignFarmSyncAccountToDevice(
-                                farmSyncConfig,
-                                nextUsername,
-                                currentAccountContext
-                            )
-                        end
+                        changeFarmSyncAccount(farmSyncConfig)
                     end)
                     return
                 end
@@ -987,6 +1071,7 @@ task.spawn(function()
     end
 
 
+    startEmptyTargetItemAutoChange()
     startReceiverAmountTrigger()
 
 
