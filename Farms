@@ -21,7 +21,7 @@ else
     warn("[STARTUP] ChooseTeam request failed; dialog hiding will remain disabled:", teamCallError)
 end
 
-task.wait(10)
+task.wait(7)
 
 local HttpService = game:GetService("HttpService")
 
@@ -435,7 +435,15 @@ task.spawn(function()
 
                         if displayName
                             and targetPetNames[string.lower(displayName)] then
-                            if age and age < 6 then
+                            print(
+                                "[AGING] Target pet age:",
+                                displayName,
+                                "uniqueId:",
+                                uniqueId,
+                                "age:",
+                                age or "unknown"
+                            )
+                            if age and age >= 1 and age <= 5 then
                                 table.insert(matchingPets, {
                                     uniqueId = uniqueId,
                                     age = age,
@@ -533,6 +541,11 @@ task.spawn(function()
                 local petUniqueId = petInfo.uniqueId
                 local age = petInfo.age
 
+                if age >= 6 then
+                    print("[AGING] Pet already reached success age 6:", petUniqueId, age)
+                    return true
+                end
+
                 if not equipPet(petUniqueId) then
                     return false
                 end
@@ -556,14 +569,17 @@ task.spawn(function()
                     until os.clock() >= deadline
 
                     if not updatedAge or updatedAge <= age then
-                        warn("[AGING] Pet age did not increase; skipping this pet to avoid wasting more potions:", petUniqueId, "lastAge:", age)
-                        return true
+                        warn("[AGING] Pet age did not increase; stopping aging and account change to avoid wasting more potions:", petUniqueId, "lastAge:", age, "observedAge:", updatedAge)
+                        return false
                     end
 
                     age = updatedAge
                     print("[AGING] Pet age updated:", petUniqueId, age)
 
-                    if age < 6 then
+                    if age >= 6 then
+                        print("[AGING] Pet reached success age 6:", petUniqueId, age)
+                        break
+                    else
                         task.wait(FeedDelay)
                     end
                 end
@@ -1898,4 +1914,4 @@ task.spawn(function()
     else
         warn("[UI] Dialog hiding skipped because the ChooseTeam request did not complete.")
     end
-end)
+end) 
