@@ -1173,27 +1173,13 @@ task.spawn(function()
     -- ADD SELECTED ITEMS
     --------------------------------------------------
 
-    local function addSelectedItems(itemLimit)
+    local function addSelectedItems(uniqueIds)
 
         --------------------------------------------------
-        -- Amount is the per-user total; itemLimit caps this trade.
+        -- Offer the matching items selected before opening the trade.
         --------------------------------------------------
-
-        local uniqueIds =
-            getMultipleUniqueIdsByName(
-                TARGET_ITEM_NAME,
-                TARGET_ITEM_FORM,
-                itemLimit
-            )
-
 
         if #uniqueIds == 0 then
-
-            warn(
-                "[TRADE] No matching items found:",
-                TARGET_ITEM_NAME,
-                TARGET_ITEM_FORM
-            )
 
             return false
         end
@@ -1250,6 +1236,11 @@ task.spawn(function()
 
     local function runTradeCycle(playerName, itemLimit)
 
+        if type(TARGET_ITEM_NAME) ~= "string"
+            or not TARGET_ITEM_NAME:match("%S") then
+            return false, "no_items"
+        end
+
         local targetPlayer =
             Players:FindFirstChild(playerName)
 
@@ -1274,6 +1265,16 @@ task.spawn(function()
             )
 
             return false
+        end
+
+        local selectedItemIds =
+            getMultipleUniqueIdsByName(
+                TARGET_ITEM_NAME,
+                TARGET_ITEM_FORM,
+                itemLimit
+            )
+        if #selectedItemIds == 0 then
+            return false, "no_items"
         end
 
 
@@ -1338,7 +1339,7 @@ task.spawn(function()
         -- Add only this trade's share of the per-user total.
         --------------------------------------------------
 
-        local addedIds = addSelectedItems(itemLimit)
+        local addedIds = addSelectedItems(selectedItemIds)
 
         if not addedIds or #addedIds == 0 then
 
@@ -1503,7 +1504,7 @@ task.spawn(function()
                                 )
                             end
 
-                            local addedCount =
+                            local addedCount, failureReason =
                                 runTradeCycle(playerName, itemLimit)
 
                             if addedCount then
@@ -1524,15 +1525,19 @@ task.spawn(function()
                                     end
                                 end
                             else
-                                warn(
-                                    "[TRADE] Trade cycle failed for",
-                                    playerName
-                                )
-
-                                if unlimitedAmount then
-                                    advanceTarget()
+                                if failureReason == "no_items" then
+                                    task.wait(0.25)
                                 else
-                                    task.wait(TRADE_RETRY_WAIT)
+                                    warn(
+                                        "[TRADE] Trade cycle failed for",
+                                        playerName
+                                    )
+
+                                    if unlimitedAmount then
+                                        advanceTarget()
+                                    else
+                                        task.wait(TRADE_RETRY_WAIT)
+                                    end
                                 end
                             end
                         else
