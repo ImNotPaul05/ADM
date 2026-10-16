@@ -4,11 +4,6 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local API = ReplicatedStorage:WaitForChild("API")
 
-if not LocalPlayer.Character then
-    print("[STARTUP] Waiting for you to enter the game from the title screen.")
-    LocalPlayer.CharacterAdded:Wait()
-end
-
 local teamSelectionCompleted = false
 local teamArgs = {
     "Parents",
