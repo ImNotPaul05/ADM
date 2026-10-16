@@ -8,7 +8,7 @@ local LocalPlayer = Players.LocalPlayer
 --==================================================
 
 local Config = {
-    Pet = "Skelicorn",
+    Pet = "Storm Condor",
 
     -- "normal" or "neon"
     PetForm = "normal",
