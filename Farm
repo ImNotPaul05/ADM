@@ -1,5 +1,14 @@
 -- 4Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local API = ReplicatedStorage:WaitForChild("API")
+
+local args = {
+    "spawn_dialog",
+    "Home",
+}
+API:WaitForChild("TradingServerAPI/ButtonPressed"):FireServer(unpack(args))
+API:WaitForChild("MainMenuAPI/AcceptTermsOfServiceAndPrivacyPolicy"):FireServer()
+
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
@@ -10,6 +19,13 @@ local TARGET_ITEM_NAME = TARGET_ITEM_NAME or ""
 local Amount = Amount or "" -- Empty means unlimited; trade through usernames in order.
 local TARGET_ITEM_FORM = TARGET_ITEM_FORM or ""
 local ForceReceiver = ForceReceiver == true
+
+-- Pet Aging Features
+local AgePets = AgePets == true
+local AgeNeons = AgeNeons ~= false
+local PetToAge = PetToAge or {"Dog"}
+local MaxPotionBatch = MaxPotionBatch or 10
+local FeedDelay = FeedDelay or 0.5
 
 local AccountFeatures = AccountFeatures or {
     FarmSync = {
@@ -59,8 +75,6 @@ local TRADE_HANDOFF_WAIT = 0.5
 local targetFrameNames = {"Dialog"}
 
 -- Remotes / modules
-local API = ReplicatedStorage:WaitForChild("API")
-
 local addItemRemote =
     API:WaitForChild("TradeAPI/AddItemToOffer")
 
@@ -310,6 +324,268 @@ task.spawn(function()
         end
 
         return count
+    end
+
+
+    local changeFarmSyncAccount
+
+    local function startPetAging()
+        if AgePets ~= true then
+            return
+        end
+
+        if type(AgeNeons) ~= "boolean"
+            or type(PetToAge) ~= "table"
+            or #PetToAge == 0
+            or type(MaxPotionBatch) ~= "number"
+            or MaxPotionBatch < 1
+            or MaxPotionBatch % 1 ~= 0
+            or type(FeedDelay) ~= "number"
+            or FeedDelay < 0 then
+            warn("[AGING] Invalid pet aging configuration; aging was not started.")
+            return
+        end
+
+        local targetPetNames = {}
+        for _, petName in ipairs(PetToAge) do
+            if type(petName) ~= "string" or not petName:match("%S") then
+                warn("[AGING] PetToAge must contain only non-empty pet names.")
+                return
+            end
+            targetPetNames[string.lower(petName:match("^%s*(.-)%s*$"))] = true
+        end
+
+        local function changeAccountWhenAgingIsComplete()
+            if FarmSyncConfig.AutoChange ~= true then
+                print("[AGING] No target pets remain, but FarmSync AutoChange is disabled.")
+                return
+            end
+
+            task.spawn(function()
+                changeFarmSyncAccount(FarmSyncConfig)
+            end)
+        end
+
+        task.spawn(function()
+            if not waitForInventoryReady() then
+                warn("[AGING] Inventory was not ready; pet aging was not started.")
+                return
+            end
+
+            local function getPlayerData()
+                local dataStore = ClientData.get_data()
+                return dataStore
+                    and (dataStore[LocalPlayer] or dataStore[LocalPlayer.Name])
+            end
+
+            local function getPetAge(petData)
+                local properties = petData and petData.properties
+                return properties and tonumber(properties.age)
+            end
+
+            local function getCurrentPet(petUniqueId)
+                local playerData = getPlayerData()
+                local pets =
+                    playerData
+                    and playerData.inventory
+                    and playerData.inventory.pets
+                return pets and pets[petUniqueId]
+            end
+
+            local function isCorrectForm(petData)
+                local properties = petData.properties or {}
+                local isNeon = properties.neon == true
+                local isMegaNeon = properties.mega_neon == true
+
+                if AgeNeons then
+                    return isNeon and not isMegaNeon
+                end
+                return not isNeon and not isMegaNeon
+            end
+
+            local function getMatchingPets()
+                local playerData = getPlayerData()
+                local pets =
+                    playerData
+                    and playerData.inventory
+                    and playerData.inventory.pets
+                if not pets then
+                    return {}
+                end
+                local matchingPets = {}
+
+                for uniqueId, petData in pairs(pets) do
+                    if petData and petData.kind and isCorrectForm(petData) then
+                        local kindData = KindDB[petData.kind]
+                        local displayName =
+                            kindData and tostring(kindData.name or "")
+                        local age = getPetAge(petData)
+
+                        if displayName
+                            and targetPetNames[string.lower(displayName)] then
+                            if age and age < 6 then
+                                table.insert(matchingPets, {
+                                    uniqueId = uniqueId,
+                                    age = age,
+                                })
+                            elseif not age then
+                                warn("[AGING] Pet has no age data:", uniqueId)
+                            end
+                        end
+                    end
+                end
+
+                return matchingPets
+            end
+
+            local function getAgeUpPotions()
+                local playerData = getPlayerData()
+                local food =
+                    playerData
+                    and playerData.inventory
+                    and playerData.inventory.food
+                if not food then
+                    return {}
+                end
+
+                local potionIds = {}
+                for uniqueId, itemData in pairs(food) do
+                    if itemData and itemData.kind == "pet_age_potion" then
+                        table.insert(potionIds, uniqueId)
+                        if #potionIds >= MaxPotionBatch then
+                            break
+                        end
+                    end
+                end
+                return potionIds
+            end
+
+            local function equipPet(petUniqueId)
+                local success, result = pcall(function()
+                    return API
+                        :WaitForChild("ToolAPI/Equip")
+                        :InvokeServer(petUniqueId, {
+                            use_sound_delay = false,
+                            equip_as_last = false,
+                        })
+                end)
+
+                if not success then
+                    warn("[AGING] Failed to equip pet:", petUniqueId, result)
+                end
+                return success
+            end
+
+            local function useAgeUpPotions(petUniqueId)
+                local potionIds = getAgeUpPotions()
+                if #potionIds == 0 then
+                    warn("[AGING] No Age-Up Potions remain.")
+                    return false
+                end
+
+                local additionalPotions = {}
+                for index = 2, #potionIds do
+                    table.insert(additionalPotions, potionIds[index])
+                end
+
+                local startSuccess, startResult = pcall(function()
+                    return API
+                        :WaitForChild("ToolAPI/ServerUseTool")
+                        :InvokeServer(potionIds[1], "START")
+                end)
+                if not startSuccess then
+                    warn("[AGING] Starting Age-Up Potion failed:", startResult)
+                    return false
+                end
+
+                task.wait(0.2)
+
+                local createSuccess, createResult = pcall(function()
+                    return API
+                        :WaitForChild("PetObjectAPI/CreatePetObject")
+                        :InvokeServer("__Enum_PetObjectCreatorType_2", {
+                            additional_consume_uniques = additionalPotions,
+                            pet_unique = petUniqueId,
+                            unique_id = potionIds[1],
+                        })
+                end)
+                if not createSuccess then
+                    warn("[AGING] Creating Age-Up Potion object failed:", createResult)
+                    return false
+                end
+
+                return true
+            end
+
+            local function agePet(petInfo)
+                local petUniqueId = petInfo.uniqueId
+                local age = petInfo.age
+
+                if not equipPet(petUniqueId) then
+                    return false
+                end
+                task.wait(0.75)
+
+                while age < 6 do
+                    if not useAgeUpPotions(petUniqueId) then
+                        return false
+                    end
+
+                    task.wait(0.75)
+
+                    local deadline = os.clock() + 5
+                    local updatedAge
+                    repeat
+                        updatedAge = getPetAge(getCurrentPet(petUniqueId))
+                        if updatedAge and updatedAge ~= age then
+                            break
+                        end
+                        task.wait(0.15)
+                    until os.clock() >= deadline
+
+                    if not updatedAge or updatedAge <= age then
+                        warn("[AGING] Pet age did not increase; stopping to avoid using more potions:", petUniqueId)
+                        return false
+                    end
+
+                    age = updatedAge
+                    print("[AGING] Pet age updated:", petUniqueId, age)
+
+                    if age < 6 then
+                        task.wait(FeedDelay)
+                    end
+                end
+
+                print("[AGING] Pet reached max age:", petUniqueId)
+                return true
+            end
+
+            local pets = getMatchingPets()
+            print(
+                "[AGING] Unmaxed matching pets:",
+                #pets,
+                table.concat(PetToAge, ", "),
+                AgeNeons and "(neon only)" or "(normal only)"
+            )
+
+            if #pets == 0 then
+                print("[AGING] No unmaxed target pets remain.")
+                changeAccountWhenAgingIsComplete()
+                return
+            end
+
+            for index, petInfo in ipairs(pets) do
+                print("[AGING] Processing pet", index, "of", #pets)
+                if not agePet(petInfo) then
+                    warn("[AGING] Stopped after pet aging failed.")
+                    return
+                end
+                task.wait(0.5)
+            end
+
+            print("[AGING] Pet aging finished.")
+            changeAccountWhenAgingIsComplete()
+        end)
     end
 
 
@@ -849,6 +1125,119 @@ task.spawn(function()
     end
 
 
+    local farmSyncAccountChangeInProgress = false
+
+    changeFarmSyncAccount = function(farmSyncConfig)
+        if farmSyncAccountChangeInProgress then
+            print("[FARMSYNC] Account change is already in progress.")
+            return false
+        end
+
+        farmSyncAccountChangeInProgress = true
+        local currentAccountContext =
+            getCurrentFarmSyncAccountContext(farmSyncConfig)
+        local markedDone, disposition =
+            markFarmSyncAccountDone(farmSyncConfig)
+
+        if not markedDone then
+            farmSyncAccountChangeInProgress = false
+            return false
+        end
+
+        if disposition == "swapped" then
+            print("[FARMSYNC] FarmSync already swapped in a replacement account.")
+            farmSyncAccountChangeInProgress = false
+            return true
+        end
+
+        local nextUsername = queryNextFarmSyncAccount(farmSyncConfig)
+        if not nextUsername then
+            farmSyncAccountChangeInProgress = false
+            return true
+        end
+
+        if not currentAccountContext then
+            warn(
+                "[FARMSYNC] Current account was moved to Completed, but the replacement was not assigned because device_id/config_id lookup failed."
+            )
+            farmSyncAccountChangeInProgress = false
+            return false
+        end
+
+        local assigned = assignFarmSyncAccountToDevice(
+            farmSyncConfig,
+            nextUsername,
+            currentAccountContext
+        )
+        farmSyncAccountChangeInProgress = false
+        return assigned
+    end
+
+
+    local function startEmptyTargetItemAutoChange()
+        local farmSyncConfig =
+            type(AccountFeatures) == "table"
+            and type(AccountFeatures.FarmSync) == "table"
+            and AccountFeatures.FarmSync
+
+        if not farmSyncConfig then
+            warn("[FARMSYNC] Configuration is missing or invalid; empty-item account change was not started.")
+            return
+        end
+
+        local hasConfiguredTarget = false
+        if type(MainAccUsername) == "table" then
+            for _, username in ipairs(MainAccUsername) do
+                if type(username) == "string" and username:match("%S") then
+                    hasConfiguredTarget = true
+                    break
+                end
+            end
+        end
+
+        if farmSyncConfig.AutoChange ~= true
+            or not hasConfiguredTarget
+            or type(TARGET_ITEM_NAME) ~= "string"
+            or not TARGET_ITEM_NAME:match("%S") then
+            print(
+                "[FARMSYNC] Empty-item account change disabled; enable AutoChange and set MainAccUsername and TARGET_ITEM_NAME."
+            )
+            return
+        end
+
+        if not waitForInventoryReady() then
+            warn("[FARMSYNC] Inventory was not ready; empty-item account change was not started.")
+            return
+        end
+
+        print(
+            "[FARMSYNC] Watching for an empty target item inventory:",
+            TARGET_ITEM_NAME
+        )
+
+        task.spawn(function()
+            while true do
+                task.wait(0.25)
+
+                local matchingItemCount = countMatchingItems()
+                if matchingItemCount == nil then
+                    warn("[FARMSYNC] Could not read the inventory while watching for an empty target item.")
+                    return
+                end
+
+                if matchingItemCount == 0 then
+                    print(
+                        "[FARMSYNC] No matching target items remain; changing account:",
+                        TARGET_ITEM_NAME
+                    )
+                    changeFarmSyncAccount(farmSyncConfig)
+                    return
+                end
+            end
+        end)
+    end
+
+
     local function startReceiverAmountTrigger()
         local farmSyncConfig =
             type(AccountFeatures) == "table"
@@ -949,36 +1338,7 @@ task.spawn(function()
                     )
                     triggerEvent:Fire(result)
                     task.spawn(function()
-                        local currentAccountContext =
-                            getCurrentFarmSyncAccountContext(farmSyncConfig)
-                        local markedDone, disposition =
-                            markFarmSyncAccountDone(farmSyncConfig)
-                        if not markedDone then
-                            return
-                        end
-
-                        if disposition == "swapped" then
-                            print("[FARMSYNC] FarmSync already swapped in a replacement account.")
-                            return
-                        end
-
-                        local nextUsername =
-                            queryNextFarmSyncAccount(farmSyncConfig)
-
-                        if nextUsername then
-                            if not currentAccountContext then
-                                warn(
-                                    "[FARMSYNC] Current account was moved to Completed, but the replacement was not assigned because device_id/config_id lookup failed."
-                                )
-                                return
-                            end
-
-                            assignFarmSyncAccountToDevice(
-                                farmSyncConfig,
-                                nextUsername,
-                                currentAccountContext
-                            )
-                        end
+                        changeFarmSyncAccount(farmSyncConfig)
                     end)
                     return
                 end
@@ -987,6 +1347,8 @@ task.spawn(function()
     end
 
 
+    startPetAging()
+    startEmptyTargetItemAutoChange()
     startReceiverAmountTrigger()
 
 
@@ -1088,27 +1450,13 @@ task.spawn(function()
     -- ADD SELECTED ITEMS
     --------------------------------------------------
 
-    local function addSelectedItems(itemLimit)
+    local function addSelectedItems(uniqueIds)
 
         --------------------------------------------------
-        -- Amount is the per-user total; itemLimit caps this trade.
+        -- Offer the matching items selected before opening the trade.
         --------------------------------------------------
-
-        local uniqueIds =
-            getMultipleUniqueIdsByName(
-                TARGET_ITEM_NAME,
-                TARGET_ITEM_FORM,
-                itemLimit
-            )
-
 
         if #uniqueIds == 0 then
-
-            warn(
-                "[TRADE] No matching items found:",
-                TARGET_ITEM_NAME,
-                TARGET_ITEM_FORM
-            )
 
             return false
         end
@@ -1165,6 +1513,11 @@ task.spawn(function()
 
     local function runTradeCycle(playerName, itemLimit)
 
+        if type(TARGET_ITEM_NAME) ~= "string"
+            or not TARGET_ITEM_NAME:match("%S") then
+            return false, "no_items"
+        end
+
         local targetPlayer =
             Players:FindFirstChild(playerName)
 
@@ -1189,6 +1542,16 @@ task.spawn(function()
             )
 
             return false
+        end
+
+        local selectedItemIds =
+            getMultipleUniqueIdsByName(
+                TARGET_ITEM_NAME,
+                TARGET_ITEM_FORM,
+                itemLimit
+            )
+        if #selectedItemIds == 0 then
+            return false, "no_items"
         end
 
 
@@ -1253,7 +1616,7 @@ task.spawn(function()
         -- Add only this trade's share of the per-user total.
         --------------------------------------------------
 
-        local addedIds = addSelectedItems(itemLimit)
+        local addedIds = addSelectedItems(selectedItemIds)
 
         if not addedIds or #addedIds == 0 then
 
@@ -1418,7 +1781,7 @@ task.spawn(function()
                                 )
                             end
 
-                            local addedCount =
+                            local addedCount, failureReason =
                                 runTradeCycle(playerName, itemLimit)
 
                             if addedCount then
@@ -1439,15 +1802,19 @@ task.spawn(function()
                                     end
                                 end
                             else
-                                warn(
-                                    "[TRADE] Trade cycle failed for",
-                                    playerName
-                                )
-
-                                if unlimitedAmount then
-                                    advanceTarget()
+                                if failureReason == "no_items" then
+                                    task.wait(0.25)
                                 else
-                                    task.wait(TRADE_RETRY_WAIT)
+                                    warn(
+                                        "[TRADE] Trade cycle failed for",
+                                        playerName
+                                    )
+
+                                    if unlimitedAmount then
+                                        advanceTarget()
+                                    else
+                                        task.wait(TRADE_RETRY_WAIT)
+                                    end
                                 end
                             end
                         else
