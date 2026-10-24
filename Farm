@@ -28,6 +28,41 @@ local HttpService = game:GetService("HttpService")
 -- Configuration
 local MainAccUsername = MainAccUsername or {""}
 local TARGET_ITEM_NAME = TARGET_ITEM_NAME or ""
+local TARGET_ITEM_NAMES = {}
+local targetItemNamesValid = true
+
+-- TARGET_ITEM_NAME accepts one name or a list, for example {"Dog", "Cat"}.
+if type(TARGET_ITEM_NAME) == "string" then
+    local itemName = TARGET_ITEM_NAME:match("^%s*(.-)%s*$")
+    if itemName ~= "" then
+        table.insert(TARGET_ITEM_NAMES, itemName)
+    else
+        warn("[TRADE] Set TARGET_ITEM_NAME to an item name or a non-empty list of item names.")
+        targetItemNamesValid = false
+    end
+elseif type(TARGET_ITEM_NAME) == "table" then
+    for index, itemName in ipairs(TARGET_ITEM_NAME) do
+        if type(itemName) == "string"
+            and itemName:match("%S") then
+            table.insert(
+                TARGET_ITEM_NAMES,
+                itemName:match("^%s*(.-)%s*$")
+            )
+        else
+            warn("[TRADE] TARGET_ITEM_NAME entries must be non-empty strings. Invalid entry at index:", index)
+            targetItemNamesValid = false
+        end
+    end
+
+    if #TARGET_ITEM_NAMES == 0 then
+        warn("[TRADE] TARGET_ITEM_NAME must contain at least one item name.")
+        targetItemNamesValid = false
+    end
+else
+    warn("[TRADE] TARGET_ITEM_NAME must be a string or a list of strings.")
+    targetItemNamesValid = false
+end
+
 local Amount = Amount or "" -- Empty means unlimited; trade through usernames in order.
 local TARGET_ITEM_FORM = TARGET_ITEM_FORM or ""
 local ForceReceiver = ForceReceiver == true
@@ -176,6 +211,17 @@ task.spawn(function()
     end
 
 
+    local function matchesAnyTargetItem(itemData)
+        for _, itemName in ipairs(TARGET_ITEM_NAMES) do
+            if matchesItemForm(itemData, itemName, TARGET_ITEM_FORM) then
+                return true
+            end
+        end
+
+        return false
+    end
+
+
     local function refreshPetEgg()
         local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
 
@@ -271,7 +317,7 @@ task.spawn(function()
     -- limit = maximum items for one trade
     --------------------------------------------------
 
-    local function getMultipleUniqueIdsByName(itemName, itemForm, limit)
+    local function getMultipleUniqueIds(limit)
 
         local dataStore = ClientData.get_data()
 
@@ -290,7 +336,7 @@ task.spawn(function()
 
         for uniqueId, itemData in pairs(playerData.inventory.pets) do
 
-            if matchesItemForm(itemData, itemName, itemForm)
+            if matchesAnyTargetItem(itemData)
                 and not offeredItemIds[uniqueId] then
 
                 table.insert(
@@ -329,11 +375,7 @@ task.spawn(function()
 
         local count = 0
         for _, itemData in pairs(pets) do
-            if matchesItemForm(
-                itemData,
-                TARGET_ITEM_NAME,
-                TARGET_ITEM_FORM
-            ) then
+            if matchesAnyTargetItem(itemData) then
                 count += 1
             end
         end
@@ -649,10 +691,13 @@ task.spawn(function()
             return false
         end
 
+        local petThresholds = {}
+        for _, itemName in ipairs(TARGET_ITEM_NAMES) do
+            petThresholds[itemName] = amount
+        end
+
         local changeData = HttpService:JSONEncode({
-            pets = {
-                [TARGET_ITEM_NAME] = amount,
-            },
+            pets = petThresholds,
         })
 
         local requestBody = HttpService:JSONEncode({
@@ -705,7 +750,7 @@ task.spawn(function()
 
         print(
             "[FARMSYNC] AutoChange condition updated:",
-            TARGET_ITEM_NAME,
+            table.concat(TARGET_ITEM_NAMES, ", "),
             amount
         )
         return true
@@ -1228,8 +1273,7 @@ task.spawn(function()
 
         if farmSyncConfig.AutoChange ~= true
             or not hasConfiguredTarget
-            or type(TARGET_ITEM_NAME) ~= "string"
-            or not TARGET_ITEM_NAME:match("%S") then
+            or not targetItemNamesValid then
             print(
                 "[FARMSYNC] Empty-item account change disabled; enable AutoChange and set MainAccUsername and TARGET_ITEM_NAME."
             )
@@ -1243,7 +1287,7 @@ task.spawn(function()
 
         print(
             "[FARMSYNC] Watching for an empty target item inventory:",
-            TARGET_ITEM_NAME
+            table.concat(TARGET_ITEM_NAMES, ", ")
         )
 
         task.spawn(function()
@@ -1259,7 +1303,7 @@ task.spawn(function()
                 if matchingItemCount == 0 then
                     print(
                         "[FARMSYNC] No matching target items remain; changing account:",
-                        TARGET_ITEM_NAME
+                        table.concat(TARGET_ITEM_NAMES, ", ")
                     )
                     changeFarmSyncAccount(farmSyncConfig)
                     return
@@ -1284,6 +1328,11 @@ task.spawn(function()
             print(
                 "[RECEIVER] Amount trigger disabled; AutoChange and ForceReceiver must both be true."
             )
+            return
+        end
+
+        if not targetItemNamesValid then
+            warn("[RECEIVER] Invalid TARGET_ITEM_NAME; amount trigger was not started.")
             return
         end
 
@@ -1336,7 +1385,7 @@ task.spawn(function()
         print(
             "[RECEIVER] Watching for",
             amountLimit,
-            TARGET_ITEM_NAME,
+            table.concat(TARGET_ITEM_NAMES, ", "),
             "items; current matching count:",
             baselineCount
         )
@@ -1353,7 +1402,11 @@ task.spawn(function()
                 if receivedCount and receivedCount >= amountLimit then
                     local result = {
                         playerName = LocalPlayer.Name,
-                        itemName = TARGET_ITEM_NAME,
+                        itemName =
+                            #TARGET_ITEM_NAMES == 1
+                            and TARGET_ITEM_NAMES[1]
+                            or nil,
+                        itemNames = TARGET_ITEM_NAMES,
                         itemForm = TARGET_ITEM_FORM,
                         amount = amountLimit,
                         baselineCount = baselineCount,
@@ -1365,7 +1418,7 @@ task.spawn(function()
                     print(
                         "[RECEIVER] Amount trigger reached or passed:",
                         result.receivedCount,
-                        TARGET_ITEM_NAME
+                        table.concat(TARGET_ITEM_NAMES, ", ")
                     )
                     triggerEvent:Fire(result)
                     task.spawn(function()
@@ -1530,7 +1583,7 @@ task.spawn(function()
             "[TRADE] Added",
             #addedIds,
             "items in this trade for",
-            TARGET_ITEM_NAME
+            table.concat(TARGET_ITEM_NAMES, ", ")
         )
 
 
@@ -1544,8 +1597,7 @@ task.spawn(function()
 
     local function runTradeCycle(playerName, itemLimit)
 
-        if type(TARGET_ITEM_NAME) ~= "string"
-            or not TARGET_ITEM_NAME:match("%S") then
+        if not targetItemNamesValid then
             return false, "no_items"
         end
 
@@ -1576,11 +1628,7 @@ task.spawn(function()
         end
 
         local selectedItemIds =
-            getMultipleUniqueIdsByName(
-                TARGET_ITEM_NAME,
-                TARGET_ITEM_FORM,
-                itemLimit
-            )
+            getMultipleUniqueIds(itemLimit)
         if #selectedItemIds == 0 then
             return false, "no_items"
         end
